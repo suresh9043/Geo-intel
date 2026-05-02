@@ -215,6 +215,21 @@ export async function getDashboardStats(companyId: string, days = 30) {
   return { visibility, rank, mentionCount, totalResponses: total, shareOfVoice, availableModels, lastRunAt: lastRun?.completed_at || null }
 }
 
+export async function getResponses(companyId: string, limit = 20) {
+  const { data, error } = await supabase
+    .from('raw_responses')
+    .select(`
+      id, response_text, requested_model, provider, status, created_at, latency_ms,
+      prompts ( text )
+    `)
+    .eq('company_id', companyId)
+    .eq('status', 'success')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return data || []
+}
+
 export async function getRankings(companyId: string) {
   const { data: company } = await supabase.from('companies').select('name').eq('id', companyId).single()
   const { data: competitors } = await supabase.from('competitors').select('name').eq('company_id', companyId)

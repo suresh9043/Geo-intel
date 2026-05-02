@@ -11,7 +11,8 @@ import { MentionsCoverage } from "@/components/mentions-coverage"
 import { ShareOfVoice } from "@/components/share-of-voice"
 import { SetupWizard } from "@/components/setup-wizard"
 import { useAuth } from "@/lib/auth-context"
-import { getCompanies, getDashboardStats, getRankings } from "@/lib/queries"
+import { getCompanies, getDashboardStats, getRankings, getResponses } from "@/lib/queries"
+import { ResponseFeed } from "@/components/response-feed"
 
 function formatLastRun(iso: string | null) {
   if (!iso) return "Never"
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [rankings, setRankings] = useState<any[]>([])
+  const [responses, setResponses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Redirect if not logged in
@@ -65,12 +67,14 @@ export default function DashboardPage() {
     if (!selectedCompanyId) return
     setLoading(true)
     try {
-      const [statsData, rankingsData] = await Promise.all([
+      const [statsData, rankingsData, responsesData] = await Promise.all([
         getDashboardStats(selectedCompanyId, days),
         getRankings(selectedCompanyId),
+        getResponses(selectedCompanyId),
       ])
       setStats(statsData)
       setRankings(rankingsData)
+      setResponses(responsesData)
     } catch (err) {
       console.error("Failed to fetch dashboard data:", err)
     } finally {
@@ -229,8 +233,9 @@ export default function DashboardPage() {
                     <ShareOfVoice data={stats?.shareOfVoice || []} />
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
                   <RankingTable data={rankings} />
+                  <ResponseFeed responses={responses} />
                 </div>
               </div>
             </>
