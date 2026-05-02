@@ -2,60 +2,52 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { useRouter } from "next/navigation"
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-}
+import { supabase } from "./supabase"
+import type { User, Session } from "@supabase/supabase-js"
 
 interface AuthContextType {
   user: User | null
-  token: string | null
+  session: Session | null
   loading: boolean
-  login: (token: string, user: User) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, token: null, loading: true,
-  login: () => {}, logout: () => {},
+  user: null, session: null, loading: true,
+  logout: async () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    const stored = localStorage.getItem("geo_token")
-    const storedUser = localStorage.getItem("geo_user")
-    if (stored && storedUser) {
-      setToken(stored)
-      setUser(JSON.parse(storedUser))
-    }
-    setLoading(false)
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const login = (token: string, user: User) => {
-    localStorage.setItem("geo_token", token)
-    localStorage.setItem("geo_user", JSON.stringify(user))
-    setToken(token)
-    setUser(user)
-  }
-
-  const logout = () => {
-    localStorage.removeItem("geo_token")
-    localStorage.removeItem("geo_user")
-    setToken(null)
-    setUser(null)
+  const logout = async () => {
+    await supabase.auth.signOut()
     router.push("/auth")
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, session, loading, logout }}>
       {children}
     </AuthContext.Provider>
   )

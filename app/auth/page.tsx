@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Radio, ArrowRight, Loader2 } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
+import { supabase } from "@/lib/supabase"
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login")
@@ -12,7 +12,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,26 +19,21 @@ export default function AuthPage() {
     setError("")
     setLoading(true)
 
-    const endpoint = mode === "signup" ? "/api/auth/register" : "/api/auth/login"
-    const body = mode === "signup" ? { name, email, password } : { email, password }
-
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || "Something went wrong")
-        return
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name } },
+        })
+        if (error) throw error
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) throw error
       }
-
-      login(data.token, data.user)
       router.push("/dashboard")
-    } catch {
-      setError("Could not connect to server. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Something went wrong")
     } finally {
       setLoading(false)
     }
@@ -79,39 +73,18 @@ export default function AuthPage() {
             {mode === "signup" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", letterSpacing: "0.04em" }}>NAME</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                  style={inputStyle}
-                />
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" required style={inputStyle} />
               </div>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", letterSpacing: "0.04em" }}>EMAIL</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                required
-                style={inputStyle}
-              />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" required style={inputStyle} />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", letterSpacing: "0.04em" }}>PASSWORD</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder={mode === "signup" ? "Min. 8 characters" : "Your password"}
-                required
-                style={inputStyle}
-              />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={mode === "signup" ? "Min. 6 characters" : "Your password"} required style={inputStyle} />
             </div>
 
             {error && (
