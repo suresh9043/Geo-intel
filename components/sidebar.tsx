@@ -95,17 +95,19 @@ export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, on
               >
                 <Building2 className="h-4 w-4 flex-shrink-0" />
                 <span className="flex-1 truncate">{company.name}</span>
-                <button
-                  onClick={(e) => handleDelete(e, company.id, company.name)}
-                  disabled={deletingId === company.id}
-                  className="ml-auto hidden flex-shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:block transition-colors disabled:opacity-50"
-                  title="Delete company"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-                {selectedCompanyId === company.id && (
-                  <ChevronRight className="h-4 w-4 flex-shrink-0 group-hover:hidden" />
-                )}
+                <div className="ml-auto flex flex-shrink-0 items-center gap-1">
+                  {selectedCompanyId === company.id && (
+                    <ChevronRight className="h-4 w-4 text-primary" />
+                  )}
+                  <button
+                    onClick={(e) => handleDelete(e, company.id, company.name)}
+                    disabled={deletingId === company.id}
+                    className="hidden rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:block transition-colors disabled:opacity-50"
+                    title="Delete company"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             ))
           )}
