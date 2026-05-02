@@ -17,6 +17,7 @@ function AuthModal({ mode: initialMode, onClose }: { mode: "login" | "signup", o
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [checkEmail, setCheckEmail] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,13 +26,16 @@ function AuthModal({ mode: initialMode, onClose }: { mode: "login" | "signup", o
     setLoading(true)
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } })
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name } } })
         if (error) throw error
+        // If no session, email confirmation is required
+        if (!data.session) { setCheckEmail(true); return }
+        router.push("/dashboard")
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        router.push("/dashboard")
       }
-      router.push("/dashboard")
     } catch (err: any) {
       setError(err.message || "Something went wrong")
     } finally {
@@ -51,7 +55,21 @@ function AuthModal({ mode: initialMode, onClose }: { mode: "login" | "signup", o
           <X size={18} />
         </button>
 
-        <div style={{ marginBottom:24, textAlign:"center" }}>
+        {/* Check email confirmation screen */}
+        {checkEmail && (
+          <div style={{ textAlign:"center", padding:"16px 0" }}>
+            <div style={{ fontSize:40, marginBottom:16 }}>📬</div>
+            <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.03em", marginBottom:10 }}>Check your email</h2>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.6, marginBottom:24 }}>
+              We sent a confirmation link to <span style={{ color:"#2DD4BF", fontWeight:600 }}>{email}</span>. Click the link to activate your account and sign in.
+            </p>
+            <button onClick={onClose} style={{ padding:"10px 24px", borderRadius:8, background:"#2DD4BF", color:"#0a0a0f", fontWeight:700, fontSize:14, border:"none", cursor:"pointer" }}>
+              Got it
+            </button>
+          </div>
+        )}
+
+        {!checkEmail && <div style={{ marginBottom:24, textAlign:"center" }}>
           <h2 style={{ fontSize:22, fontWeight:800, color:"#fff", letterSpacing:"-0.03em", marginBottom:6 }}>
             {mode === "login" ? "Welcome back" : "Create your account"}
           </h2>
@@ -96,6 +114,7 @@ function AuthModal({ mode: initialMode, onClose }: { mode: "login" | "signup", o
             {mode === "login" ? "Sign up" : "Sign in"}
           </button>
         </p>
+        </div>}
       </div>
       <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} } input::placeholder{color:rgba(255,255,255,0.2)} input:focus{outline:none;border-color:#2DD4BF!important}`}</style>
     </div>
