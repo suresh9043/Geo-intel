@@ -158,6 +158,15 @@ export default function DashboardPage() {
         selectedCompanyId={selectedCompanyId || undefined}
         onSelectCompany={setSelectedCompanyId}
         onCreateNew={() => setShowSetup(true)}
+        onDeleteCompany={(id) => {
+          const remaining = companies.filter(c => c.id !== id)
+          setCompanies(remaining)
+          if (selectedCompanyId === id) {
+            setSelectedCompanyId(remaining.length > 0 ? remaining[0].id : null)
+            setStats(null)
+            setRankings([])
+          }
+        }}
       />
 
       <main className="flex flex-1 flex-col overflow-hidden">

@@ -1,8 +1,9 @@
 "use client"
 
-import { BarChart3, Globe, Building2, ChevronRight, Quote, LogOut, Plus } from "lucide-react"
+import { BarChart3, Globe, Building2, ChevronRight, Quote, LogOut, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
+import { deleteCompany } from "@/lib/queries"
 
 const navItems = [
   { id: "visibility", label: "AI Visibility Dashboard", icon: BarChart3 },
@@ -15,11 +16,27 @@ interface SidebarProps {
   selectedCompanyId?: string
   onSelectCompany?: (id: string) => void
   onCreateNew?: () => void
+  onDeleteCompany?: (id: string) => void
 }
 
-export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, onCreateNew }: SidebarProps) {
+export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, onCreateNew, onDeleteCompany }: SidebarProps) {
   const [selectedNav, setSelectedNav] = useState("visibility")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const { user, logout } = useAuth()
+
+  const handleDelete = async (e: React.MouseEvent, companyId: string, companyName: string) => {
+    e.stopPropagation()
+    if (!confirm(`Delete "${companyName}"? This will remove all tracking data and cannot be undone.`)) return
+    setDeletingId(companyId)
+    try {
+      await deleteCompany(companyId)
+      onDeleteCompany?.(companyId)
+    } catch (err) {
+      console.error("Delete failed:", err)
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User"
   const email = user?.email || ""
@@ -67,19 +84,29 @@ export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, on
             <p className="px-3 py-2 text-xs text-muted-foreground">No companies yet</p>
           ) : companies.length > 0 && (
             companies.map((company) => (
-              <button
+              <div
                 key={company.id}
-                onClick={() => onSelectCompany?.(company.id)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`group flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
                   selectedCompanyId === company.id
                     ? "bg-primary/10 text-primary"
                     : "text-card-foreground hover:bg-muted"
                 }`}
+                onClick={() => onSelectCompany?.(company.id)}
               >
-                <Building2 className="h-4 w-4" />
-                {company.name}
-                {selectedCompanyId === company.id && <ChevronRight className="ml-auto h-4 w-4" />}
-              </button>
+                <Building2 className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1 truncate">{company.name}</span>
+                {selectedCompanyId === company.id && deletingId !== company.id && (
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 group-hover:hidden" />
+                )}
+                <button
+                  onClick={(e) => handleDelete(e, company.id, company.name)}
+                  disabled={deletingId === company.id}
+                  className="hidden flex-shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex transition-colors disabled:opacity-50"
+                  title="Delete company"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))
           )}
         </div>

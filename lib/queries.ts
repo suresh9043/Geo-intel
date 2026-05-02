@@ -34,6 +34,11 @@ export async function getCompanyWithDetails(companyId: string) {
   }
 }
 
+export async function deleteCompany(companyId: string) {
+  const { error } = await supabase.from('companies').delete().eq('id', companyId)
+  if (error) throw error
+}
+
 export async function saveCompany(userId: string, payload: {
   name: string
   url: string
