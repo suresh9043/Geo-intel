@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createRun, updateRunStatus, saveResponse } from '@/lib/queries'
 
 const MODEL_SLUGS: Record<string, string> = {
   'GPT-5.3': 'openai/gpt-5.3-chat',
@@ -10,6 +9,13 @@ const MODEL_SLUGS: Record<string, string> = {
   'Claude Haiku 4.5': 'anthropic/claude-haiku-4.5',
   'Sonar': 'perplexity/sonar',
   'Gemini 3 Flash': 'google/gemini-3-flash-preview',
+}
+
+function getServiceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
 
 async function queryOpenRouter(prompt: string, modelSlug: string) {
@@ -33,8 +39,8 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
       signal: controller.signal,
     })
     clearTimeout(timeout)
-
     const latencyMs = Date.now() - start
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       return { ok: false, error: err?.error?.message || `HTTP ${res.status}`, latencyMs }
@@ -43,7 +49,7 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
     const data = await res.json()
     return {
       ok: true,
-      text: data.choices[0].message.content,
+      text: data.choices[0]?.message?.content || '',
       resolvedModel: data.model,
       inputTokens: data.usage?.prompt_tokens || 0,
       outputTokens: data.usage?.completion_tokens || 0,
@@ -57,40 +63,29 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const db = getServiceClient()
+
   try {
     const { companyId } = await req.json()
     if (!companyId) return NextResponse.json({ error: 'companyId required' }, { status: 400 })
 
-    // Use service role to bypass RLS for server-side writes
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-
-    // Fetch company prompts and models
-    const [promptsRes, modelsRes] = await Promise.all([
-      supabase.from('prompts').select('id, text').eq('company_id', companyId).eq('is_active', true),
-      supabase.from('tracked_models').select('id, provider, model_slug').eq('company_id', companyId).eq('is_active', true),
+    // Fetch prompts and models
+    const [{ data: prompts, error: pe }, { data: models, error: me }] = await Promise.all([
+      db.from('prompts').select('id, text').eq('company_id', companyId).eq('is_active', true),
+      db.from('tracked_models').select('id, provider, model_slug').eq('company_id', companyId).eq('is_active', true),
     ])
 
-    const prompts = promptsRes.data || []
-    const models = modelsRes.data || []
-
-    if (prompts.length === 0 || models.length === 0) {
-      return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
-    }
+    if (pe) return NextResponse.json({ error: pe.message }, { status: 500 })
+    if (me) return NextResponse.json({ error: me.message }, { status: 500 })
+    if (!prompts?.length || !models?.length) return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
 
     // Create run
-    const runId = await createRun(companyId)
-    await updateRunStatus(runId, 'in_progress')
+    const { data: run, error: re } = await db.from('runs').insert({ company_id: companyId, status: 'in_progress', started_at: new Date().toISOString() }).select('id').single()
+    if (re) return NextResponse.json({ error: re.message }, { status: 500 })
+    const runId = run.id
 
     // Build task queue
-    const tasks: { prompt: typeof prompts[0]; model: typeof models[0] }[] = []
-    for (const prompt of prompts) {
-      for (const model of models) {
-        tasks.push({ prompt, model })
-      }
-    }
+    const tasks = prompts.flatMap(prompt => models!.map(model => ({ prompt, model })))
 
     // Process with concurrency limit of 5
     const CONCURRENCY = 5
@@ -100,25 +95,27 @@ export async function POST(req: NextRequest) {
         const slug = MODEL_SLUGS[model.model_slug] || model.model_slug
         const result = await queryOpenRouter(prompt.text, slug)
 
-        await saveResponse({
-          runId,
-          companyId,
-          promptId: prompt.id,
-          trackedModelId: model.id,
+        await db.from('raw_responses').insert({
+          run_id: runId,
+          company_id: companyId,
+          prompt_id: prompt.id,
+          tracked_model_id: model.id,
           provider: model.provider,
-          requestedModel: model.model_slug,
-          resolvedModel: result.ok ? (result as any).resolvedModel : model.model_slug,
-          responseText: result.ok ? (result as any).text : `Error: ${(result as any).error}`,
-          rawResponse: result.ok ? (result as any).raw : { error: (result as any).error },
+          requested_model: model.model_slug,
+          resolved_model: result.ok ? (result as any).resolvedModel : model.model_slug,
+          response_text: result.ok ? (result as any).text : `Error: ${(result as any).error}`,
+          raw_response: result.ok ? (result as any).raw : { error: (result as any).error },
           status: result.ok ? 'success' : 'error',
-          inputTokens: result.ok ? (result as any).inputTokens : 0,
-          outputTokens: result.ok ? (result as any).outputTokens : 0,
-          latencyMs: (result as any).latencyMs || 0,
+          input_tokens: result.ok ? (result as any).inputTokens : 0,
+          output_tokens: result.ok ? (result as any).outputTokens : 0,
+          latency_ms: (result as any).latencyMs || 0,
         })
       }))
     }
 
-    await updateRunStatus(runId, 'completed')
+    // Mark run complete
+    await db.from('runs').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', runId)
+
     return NextResponse.json({ success: true, runId })
 
   } catch (err: any) {
