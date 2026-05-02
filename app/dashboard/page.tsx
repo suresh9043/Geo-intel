@@ -106,11 +106,11 @@ export default function DashboardPage() {
 
       {/* Setup wizard modal */}
       {showSetup && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-6">
-          <div className="relative w-full max-w-3xl rounded-xl bg-background shadow-2xl my-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+          <div className="relative flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-background shadow-2xl">
             <button
               onClick={() => setShowSetup(false)}
-              className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors z-10"
+              className="absolute right-4 top-4 z-10 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
