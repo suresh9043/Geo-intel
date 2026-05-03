@@ -279,39 +279,43 @@ export default function LandingPage() {
       </div>
       </section>
 
-      {/* How it works */}
-      <section style={{ padding: "0 32px 64px", maxWidth: 820, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
+      {/* How it works — horizontal steps */}
+      <section style={{ padding: "0 5% 56px", maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>How it works</div>
-          <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>From invisible to cited — in one afternoon</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>From invisible to cited — in one afternoon</h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {STEPS.map(s => (
-            <div key={s.n} style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: "20px 22px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#3B5BDB", letterSpacing: "0.08em", marginBottom: 8 }}>{s.n}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#111827", marginBottom: 6 }}>{s.title}</div>
+        <div style={{ display: "flex", gap: 0, position: "relative" }}>
+          {/* connecting line */}
+          <div style={{ position: "absolute", top: 20, left: "12.5%", right: "12.5%", height: 1, background: "#e5e7eb", zIndex: 0 }} />
+          {STEPS.map((s, i) => (
+            <div key={s.n} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 20px", position: "relative", zIndex: 1 }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#3B5BDB", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginBottom: 16, flexShrink: 0, border: "3px solid white", boxShadow: "0 0 0 1px #e5e7eb" }}>{s.n}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 6 }}>{s.title}</div>
               <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>{s.body}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section style={{ padding: "0 32px 64px", maxWidth: 820, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
+      {/* Features — alternating list layout */}
+      <section style={{ padding: "0 5% 56px", maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Features</div>
-          <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>Everything you need to win AI search</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>Everything you need to win AI search</h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {FEATURES.map(f => {
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+          {FEATURES.map((f, i) => {
             const Icon = f.icon
             return (
-              <div key={f.title} style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: "20px 22px" }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eef1fd", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-                  <Icon size={15} color="#3B5BDB" />
+              <div key={f.title} style={{ display: "flex", gap: 16, padding: "20px 24px", background: i % 2 === 0 ? "white" : "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 0, ...(i === 0 ? { borderRadius: "12px 0 0 0" } : i === 1 ? { borderRadius: "0 12px 0 0" } : i === 2 ? { borderRadius: "0 0 0 12px" } : { borderRadius: "0 0 12px 0" }) }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#eef1fd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon size={16} color="#3B5BDB" />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827", marginBottom: 5 }}>{f.title}</div>
-                <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>{f.body}</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 5 }}>{f.title}</div>
+                  <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>{f.body}</div>
+                </div>
               </div>
             )
           })}

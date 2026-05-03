@@ -49,7 +49,7 @@ function findContentPaths(links: string[]): Record<string, string[]> {
 }
 
 async function discoverAndFetchContent(domain: string): Promise<{ pages: Record<string, string>; foundPaths: Record<string, string[]>; discoveredLinks: string[] }> {
-  const base = \`https://\${domain.replace(/^https?:\/\//, "").split("/")[0]}\`
+  const base = "https://" + domain.replace(/^https?:///, "").split("/")[0];
   
   const homepageRaw = await fetch(base, {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; GeoIntelBot/1.0)" },
