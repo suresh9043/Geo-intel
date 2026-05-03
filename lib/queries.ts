@@ -208,7 +208,7 @@ export async function getVisibilityPerRun(companyId: string) {
   return results
 }
 
-export async function getDashboardStats(companyId: string, days = 30) {
+export async function getDashboardStats(companyId: string, days = 30, model = 'all') {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 
   // Get company name and competitors
@@ -217,14 +217,18 @@ export async function getDashboardStats(companyId: string, days = 30) {
   const companyName = company?.name || ''
   const competitorNames = competitors?.map(c => c.name) || []
 
-  // Get all successful responses in period
-  const { data: responses } = await supabase
+  // Get all successful responses in period, optionally filtered by model
+  let query = supabase
     .from('raw_responses')
     .select('response_text, requested_model, provider, created_at')
     .eq('company_id', companyId)
     .eq('status', 'success')
     .gte('created_at', since)
     .not('response_text', 'is', null)
+
+  if (model && model !== 'all') query = query.eq('requested_model', model)
+
+  const { data: responses } = await query
 
   const total = responses?.length || 0
   if (total === 0) return { visibility: 0, rank: null, mentionCount: 0, totalResponses: 0, shareOfVoice: [], availableModels: [], lastRunAt: null }

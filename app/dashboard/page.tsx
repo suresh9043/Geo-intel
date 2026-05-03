@@ -38,6 +38,7 @@ interface Stats {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const [selectedModel, setSelectedModel] = useState("all")
   const [selectedRange, setSelectedRange] = useState("Last 30 days")
   const [days, setDays] = useState(30)
   const [showSetup, setShowSetup] = useState(false)
@@ -71,7 +72,7 @@ export default function DashboardPage() {
     setLoading(true)
     try {
       const [statsData, rankingsData, responsesData, visibilityRunsData] = await Promise.all([
-        getDashboardStats(selectedCompanyId, days),
+        getDashboardStats(selectedCompanyId, days, selectedModel),
         getRankings(selectedCompanyId),
         getResponses(selectedCompanyId),
         getVisibilityPerRun(selectedCompanyId),
@@ -85,7 +86,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedCompanyId, days])
+  }, [selectedCompanyId, days, selectedModel])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -183,10 +184,10 @@ export default function DashboardPage() {
       <main className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader
           models={stats?.availableModels || []}
-          selectedModel="all"
+          selectedModel={selectedModel}
           selectedRange={selectedRange}
           lastTracked={formatLastRun(stats?.lastRunAt || null)}
-          onModelChange={() => {}}
+          onModelChange={setSelectedModel}
           onRangeChange={handleRangeChange}
           onRunNow={handleRunNow}
         />
