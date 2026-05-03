@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+import * as fs from "fs"
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -21,9 +22,9 @@ async function fetchPage(url: string): Promise<string> {
   } catch { return "" }
 }
 
-function extractLinksFromHtml(html: string, base: string): string[] {
+function extractLinks(html: string): string[] {
   const links: string[] = []
-  const matches = html.matchAll(/href=["']([\/][^"\'\s>]+)["\']/g)
+  const matches = html.matchAll(/href=["']([\/][^"'\s>]+)['"]/g)
   for (const m of matches) {
     const path = m[1].split("?")[0].split("#")[0]
     if (path.length > 1 && path.length < 60) links.push(path)
@@ -33,12 +34,12 @@ function extractLinksFromHtml(html: string, base: string): string[] {
 
 function findContentPaths(links: string[]): Record<string, string[]> {
   const patterns: Record<string, RegExp[]> = {
-    blog: [/\/blog/, /\/articles/, /\/insights/, /\/news/, /\/posts/, /\/updates/],
-    compare: [/\/vs\//, /\/compare/, /\/alternatives/, /\/versus/],
-    casestudies: [/\/case-stud/, /\/customers/, /\/success/, /\/stories/, /\/client/],
-    solutions: [/\/solutions/, /\/products/, /\/platform/, /\/use-cases/, /\/features/, /\/services/],
-    faq: [/\/faq/, /\/help/, /\/support/, /\/docs/, /\/questions/],
-    resources: [/\/resources/, /\/library/, /\/knowledge/, /\/content/, /\/whitepapers/, /\/guides/],
+    blog: [/\/blog/, /\/articles/, /\/insights/, /\/resources/, /\/news/],
+    compare: [/\/vs\//, /\/compare/, /\/alternatives/],
+    casestudies: [/\/case-stud/, /\/customers/, /\/success/, /\/stories/],
+    solutions: [/\/solutions/, /\/products/, /\/platform/, /\/use-cases/, /\/features/],
+    faq: [/\/faq/, /\/help/, /\/support/],
+    resources: [/\/resources/, /\/library/, /\/knowledge/, /\/whitepapers/],
   }
   const found: Record<string, string[]> = {}
   for (const [key, regexes] of Object.entries(patterns)) {
@@ -48,17 +49,17 @@ function findContentPaths(links: string[]): Record<string, string[]> {
   return found
 }
 
-async function discoverAndFetchContent(domain: string): Promise<{ pages: Record<string, string>; foundPaths: Record<string, string[]>; discoveredLinks: string[] }> {
-  const base = "https://" + domain.replace(/^https?:///, "").split("/")[0];
-  
+async function discoverAndFetch(domain: string): Promise<{ pages: Record<string, string>; foundPaths: Record<string, string[]> }> {
+  const base = "https://" + domain.replace(/^https?:\/\//, "").split("/")[0]
+
   const homepageRaw = await fetch(base, {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; GeoIntelBot/1.0)" },
     signal: AbortSignal.timeout(8000),
   }).then(r => r.text()).catch(() => "")
-  
-  const allLinks = extractLinksFromHtml(homepageRaw, base)
+
+  const allLinks = extractLinks(homepageRaw)
   const contentPaths = findContentPaths(allLinks)
-  
+
   const homepageText = homepageRaw
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -68,34 +69,33 @@ async function discoverAndFetchContent(domain: string): Promise<{ pages: Record<
     .substring(0, 4000)
 
   const pages: Record<string, string> = { homepage: homepageText }
-  
+
   const toFetch: Array<{ key: string; url: string }> = []
-  
+
   for (const [key, paths] of Object.entries(contentPaths)) {
-    toFetch.push({ key, url: \`\${base}\${paths[0]}\` })
+    toFetch.push({ key, url: base + paths[0] })
   }
-  
-  const fallbackPaths = [
-    { key: "blog_fallback", paths: ["/blog", "/articles", "/insights", "/resources", "/news"] },
-    { key: "compare_fallback", paths: ["/compare", "/vs", "/alternatives"] },
-    { key: "casestudies_fallback", paths: ["/case-studies", "/customers", "/success-stories"] },
-    { key: "solutions_fallback", paths: ["/solutions", "/products", "/platform"] },
-    { key: "faq_fallback", paths: ["/faq", "/help", "/support"] },
+
+  const fallbacks = [
+    { key: "blog", paths: ["/blog", "/articles", "/insights", "/resources", "/news"] },
+    { key: "compare", paths: ["/compare", "/vs", "/alternatives"] },
+    { key: "casestudies", paths: ["/case-studies", "/customers", "/success-stories"] },
+    { key: "solutions", paths: ["/solutions", "/products", "/platform"] },
+    { key: "faq", paths: ["/faq", "/help", "/support"] },
   ]
-  
-  for (const { key, paths } of fallbackPaths) {
-    const baseKey = key.replace("_fallback", "")
-    if (!contentPaths[baseKey]) {
+
+  for (const { key, paths } of fallbacks) {
+    if (!contentPaths[key]) {
       for (const path of paths) {
-        toFetch.push({ key: baseKey, url: \`\${base}\${path}\` })
+        toFetch.push({ key, url: base + path })
       }
     }
   }
-  
+
   const results = await Promise.allSettled(
     toFetch.map(async ({ key, url }) => ({ key, url, content: await fetchPage(url) }))
   )
-  
+
   const seen = new Set<string>()
   for (const r of results) {
     if (r.status === "fulfilled" && r.value.content.length > 300) {
@@ -107,7 +107,7 @@ async function discoverAndFetchContent(domain: string): Promise<{ pages: Record<
     }
   }
 
-  return { pages, foundPaths: contentPaths, discoveredLinks: allLinks.slice(0, 20) }
+  return { pages, foundPaths: contentPaths }
 }
 
 export async function POST(req: NextRequest) {
@@ -116,69 +116,44 @@ export async function POST(req: NextRequest) {
     if (!domain) return NextResponse.json({ error: "Domain required" }, { status: 400 })
 
     const cleanDomain = domain.replace(/^https?:\/\//, "").split("/")[0]
-    const base = `https://${cleanDomain}`
-
-    // If custom URLs provided, fetch them directly
-    let { pages, foundPaths, discoveredLinks } = await discoverAndFetchContent(cleanDomain)
+    const { pages, foundPaths } = await discoverAndFetch(cleanDomain)
+    const foundPages = Object.keys(pages).filter(k => k !== "homepage")
 
     if (customUrls) {
-      const customKeys: Record<string, string> = {
-        blog: "blog", compare: "compare", casestudies: "casestudies",
-        solutions: "solutions", faq: "faq"
-      }
       await Promise.all(
         Object.entries(customUrls).map(async ([key, url]) => {
           if (!url) return
-          const fullUrl = (url as string).startsWith("http") ? url as string : `https://${url}`
+          const fullUrl = (url as string).startsWith("http") ? url as string : "https://" + (url as string)
           const fetched = await fetchPage(fullUrl)
-          if (fetched.length > 200) {
-            pages[customKeys[key]] = fetched
-            foundPaths[customKeys[key]] = [fullUrl as string]
-          }
+          if (fetched.length > 200) pages[key] = fetched
         })
       )
     }
-    const foundPages = Object.keys(pages).filter(k => k !== "homepage")
-    
-    const navigationHint = Object.keys(foundPaths).length > 0
-      ? \`Navigation analysis found content at these paths: \${JSON.stringify(foundPaths)}\`
-      : \`No content paths found via navigation — tried common paths. Site may use custom URL structure.\`
 
-    const prompt = \`You are a GEO content strategist. Analyse \${cleanDomain} content for AI search visibility.
+    let skillContent = ""
+    try {
+      skillContent = fs.readFileSync(process.cwd() + "/.claude/agents/geo-content-analysis.md", "utf-8")
+    } catch { skillContent = "" }
 
-IMPORTANT: Base your analysis ONLY on what you can actually see in the content below. 
-- If a content section was NOT fetched (shows "not found"), say it could not be accessed at standard paths — do NOT assume it doesn't exist.
-- If content WAS fetched, analyse what's actually there.
-- Be specific and accurate. Do not hallucinate content that isn't shown.
+    const prompt = `${skillContent ? `SKILL INSTRUCTIONS:\n${skillContent}\n\n` : "Use 0-100 scores with status labels (Strong/Good/Needs work/Weak/Critical) not letter grades.\n\n"}You are a GEO content strategist. Analyse ${cleanDomain} content for AI search visibility.
 
-VERTICAL: \${vertical}
-\${navigationHint}
-PAGES SUCCESSFULLY FETCHED: \${foundPages.join(", ") || "homepage only"}
+IMPORTANT: Base analysis ONLY on content you can actually see. If a section was NOT fetched, say it could not be accessed — do NOT assume it doesn't exist.
 
-HOMEPAGE CONTENT:
-\${pages.homepage?.substring(0, 2000) || "not available"}
+VERTICAL: ${vertical}
+PAGES FETCHED: ${foundPages.join(", ") || "homepage only"}
 
-BLOG/ARTICLES/RESOURCES:
-\${(pages.blog || pages.resources || pages.blog_fallback) ? (pages.blog || pages.resources || "fetched but minimal content") : "Could not access at standard paths — may exist at custom URL"}
-
-COMPARISON PAGES:
-\${pages.compare || "Could not access at standard paths — may exist at custom URL"}
-
-CASE STUDIES:
-\${pages.casestudies || "Could not access at standard paths — may exist at custom URL"}
-
-SOLUTION/PRODUCT PAGES:
-\${pages.solutions || "Could not access at standard paths — may exist at custom URL"}
-
-FAQ:
-\${pages.faq || "Could not access at standard paths — may exist at custom URL"}
+HOMEPAGE: ${pages.homepage?.substring(0, 2000) || "not available"}
+BLOG/RESOURCES: ${(pages.blog || pages.resources || "Could not access at standard paths")}
+COMPARISON PAGES: ${pages.compare || "Could not access at standard paths"}
+CASE STUDIES: ${pages.casestudies || "Could not access at standard paths"}
+SOLUTIONS: ${pages.solutions || "Could not access at standard paths"}
+FAQ: ${pages.faq || "Could not access at standard paths"}
 
 Return ONLY valid JSON:
 {
   "overall_score": <0-100>,
   "overall_grade": "<A|B|C|D|F>",
-  "summary": "<2-3 sentences — honest, based only on what was actually fetched. If content couldn't be accessed, say so rather than assuming it doesn't exist>",
-  "crawl_note": "<brief note on what was and wasn't accessible — helps user understand limitations>",
+  "summary": "<2-3 sentences — honest, based only on what was fetched>",
   "content_types": [
     {
       "type": "Blog & Articles",
@@ -187,8 +162,8 @@ Return ONLY valid JSON:
       "score": <0-100>,
       "found": <true|false>,
       "accessible": <true|false>,
-      "current_state": "<specific — if not accessible say 'Could not access at standard paths. Try entering your blog URL directly in the Page Analyser tab'>",
-      "gap": "<the specific GEO gap if content was found, otherwise 'Needs manual review'>",
+      "current_state": "<specific description>",
+      "gap": "<specific GEO gap>",
       "recommendations": [
         {
           "priority": "<critical|high|quick>",
@@ -208,8 +183,8 @@ Return ONLY valid JSON:
   "quick_wins": [
     { "action": "<specific action>", "impact": "<AI visibility impact>", "effort": "<time>" }
   ],
-  "missing_content": ["<only list content that is genuinely missing based on what was found — not what couldn't be accessed>"]
-}\`
+  "missing_content": ["<specific missing content piece>"]
+}`
 
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
@@ -222,7 +197,7 @@ Return ONLY valid JSON:
     if (!jsonMatch) return NextResponse.json({ error: "Failed to parse analysis" }, { status: 500 })
 
     const analysis = JSON.parse(jsonMatch[0])
-    return NextResponse.json({ analysis, foundPages, discoveredLinks })
+    return NextResponse.json({ analysis, foundPages })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err.message || "Analysis failed" }, { status: 500 })
