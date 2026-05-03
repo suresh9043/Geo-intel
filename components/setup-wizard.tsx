@@ -1,403 +1,264 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Plus, Trash2, Loader2, ArrowRight, Building2, Users, MessageSquare, Cpu, ClipboardList } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { X, ChevronRight, Check, Plus, Trash2 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
-import { saveCompany, getCompanyWithDetails } from "@/lib/queries"
+
+const VERTICALS = ["SaaS", "Automation", "Agency", "Ecommerce", "Other"]
+
+const SUGGESTED_PROMPTS: Record<string, string[]> = {
+  "SaaS": [
+    "What is the best project management software?",
+    "Best CRM for small business",
+    "Top SaaS tools for startups",
+    "How to choose B2B software",
+  ],
+  "Automation": [
+    "Best intelligent automation platform for enterprise",
+    "UiPath vs Appian vs ServiceNow comparison",
+    "How to automate business processes with AI",
+    "Top RPA platforms for banking",
+  ],
+  "Agency": [
+    "Best digital marketing agencies",
+    "Top SEO agencies for enterprise",
+    "How to choose a marketing agency",
+  ],
+  "Ecommerce": [
+    "Best ecommerce platform for small business",
+    "Shopify vs WooCommerce comparison",
+    "How to start an online store",
+  ],
+  "Other": [
+    "Best software solutions for enterprise",
+    "Top platforms for digital transformation",
+  ],
+}
 
 interface SetupWizardProps {
   onComplete: () => void
   onSaveExit: () => void
-  editingCompanyId?: string | null
 }
 
-interface CompanyData {
-  name: string
-  url: string
-  description: string
-  industry: string
-  icpDescription: string
-  competitors: { name: string; url: string }[]
-  prompts: string[]
-  selectedModels: { provider: string; model: string }[]
-}
+export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
+  const { user } = useAuth()
+  const [step, setStep] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-interface LLMProvider {
-  name: string
-  models: string[]
-}
+  // Step 1 — Company
+  const [companyName, setCompanyName] = useState("")
+  const [websiteUrl, setWebsiteUrl] = useState("")
+  const [vertical, setVertical] = useState("SaaS")
 
-const STEPS = [
-  { id: 1, label: "Company", icon: Building2 },
-  { id: 2, label: "ICP", icon: Users },
-  { id: 3, label: "Competitors", icon: Users },
-  { id: 4, label: "Prompts", icon: MessageSquare },
-  { id: 5, label: "Models", icon: Cpu },
-  { id: 6, label: "Review", icon: ClipboardList },
-]
+  // Step 2 — Competitors
+  const [competitors, setCompetitors] = useState([{ name: "", url: "" }])
 
-export function SetupWizard({ onComplete, onSaveExit, editingCompanyId }: SetupWizardProps) {
-  const [step, setStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [llmProviders, setLlmProviders] = useState<LLMProvider[]>([])
-  const [data, setData] = useState<CompanyData>({
-    name: "", url: "", description: "", industry: "", icpDescription: "",
-    competitors: [{ name: "", url: "" }],
-    prompts: [""],
-    selectedModels: [],
-  })
+  // Step 3 — Prompts
+  const [prompts, setPrompts] = useState<string[]>([])
+  const [customPrompt, setCustomPrompt] = useState("")
 
-  useEffect(() => {
-    setLlmProviders([
-      { name: "ChatGPT", models: ["GPT-5.3", "GPT-5.5"] },
-      { name: "Claude", models: ["Claude Sonnet 4.6", "Claude Opus 4.6", "Claude Haiku 4.5"] },
-      { name: "Gemini", models: ["Gemini 3 Flash"] },
-      { name: "Perplexity", models: ["Sonar"] },
-    ])
+  const suggestedPrompts = SUGGESTED_PROMPTS[vertical] || SUGGESTED_PROMPTS["Other"]
 
-    // Pre-load company data if editing
-    if (editingCompanyId) {
-      getCompanyWithDetails(editingCompanyId).then(company => {
-        const selectedModels: { provider: string; model: string }[] = company.trackedModels.map(
-          (m: { provider: string; model_slug: string }) => ({ provider: m.provider, model: m.model_slug })
-        )
-        setData({
-          name: company.name || "",
-          url: company.url || "",
-          description: company.description || "",
-          industry: company.industry || "",
-          icpDescription: company.icp_description || "",
-          competitors: company.competitors.length
-            ? company.competitors.map((name: string) => ({ name, url: "" }))
-            : [{ name: "", url: "" }],
-          prompts: company.prompts.length
-            ? company.prompts.map((p: { text: string }) => p.text)
-            : [""],
-          selectedModels,
-        })
-      }).catch(console.error).finally(() => setIsLoading(false))
-    } else {
-      setIsLoading(false)
-    }
-  }, [editingCompanyId])
-
-  const update = <K extends keyof CompanyData>(key: K, value: CompanyData[K]) => setData(prev => ({ ...prev, [key]: value }))
-
-  const canProceed = () => {
-    if (step === 1) return data.name.trim() && data.url.trim()
-    if (step === 4) return data.prompts.some(p => p.trim())
-    if (step === 5) return data.selectedModels.length > 0
-    return true
+  function togglePrompt(p: string) {
+    setPrompts(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])
   }
 
-  const buildPayload = () => {
-    const llms: Record<string, string[]> = {}
-    data.selectedModels.forEach(({ provider, model }) => { if (!llms[provider]) llms[provider] = []; llms[provider].push(model) })
-    return {
-      company: {
-        name: data.name, url: data.url, description: data.description,
-        industry: data.industry, icpDescription: data.icpDescription,
-        competitors: data.competitors.filter(c => c.name.trim()).map(c => c.name),
-        prompts: data.prompts.filter(p => p.trim()).map(text => ({ text, source: "user" })),
-        llms,
-      },
-      step: 6,
+  function addCompetitor() {
+    setCompetitors(prev => [...prev, { name: "", url: "" }])
+  }
+
+  function removeCompetitor(i: number) {
+    setCompetitors(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  function updateCompetitor(i: number, field: "name" | "url", value: string) {
+    setCompetitors(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: value } : c))
+  }
+
+  function addCustomPrompt() {
+    if (customPrompt.trim() && !prompts.includes(customPrompt.trim())) {
+      setPrompts(prev => [...prev, customPrompt.trim()])
+      setCustomPrompt("")
     }
   }
 
-  const handleSubmit = async () => {
-    if (!canProceed()) return
-    setIsSubmitting(true)
+  async function handleSubmit() {
+    if (!user) return
+    setLoading(true)
+    setError("")
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not logged in")
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .insert({
+          user_id: user.id,
+          name: companyName,
+          website_url: websiteUrl,
+          industry: vertical,
+          description: "",
+        })
+        .select()
+        .single()
 
-      const companyId = await saveCompany(user.id, {
-        name: data.name, url: data.url, description: data.description,
-        industry: data.industry, icpDescription: data.icpDescription,
-        competitors: data.competitors.filter(c => c.name.trim()).map(c => c.name),
-        prompts: data.prompts.filter(p => p.trim()),
-        selectedModels: data.selectedModels,
-      })
+      if (companyError) throw companyError
 
-      // Start tracking job via Next.js API route
-      const trackRes = await fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyId }),
+      // Save competitors
+      const validCompetitors = competitors.filter(c => c.name.trim())
+      if (validCompetitors.length > 0) {
+        await supabase.from("competitors").insert(
+          validCompetitors.map(c => ({ company_id: company.id, name: c.name, website_url: c.url }))
+        )
+      }
+
+      // Save prompts
+      if (prompts.length > 0) {
+        await supabase.from("prompts").insert(
+          prompts.map(text => ({ company_id: company.id, text }))
+        )
+      }
+
+      // Start first tracking job
+      await fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyId: company.id }),
       })
-      if (!trackRes.ok) throw new Error("Failed to start tracking")
 
       onComplete()
-    } catch (err) {
-      console.error("Submit failed:", err)
-      setIsSubmitting(false)
+    } catch (err: any) {
+      setError(err.message || "Something went wrong")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleSaveExit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return onSaveExit()
-      await saveCompany(user.id, {
-        name: data.name, url: data.url, description: data.description,
-        industry: data.industry, icpDescription: data.icpDescription,
-        competitors: data.competitors.filter(c => c.name.trim()).map(c => c.name),
-        prompts: data.prompts.filter(p => p.trim()),
-        selectedModels: data.selectedModels,
-      })
-    } catch {}
-    onSaveExit()
-  }
-
-  if (isLoading) return (
-    <div className="flex h-full items-center justify-center gap-3 py-20">
-      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-      <span className="text-sm text-muted-foreground">Loading...</span>
-    </div>
-  )
-
-  if (isSubmitting) return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 py-20">
-      <div className="rounded-full bg-primary/10 p-4"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      <p className="text-base font-semibold text-card-foreground">Setting up your tracking...</p>
-      <p className="text-sm text-muted-foreground">Configuring your first run</p>
-    </div>
-  )
+  const steps = ["Company", "Competitors", "Prompts"]
+  const canNext = step === 0 ? !!companyName.trim() && !!websiteUrl.trim() : step === 1 ? true : prompts.length > 0
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-border px-6 py-5">
-        <h2 className="text-lg font-semibold text-card-foreground">{editingCompanyId ? "Edit Company" : "Track a New Company"}</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">Step {step} of {STEPS.length} — {STEPS[step - 1].label}</p>
-        {/* Step indicators */}
-        <div className="mt-4 flex items-center gap-1">
-          {STEPS.map((s, i) => (
-            <div key={s.id} className="flex items-center gap-1">
-              <button
-                onClick={() => s.id < step && setStep(s.id)}
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                  s.id === step ? "bg-primary text-primary-foreground" :
-                  s.id < step ? "bg-primary/20 text-primary cursor-pointer hover:bg-primary/30" :
-                  "bg-muted text-muted-foreground"
-                }`}
-              >
-                {s.id < step ? "✓" : s.id}
-              </button>
-              {i < STEPS.length - 1 && <div className={`h-px w-5 ${s.id < step ? "bg-primary/40" : "bg-border"}`} />}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div>
+            <h2 className="text-base font-semibold text-card-foreground">Track a New Company</h2>
+            <p className="text-xs text-muted-foreground">Step {step + 1} of {steps.length} — {steps[step]}</p>
+          </div>
+          <button onClick={onSaveExit} className="rounded-lg p-1.5 hover:bg-muted transition-colors">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Progress */}
+        <div className="flex px-6 pt-4 gap-2">
+          {steps.map((s, i) => (
+            <div key={s} className="flex items-center gap-2 flex-1">
+              <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold border ${
+                i < step ? "bg-primary border-primary text-primary-foreground" :
+                i === step ? "border-primary text-primary bg-primary/10" :
+                "border-border text-muted-foreground"
+              }`}>
+                {i < step ? <Check className="h-3 w-3" /> : i + 1}
+              </div>
+              <span className={`text-xs font-medium ${i === step ? "text-card-foreground" : "text-muted-foreground"}`}>{s}</span>
+              {i < steps.length - 1 && <div className={`flex-1 h-px ${i < step ? "bg-primary" : "bg-border"}`} />}
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-
-        {/* Step 1: Company Basics */}
-        {step === 1 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Company Basics</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Tell us about the brand you want to track.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="name" className="text-xs">Company Name *</Label>
-                <Input id="name" placeholder="Acme Inc" value={data.name} onChange={e => update("name", e.target.value)} />
+        {/* Content */}
+        <div className="px-6 py-5 min-h-72">
+          {/* Step 0 — Company */}
+          {step === 0 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Company Name *</label>
+                <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. Acme Inc" className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="url" className="text-xs">Website URL *</Label>
-                <Input id="url" placeholder="https://acme.com" value={data.url} onChange={e => update("url", e.target.value)} />
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Website URL *</label>
+                <input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://acme.com" className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
               </div>
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="desc" className="text-xs">Description <span className="text-muted-foreground">(optional)</span></Label>
-                <Textarea id="desc" placeholder="What does your company do?" value={data.description} onChange={e => update("description", e.target.value)} rows={2} />
-              </div>
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="industry" className="text-xs">Industry <span className="text-muted-foreground">(optional)</span></Label>
-                <Input id="industry" placeholder="e.g., SaaS, E-commerce, Healthcare" value={data.industry} onChange={e => update("industry", e.target.value)} />
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Industry</label>
+                <div className="flex flex-wrap gap-2">
+                  {VERTICALS.map(v => (
+                    <button key={v} onClick={() => setVertical(v)} className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${vertical === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step 2: ICP */}
-        {step === 2 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Ideal Customer Profile</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Describe who your ideal customer is. This helps us generate better prompts.</p>
-            </div>
-            <Textarea
-              placeholder="e.g., Marketing managers at mid-sized B2B SaaS companies who want to improve their AI search visibility..."
-              value={data.icpDescription}
-              onChange={e => update("icpDescription", e.target.value)}
-              rows={6}
-            />
-          </div>
-        )}
-
-        {/* Step 3: Competitors */}
-        {step === 3 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Competitors</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Add competitors to benchmark how you compare in AI responses.</p>
-            </div>
+          {/* Step 1 — Competitors */}
+          {step === 1 && (
             <div className="flex flex-col gap-3">
-              {data.competitors.map((competitor, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="grid flex-1 gap-2 sm:grid-cols-2">
-                    <Input placeholder="Competitor name" value={competitor.name} onChange={e => { const u = [...data.competitors]; u[i].name = e.target.value; update("competitors", u) }} />
-                    <Input placeholder="Website (optional)" value={competitor.url} onChange={e => { const u = [...data.competitors]; u[i].url = e.target.value; update("competitors", u) }} />
-                  </div>
-                  {data.competitors.length > 1 && (
-                    <button onClick={() => update("competitors", data.competitors.filter((_, j) => j !== i))} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
-                      <Trash2 className="h-4 w-4" />
+              <p className="text-xs text-muted-foreground">Add competitors to compare against. You can skip this and add them later.</p>
+              {competitors.map((c, i) => (
+                <div key={i} className="flex gap-2">
+                  <input value={c.name} onChange={e => updateCompetitor(i, "name", e.target.value)} placeholder="Competitor name" className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                  <input value={c.url} onChange={e => updateCompetitor(i, "url", e.target.value)} placeholder="website.com" className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                  {competitors.length > 1 && (
+                    <button onClick={() => removeCompetitor(i)} className="rounded-lg p-2 hover:bg-muted transition-colors">
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
               ))}
+              {competitors.length < 5 && (
+                <button onClick={addCompetitor} className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
+                  <Plus className="h-3.5 w-3.5" /> Add another competitor
+                </button>
+              )}
             </div>
-            <button onClick={() => update("competitors", [...data.competitors, { name: "", url: "" }])} className="flex w-fit items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-              <Plus className="h-3.5 w-3.5" /> Add competitor
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Step 4: Prompts */}
-        {step === 4 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Tracking Prompts *</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Enter the queries you want to track across AI engines.</p>
-            </div>
+          {/* Step 2 — Prompts */}
+          {step === 2 && (
             <div className="flex flex-col gap-3">
-              {data.prompts.map((prompt, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Textarea
-                    placeholder={`e.g., "Best ${data.industry || "software"} tools for small businesses?"`}
-                    value={prompt}
-                    onChange={e => { const u = [...data.prompts]; u[i] = e.target.value; update("prompts", u) }}
-                    rows={2}
-                    className="flex-1 resize-none"
-                  />
-                  {data.prompts.length > 1 && (
-                    <button onClick={() => update("prompts", data.prompts.filter((_, j) => j !== i))} className="mt-1 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button onClick={() => update("prompts", [...data.prompts, ""])} className="flex w-fit items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-              <Plus className="h-3.5 w-3.5" /> Add prompt
-            </button>
-          </div>
-        )}
-
-        {/* Step 5: Models */}
-        {step === 5 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">AI Models to Track *</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Select which AI models you want to monitor your brand across.</p>
-            </div>
-            {llmProviders.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No models available — make sure the backend is running.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {llmProviders.map(provider => (
-                  <div key={provider.name} className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{provider.name}</p>
-                    <div className="flex flex-col gap-2">
-                      {provider.models.map(model => (
-                        <label key={model} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
-                          <Checkbox
-                            checked={data.selectedModels.some(m => m.provider === provider.name && m.model === model)}
-                            onCheckedChange={() => {
-                              const exists = data.selectedModels.some(m => m.provider === provider.name && m.model === model)
-                              update("selectedModels", exists
-                                ? data.selectedModels.filter(m => !(m.provider === provider.name && m.model === model))
-                                : [...data.selectedModels, { provider: provider.name, model }]
-                              )
-                            }}
-                          />
-                          <span className="text-sm text-card-foreground">{model}</span>
-                        </label>
-                      ))}
+              <p className="text-xs text-muted-foreground">Select prompts your buyers ask AI engines. We'll track these daily across ChatGPT, Perplexity, Gemini and Claude.</p>
+              <div className="flex flex-col gap-1.5">
+                {suggestedPrompts.map(p => (
+                  <button key={p} onClick={() => togglePrompt(p)} className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors ${prompts.includes(p) ? "border-primary bg-primary/5" : "border-border hover:bg-muted"}`}>
+                    <div className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${prompts.includes(p) ? "bg-primary border-primary" : "border-border"}`}>
+                      {prompts.includes(p) && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
                     </div>
-                  </div>
+                    <span className="text-xs text-card-foreground">{p}</span>
+                  </button>
                 ))}
               </div>
-            )}
-            {data.selectedModels.length > 0 && (
-              <p className="text-xs text-muted-foreground">{data.selectedModels.length} model{data.selectedModels.length !== 1 ? "s" : ""} selected</p>
-            )}
-          </div>
-        )}
-
-        {/* Step 6: Review */}
-        {step === 6 && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Review & Start</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Everything looks good? Hit Start Tracking to begin.</p>
+              <div className="flex gap-2">
+                <input value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustomPrompt()} placeholder="Add your own prompt..." className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20" />
+                <button onClick={addCustomPrompt} disabled={!customPrompt.trim()} className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-card-foreground hover:bg-muted disabled:opacity-50 transition-colors">Add</button>
+              </div>
+              {prompts.length > 0 && (
+                <p className="text-xs text-primary font-medium">{prompts.length} prompt{prompts.length > 1 ? "s" : ""} selected</p>
+              )}
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { label: "Company", value: data.name || "—", sub: data.url || "" },
-                { label: "Industry", value: data.industry || "—" },
-                { label: "Competitors", value: data.competitors.filter(c => c.name.trim()).map(c => c.name).join(", ") || "None" },
-                { label: "ICP", value: data.icpDescription ? data.icpDescription.slice(0, 80) + (data.icpDescription.length > 80 ? "…" : "") : "—" },
-                { label: "Prompts", value: `${data.prompts.filter(p => p.trim()).length} configured` },
-                { label: "Models", value: data.selectedModels.length > 0 ? data.selectedModels.map(m => m.model).join(", ") : "None" },
-              ].map(item => (
-                <div key={item.label} className="rounded-lg border border-border bg-muted/30 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{item.label}</p>
-                  <p className="mt-1 text-sm font-medium text-card-foreground break-words">{item.value}</p>
-                  {item.sub && <p className="text-xs text-muted-foreground">{item.sub}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Footer */}
-      <div className="flex-shrink-0 border-t border-border bg-muted/30 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={step === 1 ? handleSaveExit : () => setStep(s => s - 1)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors"
-          >
-            {step === 1 ? "Cancel" : "← Back"}
-          </button>
-          <div className="flex items-center gap-3">
-            {step < 6 ? (
-              <button
-                onClick={() => setStep(s => s + 1)}
-                disabled={!canProceed()}
-                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Continue <ArrowRight className="h-4 w-4" />
+        {/* Error */}
+        {error && <p className="px-6 pb-2 text-xs text-red-500">{error}</p>}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
+          {step > 0
+            ? <button onClick={() => setStep(s => s - 1)} className="text-sm text-muted-foreground hover:text-card-foreground transition-colors">← Back</button>
+            : <button onClick={onSaveExit} className="text-sm text-muted-foreground hover:text-card-foreground transition-colors">Cancel</button>
+          }
+          {step < steps.length - 1
+            ? <button onClick={() => setStep(s => s + 1)} disabled={!canNext} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                Continue <ChevronRight className="h-4 w-4" />
               </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={!canProceed()}
-                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Start Tracking <ArrowRight className="h-4 w-4" />
+            : <button onClick={handleSubmit} disabled={loading || !canNext} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors">
+                {loading ? "Starting tracking..." : "🚀 Start tracking"}
               </button>
-            )}
-          </div>
+          }
         </div>
       </div>
     </div>
