@@ -276,13 +276,7 @@ export default function LandingPage() {
             <text x="576" y="354" fontSize="12" fontWeight="600" fill="#111827" fontFamily="system-ui,sans-serif">Add FAQPage schema to product pages</text>
             <text x="576" y="371" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">Copy-paste JSON-LD fix ready to implement</text>
           </svg>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginTop: 28 }}>
-          <span style={{ fontSize: 11, color: "#9ca3af" }}>Tracking across</span>
-          {["ChatGPT", "Perplexity", "Gemini", "Claude"].map(l => (
-            <span key={l} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500, background: "white", border: "1px solid #e5e7eb", color: "#374151" }}>{l}</span>
-          ))}
-        </div>
+      </div>
       </section>
 
       {/* How it works */}
