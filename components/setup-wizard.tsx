@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { X, ChevronRight, Check, Plus, Trash2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { supabase } from "@/lib/supabase"
+import { saveCompany } from "@/lib/queries"
 
 const VERTICALS = ["SaaS", "Automation", "Agency", "Ecommerce", "Other"]
 
@@ -90,42 +90,21 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
     setLoading(true)
     setError("")
     try {
-      const { data: company, error: companyError } = await supabase
-        .from("companies")
-        .insert({
-          user_id: user.id,
-          name: companyName,
-          website_url: websiteUrl,
-          industry: vertical,
-          description: "",
-        })
-        .select()
-        .single()
-
-      if (companyError) throw companyError
-
-      // Save competitors
-      const validCompetitors = competitors.filter(c => c.name.trim())
-      if (validCompetitors.length > 0) {
-        await supabase.from("competitors").insert(
-          validCompetitors.map(c => ({ company_id: company.id, name: c.name, website_url: c.url }))
-        )
-      }
-
-      // Save prompts
-      if (prompts.length > 0) {
-        await supabase.from("prompts").insert(
-          prompts.map(text => ({ company_id: company.id, text }))
-        )
-      }
-
-      // Start first tracking job
-      await fetch("/api/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyId: company.id }),
+      await saveCompany(user.id, {
+        name: companyName,
+        url: websiteUrl,
+        description: "",
+        industry: vertical,
+        icpDescription: "",
+        competitors: competitors.filter(c => c.name.trim()).map(c => c.name),
+        prompts,
+        selectedModels: [
+          { provider: "openai", model: "gpt-4o" },
+          { provider: "anthropic", model: "claude-3-5-sonnet-20241022" },
+          { provider: "google", model: "gemini-1.5-pro" },
+          { provider: "perplexity", model: "sonar" },
+        ],
       })
-
       onComplete()
     } catch (err: any) {
       setError(err.message || "Something went wrong")
