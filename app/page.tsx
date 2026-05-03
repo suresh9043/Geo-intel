@@ -170,6 +170,71 @@ export default function LandingPage() {
             Sign in
           </button>
         </div>
+
+        {/* Hero Visual */}
+        <div style={{ margin: "40px auto 0", maxWidth: 720, width: "100%" }}>
+          <svg width="100%" viewBox="0 0 680 480" xmlns="http://www.w3.org/2000/svg" style={{ filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.07))" }}>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </marker>
+            </defs>
+            <g opacity="0.08">
+              <circle cx="80" cy="100" r="1.5" fill="#888"/><circle cx="160" cy="100" r="1.5" fill="#888"/>
+              <circle cx="80" cy="180" r="1.5" fill="#888"/><circle cx="160" cy="180" r="1.5" fill="#888"/>
+              <circle cx="80" cy="260" r="1.5" fill="#888"/><circle cx="160" cy="260" r="1.5" fill="#888"/>
+              <circle cx="80" cy="340" r="1.5" fill="#888"/><circle cx="160" cy="340" r="1.5" fill="#888"/>
+              <circle cx="480" cy="140" r="1.5" fill="#888"/><circle cx="560" cy="140" r="1.5" fill="#888"/>
+              <circle cx="480" cy="220" r="1.5" fill="#888"/><circle cx="560" cy="220" r="1.5" fill="#888"/>
+              <circle cx="480" cy="300" r="1.5" fill="#888"/><circle cx="560" cy="300" r="1.5" fill="#888"/>
+            </g>
+            <path d="M 182 118 C 250 118 265 230 308 248" fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
+            <path d="M 182 198 C 255 198 272 240 308 252" fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
+            <path d="M 182 278 C 255 278 272 268 308 262" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
+            <path d="M 182 358 C 250 358 265 285 308 268" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
+            <path d="M 390 258 C 430 258 445 258 472 258" fill="none" stroke="#2dd4bf" strokeWidth="2" markerEnd="url(#arrow)"/>
+            <rect x="62" y="94" width="120" height="48" rx="10" fill="#ecfdf5" stroke="#10b981" strokeWidth="1"/>
+            <text x="122" y="122" textAnchor="middle" fontSize="13" fontWeight="600" fill="#065f46" fontFamily="system-ui,sans-serif">ChatGPT</text>
+            <rect x="62" y="174" width="120" height="48" rx="10" fill="#f5f3ff" stroke="#8b5cf6" strokeWidth="1"/>
+            <text x="122" y="202" textAnchor="middle" fontSize="13" fontWeight="600" fill="#4c1d95" fontFamily="system-ui,sans-serif">Perplexity</text>
+            <rect x="62" y="254" width="120" height="48" rx="10" fill="#eff6ff" stroke="#3b82f6" strokeWidth="1"/>
+            <text x="122" y="282" textAnchor="middle" fontSize="13" fontWeight="600" fill="#1e3a8a" fontFamily="system-ui,sans-serif">Gemini</text>
+            <rect x="62" y="334" width="120" height="48" rx="10" fill="#fffbeb" stroke="#f59e0b" strokeWidth="1"/>
+            <text x="122" y="362" textAnchor="middle" fontSize="13" fontWeight="600" fill="#78350f" fontFamily="system-ui,sans-serif">Claude</text>
+            <rect x="308" y="224" width="82" height="68" rx="12" fill="white" stroke="#2dd4bf" strokeWidth="2"/>
+            <text x="349" y="252" textAnchor="middle" fontSize="12" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">Your</text>
+            <text x="349" y="268" textAnchor="middle" fontSize="12" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">Brand</text>
+            <circle cx="349" cy="282" r="3" fill="#2dd4bf"/>
+            <rect x="472" y="100" width="170" height="300" rx="14" fill="white" stroke="#e5e7eb" strokeWidth="1"/>
+            <rect x="472" y="100" width="170" height="38" rx="14" fill="#f9fafb" stroke="#e5e7eb" strokeWidth="1"/>
+            <rect x="472" y="116" width="170" height="22" fill="#f9fafb"/>
+            <circle cx="490" cy="119" r="4" fill="#2dd4bf"/>
+            <text x="500" y="123" fontSize="11" fontWeight="600" fill="#111827" fontFamily="system-ui,sans-serif">GeoIntel</text>
+            <circle cx="628" cy="118" r="3" fill="#10b981"/>
+            <text x="624" y="123" textAnchor="end" fontSize="10" fill="#10b981" fontFamily="system-ui,sans-serif">Live</text>
+            <text x="488" y="158" fontSize="10" fill="#9ca3af" fontFamily="system-ui,sans-serif" letterSpacing="0.05em">AI VISIBILITY</text>
+            <text x="488" y="184" fontSize="30" fontWeight="700" fill="#f59e0b" fontFamily="system-ui,sans-serif">24%</text>
+            <line x1="488" y1="198" x2="628" y2="198" stroke="#f3f4f6" strokeWidth="1"/>
+            <text x="488" y="216" fontSize="10" fill="#9ca3af" fontFamily="system-ui,sans-serif" letterSpacing="0.05em">SHARE OF VOICE</text>
+            <text x="488" y="234" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">Competitor A</text>
+            <rect x="556" y="224" width="68" height="7" rx="3" fill="#f3f4f6"/>
+            <rect x="556" y="224" width="52" height="7" rx="3" fill="#3b82f6" opacity="0.7"/>
+            <text x="488" y="252" fontSize="11" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">You ★</text>
+            <rect x="556" y="242" width="68" height="7" rx="3" fill="#f3f4f6"/>
+            <rect x="556" y="242" width="18" height="7" rx="3" fill="#2dd4bf"/>
+            <text x="488" y="270" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">Competitor B</text>
+            <rect x="556" y="260" width="68" height="7" rx="3" fill="#f3f4f6"/>
+            <rect x="556" y="260" width="34" height="7" rx="3" fill="#8b5cf6" opacity="0.7"/>
+            <line x1="488" y1="282" x2="628" y2="282" stroke="#f3f4f6" strokeWidth="1"/>
+            <text x="488" y="300" fontSize="10" fill="#9ca3af" fontFamily="system-ui,sans-serif" letterSpacing="0.05em">TOP FIX</text>
+            <rect x="488" y="308" width="140" height="50" rx="6" fill="#fef2f2" stroke="#fecaca" strokeWidth="1"/>
+            <rect x="488" y="308" width="3" height="50" rx="1" fill="#ef4444"/>
+            <rect x="496" y="315" width="38" height="13" rx="3" fill="#fee2e2"/>
+            <text x="515" y="325" textAnchor="middle" fontSize="9" fontWeight="600" fill="#b91c1c" fontFamily="system-ui,sans-serif">Critical</text>
+            <text x="496" y="341" fontSize="10" fontWeight="600" fill="#111827" fontFamily="system-ui,sans-serif">Add FAQPage schema</text>
+            <text x="496" y="354" fontSize="9" fill="#6b7280" fontFamily="system-ui,sans-serif">Copy-paste fix ready</text>
+          </svg>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginTop: 28 }}>
           <span style={{ fontSize: 11, color: "#9ca3af" }}>Tracking across</span>
           {["ChatGPT", "Perplexity", "Gemini", "Claude"].map(l => (
