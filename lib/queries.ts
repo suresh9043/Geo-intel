@@ -169,6 +169,45 @@ export async function saveResponse(response: {
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
+export async function getVisibilityPerRun(companyId: string) {
+  // Get company name for matching
+  const { data: company } = await supabase.from('companies').select('name').eq('id', companyId).single()
+  const companyName = company?.name || ''
+
+  // Get all completed runs ordered by date
+  const { data: runs } = await supabase
+    .from('runs')
+    .select('id, created_at, completed_at')
+    .eq('company_id', companyId)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: true })
+
+  if (!runs?.length) return []
+
+  // For each run, count visibility
+  const results = await Promise.all(runs.map(async run => {
+    const { data: responses } = await supabase
+      .from('raw_responses')
+      .select('response_text')
+      .eq('run_id', run.id)
+      .eq('status', 'success')
+      .not('response_text', 'is', null)
+
+    const total = responses?.length || 0
+    const mentions = responses?.filter(r => r.response_text?.toLowerCase().includes(companyName.toLowerCase())).length || 0
+    const visibility = total > 0 ? Math.round((mentions / total) * 100) : 0
+
+    return {
+      runId: run.id,
+      date: run.completed_at || run.created_at,
+      visibility,
+      total,
+    }
+  }))
+
+  return results
+}
+
 export async function getDashboardStats(companyId: string, days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 

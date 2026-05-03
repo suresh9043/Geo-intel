@@ -11,8 +11,9 @@ import { MentionsCoverage } from "@/components/mentions-coverage"
 import { ShareOfVoice } from "@/components/share-of-voice"
 import { SetupWizard } from "@/components/setup-wizard"
 import { useAuth } from "@/lib/auth-context"
-import { getCompanies, getDashboardStats, getRankings, getResponses } from "@/lib/queries"
+import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun } from "@/lib/queries"
 import { ResponseFeed } from "@/components/response-feed"
+import { VisibilityWidget } from "@/components/visibility-chart"
 
 function formatLastRun(iso: string | null) {
   if (!iso) return "Never"
@@ -45,6 +46,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [rankings, setRankings] = useState<any[]>([])
   const [responses, setResponses] = useState<any[]>([])
+  const [visibilityRuns, setVisibilityRuns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Redirect if not logged in
@@ -67,14 +69,16 @@ export default function DashboardPage() {
     if (!selectedCompanyId) return
     setLoading(true)
     try {
-      const [statsData, rankingsData, responsesData] = await Promise.all([
+      const [statsData, rankingsData, responsesData, visibilityRunsData] = await Promise.all([
         getDashboardStats(selectedCompanyId, days),
         getRankings(selectedCompanyId),
         getResponses(selectedCompanyId),
+        getVisibilityPerRun(selectedCompanyId),
       ])
       setStats(statsData)
       setRankings(rankingsData)
       setResponses(responsesData)
+      setVisibilityRuns(visibilityRunsData)
     } catch (err) {
       console.error("Failed to fetch dashboard data:", err)
     } finally {
@@ -216,10 +220,17 @@ export default function DashboardPage() {
           {/* Dashboard content */}
           {!loading && selectedCompanyId && (
             <>
-              <div className="grid flex-shrink-0 grid-cols-2 gap-3 sm:grid-cols-4">
-                {kpiData.map(kpi => (
-                  <KPICard key={kpi.label} label={kpi.label} value={kpi.value} delta={kpi.delta} trend={kpi.trend} />
-                ))}
+              <div className="flex flex-shrink-0 gap-3">
+                {/* Visibility widget — scorecard or trend chart */}
+                <div className="w-72 flex-shrink-0">
+                  <VisibilityWidget runs={visibilityRuns} />
+                </div>
+                {/* Remaining KPI cards */}
+                <div className="grid flex-1 grid-cols-3 gap-3">
+                  {kpiData.slice(1).map(kpi => (
+                    <KPICard key={kpi.label} label={kpi.label} value={kpi.value} delta={kpi.delta} trend={kpi.trend} />
+                  ))}
+                </div>
               </div>
 
               <div className="flex flex-1 gap-3 overflow-hidden">
