@@ -202,7 +202,8 @@ Return ONLY valid JSON:
     { "type": "Comparison Pages", "icon": "⚔️", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] },
     { "type": "Case Studies", "icon": "📈", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] },
     { "type": "Product & Solution Pages", "icon": "🏭", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] },
-    { "type": "FAQ Coverage", "icon": "❓", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] }
+    { "type": "FAQ Coverage", "icon": "❓", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] },
+    { "type": "Whitepapers & Thought Leadership", "icon": "📄", "status": "unknown", "score": 0, "found": false, "accessible": false, "current_state": "...", "gap": "...", "recommendations": [] }
   ],
   "quick_wins": [
     { "action": "<specific action>", "impact": "<AI visibility impact>", "effort": "<time>" }
