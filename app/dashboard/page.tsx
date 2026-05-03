@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth-context"
 import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun } from "@/lib/queries"
 import { ResponseFeed } from "@/components/response-feed"
 import { VisibilityWidget } from "@/components/visibility-chart"
+import { RecommendationsPanel } from "@/components/recommendations-panel"
 
 function formatLastRun(iso: string | null) {
   if (!iso) return "Never"
@@ -260,3 +261,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+// recommendations added
