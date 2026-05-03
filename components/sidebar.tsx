@@ -2,13 +2,14 @@
 
 import { BarChart3, Globe, Building2, ChevronRight, Quote, LogOut, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { deleteCompany } from "@/lib/queries"
 
 const navItems = [
-  { id: "visibility", label: "AI Visibility Dashboard", icon: BarChart3 },
-  { id: "geo-audit", label: "Geo Audit", icon: Globe },
-  { id: "citation", label: "Citation Analysis", icon: Quote },
+  { id: "visibility", label: "AI Visibility", icon: BarChart3, href: "/dashboard" },
+  { id: "geo-audit", label: "Geo Audit", icon: Globe, href: "/dashboard/geo-audit" },
+  { id: "citation", label: "Citation Analysis", icon: Quote, href: "/dashboard/geo-audit" },
 ]
 
 interface SidebarProps {
@@ -20,9 +21,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, onCreateNew, onDeleteCompany }: SidebarProps) {
-  const [selectedNav, setSelectedNav] = useState("visibility")
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { user, logout } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const handleDelete = async (e: React.MouseEvent, companyId: string, companyName: string) => {
     e.stopPropagation()
@@ -121,9 +123,9 @@ export function Sidebar({ companies = [], selectedCompanyId, onSelectCompany, on
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setSelectedNav(item.id)}
+              onClick={() => router.push(item.href)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                selectedNav === item.id
+                pathname === item.href
                   ? "bg-primary/10 text-primary"
                   : "text-card-foreground hover:bg-muted"
               }`}
