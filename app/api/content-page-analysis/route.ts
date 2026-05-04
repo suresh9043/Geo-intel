@@ -41,16 +41,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Page returned too little content — it may block crawlers or require login" }, { status: 400 })
     }
 
-    const prompt = `You are a GEO (Generative Engine Optimisation) content specialist. Analyse this specific page and give a detailed brief to improve AI search citations.
+    // Sanitize content to prevent JSON issues
+    const sanitized = pageContent
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
+      .replace(/`/g, "'")
+      .replace(/\\/g, " ")
+      .substring(0, 5000)
+
+    const prompt = `You are a GEO content specialist. Analyse this page for AI search citation readiness.
 
 URL: ${url}
 DOMAIN: ${domain}
 VERTICAL: ${vertical}
 
 PAGE CONTENT:
-${pageContent.substring(0, 6000)}
+${sanitized}
 
-Return ONLY valid JSON, no markdown, no backticks:
+CRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanation before or after. Start your response with { and end with }.
 {
   "page_title": "<detected page title>",
   "content_type": "<Blog Post|Comparison Page|Case Study|Solution Page|FAQ|Whitepaper|Homepage|Other>",
