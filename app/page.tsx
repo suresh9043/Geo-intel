@@ -120,16 +120,7 @@ export default function LandingPage() {
   const [modal, setModal] = useState<"login" | "signup" | null>(null)
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fafafa", color: "#1a1a1a", position: "relative", overflow: "hidden" }}>
-      {/* Background decoration */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <div style={{ position: "absolute", top: "-20%", left: "50%", transform: "translateX(-50%)", width: "80vw", height: "60vh", background: "radial-gradient(ellipse at center, rgba(59,91,219,0.06) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", top: "10%", right: "-10%", width: "40vw", height: "40vh", background: "radial-gradient(ellipse at center, rgba(99,102,241,0.04) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", bottom: "20%", left: "-5%", width: "30vw", height: "30vh", background: "radial-gradient(ellipse at center, rgba(59,91,219,0.04) 0%, transparent 70%)", borderRadius: "50%" }} />
-        {/* Subtle grid pattern */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,91,219,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,91,219,0.03) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
-      </div>
-      <div style={{ position: "relative", zIndex: 1 }}>
+    <div style={{ minHeight: "100vh", background: "#fafafa", color: "#1a1a1a" }}>
       {modal && <AuthModal mode={modal} onClose={() => setModal(null)} />}
 
       {/* Nav */}
@@ -384,6 +375,5 @@ export default function LandingPage() {
           ))}
         </div>
       </footer>
-    </div>
   )
 }
