@@ -193,10 +193,21 @@ Return ONLY valid JSON:
     })
 
     const text = message.content[0].type === "text" ? message.content[0].text : ""
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return NextResponse.json({ error: "Failed to parse analysis" }, { status: 500 })
-
-    const analysis = JSON.parse(jsonMatch[0])
+    // Find the outermost JSON object robustly
+    let analysis: any = null
+    const start = text.indexOf("{")
+    if (start === -1) return NextResponse.json({ error: "No JSON in response" }, { status: 500 })
+    // Try progressively shorter substrings if full parse fails
+    let end = text.lastIndexOf("}")
+    while (end > start) {
+      try {
+        analysis = JSON.parse(text.substring(start, end + 1))
+        break
+      } catch {
+        end = text.lastIndexOf("}", end - 1)
+      }
+    }
+    if (!analysis) return NextResponse.json({ error: "Failed to parse analysis response" }, { status: 500 })
     return NextResponse.json({ analysis, foundPages })
   } catch (err: any) {
     console.error(err)
