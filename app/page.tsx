@@ -112,6 +112,7 @@ function AuthModal({ mode, onClose }: { mode: "login" | "signup"; onClose: () =>
             </p>
           </>
         )}
+      </div>
     </div>
   )
 }
@@ -375,5 +376,6 @@ export default function LandingPage() {
           ))}
         </div>
       </footer>
+    </div>
   )
 }
