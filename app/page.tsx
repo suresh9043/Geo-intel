@@ -127,8 +127,15 @@ export default function LandingPage() {
       {/* Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", height: 56, background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e5e7eb" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, background: "#eef1fd", border: "1px solid #c5d0f5", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#3B5BDB" }}>G</span>
+          <div style={{ width: 32, height: 32, background: "#eef1fd", border: "1px solid #c5d0f5", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="20" height="20" viewBox="0 0 56 56">
+              <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="2"/>
+              <circle cx="21" cy="33" r="3" fill="#3B5BDB"/>
+              <circle cx="35" cy="33" r="3" fill="#3B5BDB"/>
+              <path d="M22 41 Q28 45 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="28" y1="22" x2="28" y2="14" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
+              <ellipse cx="28" cy="12" rx="5" ry="3" fill="none" stroke="#3B5BDB" strokeWidth="1.5"/>
+            </svg>
           </div>
           <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em", color: "#1a1a1a" }}>GeoIntel</span>
         </div>
@@ -281,16 +288,18 @@ export default function LandingPage() {
             </svg>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 8 }}>
+          <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 32 }}>
             {[
-              { name: "ChatGPT", desc: "Largest user base. Most buyer queries start here.", color: "#10b981" },
-              { name: "Perplexity", desc: "Fast growing. Cites sources directly — high citation value.", color: "#8b5cf6" },
-              { name: "Gemini", desc: "Google backed. Increasingly used for research queries.", color: "#60a5fa" },
-              { name: "Claude", desc: "Enterprise preferred. Strong for complex B2B questions.", color: "#f59e0b" },
-            ].map(e => (
-              <div key={e.name} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 16px", textAlign: "left" }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: e.color, margin: "0 0 6px" }}>{e.name}</p>
-                <p style={{ fontSize: 11, color: "#5e5c78", margin: 0, lineHeight: 1.5 }}>{e.desc}</p>
+              { label: "Score", desc: "GEO readiness 0-100" },
+              { label: "Diagnose", desc: "Why you are not showing up" },
+              { label: "Fix", desc: "Copy-paste code ready to ship" },
+            ].map((item, i) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#2dd4bf", margin: "0 0 4px" }}>{item.label}</p>
+                  <p style={{ fontSize: 11, color: "#5e5c78", margin: 0 }}>{item.desc}</p>
+                </div>
+                {i < 2 && <span style={{ color: "#2dd4bf", fontSize: 18, opacity: 0.4 }}>→</span>}
               </div>
             ))}
           </div>
