@@ -414,24 +414,19 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-border">
-              <p className="text-xs font-semibold text-card-foreground">What you get from each analysis</p>
-            </div>
-            <div className="grid grid-cols-4 divide-x divide-border">
-              {[
-                { label: "Content type", desc: "Blog, case study, whitepaper, FAQ — each scored differently", color: "text-blue-600", bg: "bg-blue-50", n: "01" },
-                { label: "GEO gaps", desc: "Missing schema, weak entity definition, no AI-citable stats", color: "text-amber-600", bg: "bg-amber-50", n: "02" },
-                { label: "Rewrite briefs", desc: "Exact sentences to add or change — specific to the page", color: "text-violet-600", bg: "bg-violet-50", n: "03" },
-                { label: "Schema code", desc: "Copy-paste JSON-LD ready to implement same day", color: "text-emerald-600", bg: "bg-emerald-50", n: "04" },
-              ].map(item => (
-                <div key={item.label} className="px-5 py-4">
-                  <div className={cn("inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold mb-3", item.bg, item.color)}>{item.n}</div>
-                  <p className="text-xs font-semibold text-card-foreground mb-1">{item.label}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { label: "Content type", desc: "Blog, case study, whitepaper, FAQ — each scored differently", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", n: "01" },
+              { label: "GEO gaps", desc: "Missing schema, weak entity definition, no AI-citable stats", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", n: "02" },
+              { label: "Rewrite briefs", desc: "Exact sentences to add or change — specific to the page", color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-200", n: "03" },
+              { label: "Schema code", desc: "Copy-paste JSON-LD ready to implement same day", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", n: "04" },
+            ].map(item => (
+              <div key={item.label} className={cn("rounded-xl border p-4", item.bg, item.border)}>
+                <span className={cn("text-xs font-bold", item.color)}>{item.n}</span>
+                <p className={cn("text-sm font-semibold mt-2 mb-1", item.color)}>{item.label}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
