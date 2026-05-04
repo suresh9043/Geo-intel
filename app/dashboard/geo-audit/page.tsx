@@ -392,18 +392,7 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
             </div>
           )}
 
-          {analysis.missing_schema?.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Schema to Add</p>
-              {analysis.missing_schema.map((s: any, i: number) => (
-                <div key={i} className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">{s.type}</p>
-                  <p className="text-xs text-blue-700 mb-2">{s.why}</p>
-                  {s.snippet && <pre className="text-xs font-mono bg-white/70 p-2.5 rounded-lg border border-blue-100 overflow-x-auto whitespace-pre-wrap">{s.snippet}</pre>}
-                </div>
-              ))}
-            </div>
-          )}
+
 
           {analysis.rewrite_suggestions?.length > 0 && (
             <div className="flex flex-col gap-2">

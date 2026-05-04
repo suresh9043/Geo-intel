@@ -86,13 +86,7 @@ CRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanati
       "impact": "<AI citation improvement>"
     }
   ],
-  "missing_schema": [
-    {
-      "type": "<schema type>",
-      "why": "<why it helps>",
-      "snippet": "<minimal JSON-LD>"
-    }
-  ],
+  "missing_schema": [],
   "rewrite_suggestions": [
     {
       "element": "<what to change>",
