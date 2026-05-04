@@ -186,19 +186,52 @@ export default function LandingPage() {
             <text x="28" y="43.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#3B5BDB" fontFamily="monospace">GEO</text>
           </svg>
           <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
+          {/* Dark dashboard mockup */}
+          <div style={{ background: "#0f1117", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", width: "100%" }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 600, color: "#f0eff8", margin: 0 }}>AI Visibility Dashboard</p>
+                <p style={{ fontSize: 10, color: "#5e5c78", margin: "2px 0 0" }}>Last run 3h ago</p>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#34d399" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", display: "inline-block" }} />Live
+              </div>
+            </div>
+            {/* KPI row */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
+              {[
+                { label: "VISIBILITY", value: "24%", color: "#fbbf24" },
+                { label: "RANK", value: "#4", color: "#60a5fa" },
+                { label: "GEO SCORE", value: "42", color: "#f87171" },
+              ].map(k => (
+                <div key={k.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 10px", textAlign: "center" }}>
+                  <p style={{ fontSize: 9, color: "#5e5c78", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>{k.label}</p>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: k.color, margin: 0, lineHeight: 1 }}>{k.value}</p>
+                </div>
+              ))}
+            </div>
+            {/* Share of voice */}
+            <p style={{ fontSize: 9, color: "#5e5c78", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 8px" }}>Share of Voice</p>
             {[
-              { label: "AI Visibility", value: "24%", sub: "typical before", color: "#ef4444" },
-              { label: "After fixes", value: "71%", sub: "avg improvement", color: "#3B5BDB" },
-              { label: "Time to fix", value: "2hrs", sub: "copy-paste ready", color: "#10b981" },
-              { label: "Cost", value: "$15", sub: "vs $189-$989/mo", color: "#f59e0b" },
-            ].map(s => (
-              <div key={s.label} style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: s.color, letterSpacing: "-0.03em", lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#374151", marginTop: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2 }}>{s.sub}</div>
+              { name: "Competitor A", pct: 68, color: "#3b82f6" },
+              { name: "You", pct: 24, color: "#2dd4bf", you: true },
+              { name: "Competitor B", pct: 41, color: "#8b5cf6" },
+            ].map(r => (
+              <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: r.you ? "#2dd4bf" : "#9896b0", width: 72, flexShrink: 0, fontWeight: r.you ? 600 : 400 }}>{r.name}{r.you ? " ★" : ""}</span>
+                <div style={{ flex: 1, height: 5, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${r.pct}%`, background: r.color, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: 10, color: r.color, fontWeight: 600, width: 28, textAlign: "right" }}>{r.pct}%</span>
               </div>
             ))}
+            {/* Recommendation */}
+            <div style={{ marginTop: 12, background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", borderLeft: "3px solid #f87171", borderRadius: "0 8px 8px 0", padding: "10px 12px" }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.15)", padding: "2px 6px", borderRadius: 4 }}>Critical</span>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#f0eff8", margin: "4px 0 2px" }}>Add FAQPage schema</p>
+              <p style={{ fontSize: 10, color: "#5e5c78", margin: 0 }}>Copy-paste fix ready to implement</p>
+            </div>
           </div>
         </div>
       </section>
