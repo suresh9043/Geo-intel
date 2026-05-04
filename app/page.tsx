@@ -121,11 +121,11 @@ export default function LandingPage() {
   const [modal, setModal] = useState<"login" | "signup" | null>(null)
 
   return (
-    <div style={{ minHeight: "100vh", color: "#1a1a1a", background: "linear-gradient(180deg, #dde4fa 0%, #eef1fd 20%, #f8f9ff 50%, #fafafa 100%)" }}>
+    <div style={{ minHeight: "100vh", background: "#fafafa", color: "#1a1a1a" }}>
       {modal && <AuthModal mode={modal} onClose={() => setModal(null)} />}
 
       {/* Nav */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", height: 56, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e5e7eb" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", height: 56, background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e5e7eb" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 28, height: 28, background: "#eef1fd", border: "1px solid #c5d0f5", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#3B5BDB" }}>G</span>
@@ -142,14 +142,14 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — split layout */}
+      {/* Hero split layout */}
       <section style={{ padding: "72px 5% 64px", maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "#eef1fd", border: "1px solid #c5d0f5", marginBottom: 28 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B5BDB", display: "inline-block" }} />
             <span style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.06em", textTransform: "uppercase" }}>AI search visibility platform</span>
           </div>
-          <h1 style={{ fontSize: "clamp(40px,4vw,64px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 20, color: "#111827" }}>
+          <h1 style={{ fontSize: "clamp(40px,4vw,62px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 20, color: "#111827" }}>
             See where you stand.<br />
             Understand why.<br />
             <span style={{ color: "#3B5BDB" }}>Fix it today.</span>
@@ -172,8 +172,8 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
-          <svg width="200" height="200" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
+          <svg width="180" height="180" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
             <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
             <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
             <circle cx="21" cy="33" r="2" fill="#3B5BDB"/><circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
@@ -184,130 +184,6 @@ export default function LandingPage() {
             <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
             <rect x="18" y="37" width="20" height="8" rx="3" fill="rgba(59,91,219,0.1)" stroke="#3B5BDB" strokeWidth="0.5"/>
             <text x="28" y="43.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#3B5BDB" fontFamily="monospace">GEO</text>
-          </svg>
-          <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
-            {[
-              { label: "AI Visibility", value: "24%", sub: "typical before", color: "#ef4444" },
-              { label: "After fixes", value: "71%", sub: "avg improvement", color: "#3B5BDB" },
-              { label: "Time to fix", value: "2hrs", sub: "copy-paste ready", color: "#10b981" },
-              { label: "Cost", value: "$15", sub: "vs $189-$989/mo", color: "#f59e0b" },
-            ].map(s => (
-              <div key={s.label} style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: s.color, letterSpacing: "-0.03em", lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#374151", marginTop: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2 }}>{s.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Hero Visual */}
-        {/* Hero Visual */}
-        <div style={{ margin: "40px auto 0", maxWidth: 900, width: "100%" }}>
-          <svg width="100%" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" style={{ filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.07))" }}>
-            <defs>
-              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </marker>
-            </defs>
-
-            {/* Background dots */}
-            <g opacity="0.08">
-              <circle cx="80" cy="100" r="1.5" fill="#888"/><circle cx="160" cy="100" r="1.5" fill="#888"/><circle cx="240" cy="100" r="1.5" fill="#888"/>
-              <circle cx="80" cy="180" r="1.5" fill="#888"/><circle cx="160" cy="180" r="1.5" fill="#888"/><circle cx="240" cy="180" r="1.5" fill="#888"/>
-              <circle cx="80" cy="260" r="1.5" fill="#888"/><circle cx="160" cy="260" r="1.5" fill="#888"/><circle cx="240" cy="260" r="1.5" fill="#888"/>
-              <circle cx="80" cy="340" r="1.5" fill="#888"/><circle cx="160" cy="340" r="1.5" fill="#888"/><circle cx="240" cy="340" r="1.5" fill="#888"/>
-              <circle cx="660" cy="100" r="1.5" fill="#888"/><circle cx="740" cy="100" r="1.5" fill="#888"/><circle cx="820" cy="100" r="1.5" fill="#888"/>
-              <circle cx="660" cy="180" r="1.5" fill="#888"/><circle cx="820" cy="180" r="1.5" fill="#888"/>
-              <circle cx="660" cy="340" r="1.5" fill="#888"/><circle cx="820" cy="340" r="1.5" fill="#888"/>
-            </g>
-
-            {/* Connection lines — AI engines to brand */}
-            <path d="M 202 118 C 290 118 310 210 368 228" fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
-            <path d="M 202 198 C 295 198 318 220 368 232" fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
-            <path d="M 202 278 C 295 278 318 250 368 242" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
-            <path d="M 202 358 C 290 358 310 265 368 248" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#arrow)" opacity="0.6"/>
-
-            {/* Brand to GeoIntel */}
-            <path d="M 468 238 C 510 238 525 238 548 238" fill="none" stroke="#2dd4bf" strokeWidth="2.5" markerEnd="url(#arrow)"/>
-
-            {/* AI Engine chips */}
-            <rect x="62" y="94" width="140" height="48" rx="10" fill="#ecfdf5" stroke="#10b981" strokeWidth="1"/>
-            <text x="132" y="122" textAnchor="middle" fontSize="14" fontWeight="600" fill="#065f46" fontFamily="system-ui,sans-serif">ChatGPT</text>
-
-            <rect x="62" y="174" width="140" height="48" rx="10" fill="#f5f3ff" stroke="#8b5cf6" strokeWidth="1"/>
-            <text x="132" y="202" textAnchor="middle" fontSize="14" fontWeight="600" fill="#4c1d95" fontFamily="system-ui,sans-serif">Perplexity</text>
-
-            <rect x="62" y="254" width="140" height="48" rx="10" fill="#eff6ff" stroke="#3b82f6" strokeWidth="1"/>
-            <text x="132" y="282" textAnchor="middle" fontSize="14" fontWeight="600" fill="#1e3a8a" fontFamily="system-ui,sans-serif">Gemini</text>
-
-            <rect x="62" y="334" width="140" height="48" rx="10" fill="#fffbeb" stroke="#f59e0b" strokeWidth="1"/>
-            <text x="132" y="362" textAnchor="middle" fontSize="14" fontWeight="600" fill="#78350f" fontFamily="system-ui,sans-serif">Claude</text>
-
-            {/* Your Brand node */}
-            <rect x="368" y="204" width="100" height="68" rx="14" fill="white" stroke="#2dd4bf" strokeWidth="2.5"/>
-            <text x="418" y="232" textAnchor="middle" fontSize="13" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">Your</text>
-            <text x="418" y="250" textAnchor="middle" fontSize="13" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">Brand</text>
-            <circle cx="418" cy="264" r="3.5" fill="#2dd4bf"/>
-
-            {/* GeoIntel panel — wide */}
-            <rect x="548" y="60" width="312" height="350" rx="16" fill="white" stroke="#e5e7eb" strokeWidth="1"/>
-
-            {/* Panel header */}
-            <rect x="548" y="60" width="312" height="44" rx="16" fill="#f9fafb" stroke="#e5e7eb" strokeWidth="1"/>
-            <rect x="548" y="80" width="312" height="24" fill="#f9fafb"/>
-            <circle cx="570" cy="82" r="5" fill="#2dd4bf"/>
-            <text x="582" y="87" fontSize="13" fontWeight="600" fill="#111827" fontFamily="system-ui,sans-serif">GeoIntel</text>
-            <circle cx="846" cy="81" r="4" fill="#10b981"/>
-            <text x="840" y="86" textAnchor="end" fontSize="11" fill="#10b981" fontFamily="system-ui,sans-serif">Live</text>
-
-            {/* KPI row */}
-            <rect x="564" y="118" width="86" height="58" rx="10" fill="#fefce8" stroke="#fef08a" strokeWidth="1"/>
-            <text x="607" y="138" textAnchor="middle" fontSize="10" fill="#a16207" fontFamily="system-ui,sans-serif" letterSpacing="0.04em">VISIBILITY</text>
-            <text x="607" y="162" textAnchor="middle" fontSize="24" fontWeight="700" fill="#d97706" fontFamily="system-ui,sans-serif">24%</text>
-
-            <rect x="660" y="118" width="86" height="58" rx="10" fill="#f0fdf4" stroke="#bbf7d0" strokeWidth="1"/>
-            <text x="703" y="138" textAnchor="middle" fontSize="10" fill="#166534" fontFamily="system-ui,sans-serif" letterSpacing="0.04em">RANK</text>
-            <text x="703" y="162" textAnchor="middle" fontSize="24" fontWeight="700" fill="#16a34a" fontFamily="system-ui,sans-serif">#3</text>
-
-            <rect x="756" y="118" width="86" height="58" rx="10" fill="#fef2f2" stroke="#fecaca" strokeWidth="1"/>
-            <text x="799" y="138" textAnchor="middle" fontSize="10" fill="#991b1b" fontFamily="system-ui,sans-serif" letterSpacing="0.04em">GEO SCORE</text>
-            <text x="799" y="162" textAnchor="middle" fontSize="24" fontWeight="700" fill="#dc2626" fontFamily="system-ui,sans-serif">42</text>
-
-            {/* Divider */}
-            <line x1="564" y1="190" x2="844" y2="190" stroke="#f3f4f6" strokeWidth="1"/>
-
-            {/* Share of voice */}
-            <text x="564" y="210" fontSize="10" fill="#9ca3af" fontFamily="system-ui,sans-serif" letterSpacing="0.06em">SHARE OF VOICE</text>
-
-            <text x="564" y="230" fontSize="12" fill="#6b7280" fontFamily="system-ui,sans-serif">Competitor A</text>
-            <rect x="664" y="220" width="160" height="8" rx="4" fill="#f3f4f6"/>
-            <rect x="664" y="220" width="118" height="8" rx="4" fill="#3b82f6" opacity="0.6"/>
-            <text x="830" y="229" textAnchor="end" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">68%</text>
-
-            <text x="564" y="252" fontSize="12" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">You ★</text>
-            <rect x="664" y="242" width="160" height="8" rx="4" fill="#f3f4f6"/>
-            <rect x="664" y="242" width="38" height="8" rx="4" fill="#2dd4bf"/>
-            <text x="830" y="251" textAnchor="end" fontSize="11" fontWeight="600" fill="#0f766e" fontFamily="system-ui,sans-serif">24%</text>
-
-            <text x="564" y="274" fontSize="12" fill="#6b7280" fontFamily="system-ui,sans-serif">Competitor B</text>
-            <rect x="664" y="264" width="160" height="8" rx="4" fill="#f3f4f6"/>
-            <rect x="664" y="264" width="68" height="8" rx="4" fill="#8b5cf6" opacity="0.6"/>
-            <text x="830" y="273" textAnchor="end" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">41%</text>
-
-            {/* Divider */}
-            <line x1="564" y1="288" x2="844" y2="288" stroke="#f3f4f6" strokeWidth="1"/>
-
-            {/* Recommendation */}
-            <text x="564" y="308" fontSize="10" fill="#9ca3af" fontFamily="system-ui,sans-serif" letterSpacing="0.06em">TOP FIX</text>
-            <rect x="564" y="316" width="276" height="62" rx="8" fill="#fef2f2" stroke="#fecaca" strokeWidth="1"/>
-            <rect x="564" y="316" width="4" height="62" rx="2" fill="#ef4444"/>
-            <rect x="576" y="324" width="46" height="15" rx="4" fill="#fee2e2"/>
-            <text x="599" y="335" textAnchor="middle" fontSize="10" fontWeight="600" fill="#b91c1c" fontFamily="system-ui,sans-serif">Critical</text>
-            <text x="576" y="354" fontSize="12" fontWeight="600" fill="#111827" fontFamily="system-ui,sans-serif">Add FAQPage schema to product pages</text>
-            <text x="576" y="371" fontSize="11" fill="#6b7280" fontFamily="system-ui,sans-serif">Copy-paste JSON-LD fix ready to implement</text>
           </svg>
           <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
