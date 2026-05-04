@@ -110,7 +110,10 @@ Return ONLY valid JSON, no markdown, no backticks:
       }
     }
 
-    if (!analysis) return NextResponse.json({ error: "Failed to parse analysis" }, { status: 500 })
+    if (!analysis) {
+      console.error("Failed to parse. Raw response:", text.substring(0, 500))
+      return NextResponse.json({ error: "Failed to parse analysis", raw: text.substring(0, 200) }, { status: 500 })
+    }
     return NextResponse.json({ analysis })
   } catch (err: any) {
     console.error(err)
