@@ -257,7 +257,7 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
         </div>
         <div className="flex gap-2 mt-3 flex-wrap items-center">
           <span className="text-xs text-muted-foreground">Try:</span>
-          {["hubspot.com/blog", "zapier.com/blog", "notion.so/blog"].map(d => (
+          {[].map(d => (
             <button key={d} onClick={() => setUrl(d)} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">{d}</button>
           ))}
         </div>
