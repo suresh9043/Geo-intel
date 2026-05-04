@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { saveAnalysisResult, getAnalysisHistory, getCachedAnalysis } from "@/lib/queries"
 import { Sidebar } from "@/components/sidebar"
-import { useAuth } from "@/lib/auth-context"
 import { Search, Loader2, ChevronDown, ChevronUp, Zap, AlertTriangle, AlertCircle, Info, ArrowRight, X, FileText, BarChart2, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
