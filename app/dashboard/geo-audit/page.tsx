@@ -303,7 +303,6 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {analysis && !loading && ss && (
