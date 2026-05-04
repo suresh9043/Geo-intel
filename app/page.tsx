@@ -132,7 +132,10 @@ export default function LandingPage() {
           </div>
           <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em", color: "#1a1a1a" }}>GeoIntel</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <a href="#how-it-works" style={{ fontSize: 13, color: "#374151", textDecoration: "none", fontWeight: 500 }}>How it works</a>
+          <a href="#pricing" style={{ fontSize: 13, color: "#374151", textDecoration: "none", fontWeight: 500 }}>Pricing</a>
+          <div style={{ width: 1, height: 16, background: "#e5e7eb" }} />
           <button onClick={() => setModal("login")} style={{ padding: "6px 16px", borderRadius: 7, fontSize: 13, color: "#374151", background: "transparent", border: "1px solid #e5e7eb", cursor: "pointer", fontWeight: 500 }}>
             Sign in
           </button>
@@ -237,7 +240,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it works — horizontal steps */}
-      <section style={{ padding: "0 5% 56px", maxWidth: 1280, margin: "0 auto" }}>
+      <section id="how-it-works" style={{ padding: "0 5% 56px", maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>How it works</div>
           <h2 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>From invisible to cited — in one afternoon</h2>
@@ -280,7 +283,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section style={{ padding: "0 32px 64px", maxWidth: 620, margin: "0 auto" }}>
+      <section id="pricing" style={{ padding: "0 32px 64px", maxWidth: 620, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Pricing</div>
           <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", color: "#111827" }}>Simple and honest</h2>
