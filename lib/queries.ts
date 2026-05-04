@@ -315,3 +315,35 @@ export async function getRankings(companyId: string) {
     .sort((a, b) => b.visibility - a.visibility)
     .map((r, i) => ({ ...r, rank: i + 1 }))
 }
+
+export async function saveAnalysisResult(userId: string, url: string, analysis: any) {
+  const { supabase } = await import("./supabase")
+  await supabase.from("analysis_cache").upsert({
+    user_id: userId,
+    url,
+    analysis,
+    analysed_at: new Date().toISOString(),
+  }, { onConflict: "user_id,url" })
+}
+
+export async function getAnalysisHistory(userId: string, limit = 10) {
+  const { supabase } = await import("./supabase")
+  const { data } = await supabase
+    .from("analysis_cache")
+    .select("url, analysis, analysed_at")
+    .eq("user_id", userId)
+    .order("analysed_at", { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
+export async function getCachedAnalysis(userId: string, url: string) {
+  const { supabase } = await import("./supabase")
+  const { data } = await supabase
+    .from("analysis_cache")
+    .select("analysis, analysed_at")
+    .eq("user_id", userId)
+    .eq("url", url)
+    .single()
+  return data
+}

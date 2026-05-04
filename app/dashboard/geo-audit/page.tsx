@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/auth-context"
+import { saveAnalysisResult, getAnalysisHistory, getCachedAnalysis } from "@/lib/queries"
 import { Sidebar } from "@/components/sidebar"
 import { useAuth } from "@/lib/auth-context"
 import { Search, Loader2, ChevronDown, ChevronUp, Zap, AlertTriangle, AlertCircle, Info, ArrowRight, X, FileText, BarChart2, Copy, Check } from "lucide-react"
@@ -219,21 +221,50 @@ function TechnicalAuditTab({ vertical }: { vertical: string }) {
 }
 
 function ContentAnalysisTab({ vertical }: { vertical: string }) {
+  const { user } = useAuth()
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<any>(null)
+  const [currentUrl, setCurrentUrl] = useState("")
   const [error, setError] = useState("")
+  const [history, setHistory] = useState<any[]>([])
+  const [cached, setCached] = useState(false)
 
-  const run = async () => {
-    if (!url.trim()) return
-    setLoading(true); setError(""); setAnalysis(null)
-    const fullUrl = url.startsWith("http") ? url : "https://" + url
+  useEffect(() => {
+    if (!user) return
+    getAnalysisHistory(user.id, 8).then(setHistory)
+  }, [user])
+
+  const run = async (runUrl?: string) => {
+    const targetUrl = runUrl || url
+    if (!targetUrl.trim()) return
+    setLoading(true); setError(""); setAnalysis(null); setCached(false)
+    const fullUrl = targetUrl.startsWith("http") ? targetUrl : "https://" + targetUrl
     const domain = fullUrl.replace(/^https?:\/\//, "").split("/")[0]
+
+    // Check cache first
+    if (user) {
+      const hit = await getCachedAnalysis(user.id, fullUrl)
+      if (hit) {
+        setAnalysis(hit.analysis)
+        setCurrentUrl(fullUrl)
+        setCached(true)
+        setLoading(false)
+        return
+      }
+    }
+
     try {
       const res = await fetch("/api/content-page-analysis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: fullUrl, domain, vertical }) })
       const data = await res.json()
-      if (data.analysis) setAnalysis(data.analysis)
-      else setError(data.error || "Analysis failed")
+      if (data.analysis) {
+        setAnalysis(data.analysis)
+        setCurrentUrl(fullUrl)
+        if (user) {
+          await saveAnalysisResult(user.id, fullUrl, data.analysis)
+          getAnalysisHistory(user.id, 8).then(setHistory)
+        }
+      } else setError(data.error || "Analysis failed")
     } catch { setError("Could not connect to analysis service") }
     setLoading(false)
   }
@@ -272,6 +303,7 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {analysis && !loading && ss && (
@@ -356,7 +388,31 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
       )}
 
       {!analysis && !loading && !error && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
+          {history.length > 0 && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Previously analysed</p>
+              <div className="flex flex-col gap-2">
+                {history.map((h: any, i: number) => {
+                  const ss2 = getScoreStatus(h.analysis?.geo_score || 0)
+                  return (
+                    <button key={i} onClick={() => { setUrl(h.url); run(h.url) }}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors text-left">
+                      <div className={cn("flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold", ss2.bg, ss2.color)}>
+                        {h.analysis?.geo_score || "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-card-foreground truncate">{h.analysis?.page_title || h.url}</p>
+                        <p className="text-xs text-muted-foreground truncate">{h.url}</p>
+                      </div>
+                      <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0", ss2.bg, ss2.color)}>{ss2.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
           {[
             { title: "Detects content type", desc: "Blog post, case study, whitepaper, FAQ, comparison page — each has different GEO requirements.", icon: "📄", color: "bg-blue-50 border-blue-200" },
             { title: "Finds specific gaps", desc: "Missing schema, weak entity definition, no AI-citable stats, poor heading structure.", icon: "🔍", color: "bg-amber-50 border-amber-200" },
