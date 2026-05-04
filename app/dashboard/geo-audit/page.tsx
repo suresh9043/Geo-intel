@@ -242,34 +242,35 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Input — always visible at top */}
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <p className="text-sm font-semibold text-card-foreground mb-1">Analyse any content page</p>
-        <p className="text-xs text-muted-foreground mb-4">Paste a specific URL — a blog post, case study, comparison page, whitepaper or FAQ. You will get specific gaps, rewrite suggestions, schema to add, and copy-paste fixes.</p>
         <div className="flex gap-3">
           <div className="flex-1 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
             <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-            <input type="text" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && run()} placeholder="e.g. uipath.com/resources/automation-case-studies" className="flex-1 bg-transparent text-sm text-card-foreground placeholder:text-muted-foreground outline-none" />
+            <input type="text" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && run()} placeholder="Paste a page URL — blog post, case study, whitepaper, FAQ..." className="flex-1 bg-transparent text-sm text-card-foreground placeholder:text-muted-foreground outline-none" />
             {url && <button onClick={() => { setUrl(""); setAnalysis(null); setError("") }}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>}
           </div>
           <button onClick={run} disabled={loading || !url.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm">
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
           </button>
         </div>
-        <div className="flex gap-2 mt-3 flex-wrap items-center">
-          <span className="text-xs text-muted-foreground">Try:</span>
-          {[].map(d => (
-            <button key={d} onClick={() => setUrl(d)} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">{d}</button>
-          ))}
-        </div>
+        <p className="text-xs text-muted-foreground mt-2">Works on any specific content page — not section homepages like /blog or /resources</p>
       </div>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2"><AlertCircle className="h-4 w-4 flex-shrink-0" />{error}</div>}
 
       {loading && (
-        <div className="flex flex-col items-center justify-center gap-4 py-16">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm font-semibold text-card-foreground">Fetching and analysing page...</p>
-          <p className="text-xs text-muted-foreground">Reading content structure and AI citation readiness · ~20 seconds</p>
+        <div className="rounded-xl border border-border bg-card p-8 flex items-center gap-6">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div>
+            <p className="text-sm font-semibold text-card-foreground">Fetching and analysing page...</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Reading content, checking schema, assessing AI citation readiness · ~20 seconds</p>
+            <div className="mt-3 flex gap-2 flex-wrap">
+              {["Fetching page content", "Detecting content type", "Checking schema", "Finding GEO gaps", "Generating fixes"].map((step, i) => (
+                <span key={step} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{step}</span>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -355,17 +356,19 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
       )}
 
       {!analysis && !loading && !error && (
-        <div className="flex flex-col items-center text-center py-10 gap-4">
-          <p className="text-base font-semibold text-card-foreground">Deep analysis for any content page</p>
-          <p className="text-sm text-muted-foreground max-w-md">Paste any page URL and get specific gaps, rewrite suggestions, schema to add, and copy-paste fixes.</p>
-          <div className="flex items-stretch rounded-xl border border-border bg-muted/30 overflow-hidden w-full max-w-2xl">
-            {[{ icon: "🔍", label: "Detects content type" }, { icon: "⚠️", label: "Finds GEO gaps" }, { icon: "✏️", label: "Rewrite suggestions" }, { icon: "🔧", label: "Schema to add" }].map((item, i) => (
-              <div key={item.label} className={cn("flex-1 px-4 py-4 flex flex-col items-center text-center gap-1.5", i > 0 ? "border-l border-border" : "")}>
-                <span className="text-xl">{item.icon}</span>
-                <p className="text-xs font-semibold text-card-foreground">{item.label}</p>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { title: "Detects content type", desc: "Blog post, case study, whitepaper, FAQ, comparison page — each has different GEO requirements.", icon: "📄", color: "bg-blue-50 border-blue-200" },
+            { title: "Finds specific gaps", desc: "Missing schema, weak entity definition, no AI-citable stats, poor heading structure.", icon: "🔍", color: "bg-amber-50 border-amber-200" },
+            { title: "Rewrite suggestions", desc: "Exact sentences to add or change — not generic advice. Specific to the page content.", icon: "✏️", color: "bg-violet-50 border-violet-200" },
+            { title: "Schema to add", desc: "Copy-paste JSON-LD ready to implement. FAQPage, Article, CaseStudy, HowTo and more.", icon: "🔧", color: "bg-emerald-50 border-emerald-200" },
+          ].map(item => (
+            <div key={item.title} className={cn("rounded-xl border p-4", item.color)}>
+              <div className="text-lg mb-2">{item.icon}</div>
+              <p className="text-xs font-semibold text-card-foreground mb-1">{item.title}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
