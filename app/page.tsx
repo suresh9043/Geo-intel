@@ -153,13 +153,13 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero split layout */}
-      <section style={{ padding: "72px 5% 64px", maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+      <section style={{ padding: "80px 8% 80px", maxWidth: 1400, margin: "0 auto", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 80, alignItems: "center" }}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "#eef1fd", border: "1px solid #c5d0f5", marginBottom: 28 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B5BDB", display: "inline-block" }} />
             <span style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.06em", textTransform: "uppercase" }}>AI search visibility platform</span>
           </div>
-          <h1 style={{ fontSize: "clamp(40px,4vw,62px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 20, color: "#111827" }}>
+          <h1 style={{ fontSize: "clamp(44px,5vw,68px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 20, color: "#111827" }}>
             See where you stand.<br />
             Understand why.<br />
             <span style={{ color: "#3B5BDB" }}>Fix it today.</span>
@@ -183,7 +183,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
-          <svg width="180" height="180" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
+          <svg width="220" height="220" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
             <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
             <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
             <circle cx="21" cy="33" r="2" fill="#3B5BDB"/><circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
@@ -195,7 +195,7 @@ export default function LandingPage() {
           </svg>
           <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
           {/* Dark dashboard mockup */}
-          <div style={{ background: "#0f1117", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", width: "100%" }}>
+          <div style={{ background: "#0f1117", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.18)", width: "100%" }}>
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div>
