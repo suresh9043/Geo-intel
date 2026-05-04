@@ -44,7 +44,6 @@ function RadarMascot() {
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
-      </div>
     </div>
   )
 }
@@ -113,7 +112,6 @@ function AuthModal({ mode, onClose }: { mode: "login" | "signup"; onClose: () =>
             </p>
           </>
         )}
-      </div>
     </div>
   )
 }
