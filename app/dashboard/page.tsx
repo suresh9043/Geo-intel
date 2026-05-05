@@ -179,7 +179,7 @@ export default function DashboardPage() {
                 {/* Big visibility number */}
                 <div className="col-span-2 rounded-xl border border-border bg-card p-5 flex flex-col items-center justify-center text-center">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">AI Visibility</p>
-                  <p className="text-5xl font-black tabular-nums leading-none" style={{ color: visColor }}>{visibility}%</p>
+                  <p className="text-5xl font-black tabular-nums leading-none" style={{ color: visColor }}>{stats?.totalResponses ? `${visibility}%` : "—"}</p>
                   <p className="text-xs text-muted-foreground mt-2">{stats?.mentionCount || 0} of {stats?.totalResponses || 0} answers</p>
                   <div className="w-full mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${visibility}%`, background: visColor }} />
