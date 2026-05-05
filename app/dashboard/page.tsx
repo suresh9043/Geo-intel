@@ -148,6 +148,17 @@ export default function DashboardPage() {
             {stats?.lastRunAt && <p className="text-xs text-muted-foreground">Last run: {formatLastRun(stats.lastRunAt)}</p>}
           </div>
           <div className="flex items-center gap-2">
+            {/* Model filter */}
+            <select
+              value={selectedModel}
+              onChange={e => setSelectedModel(e.target.value)}
+              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background text-card-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            >
+              <option value="all">All models</option>
+              {(stats?.availableModels || []).map((m: string) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
             <button onClick={fetchData} className="p-1.5 text-muted-foreground border border-border rounded-lg hover:bg-muted transition-colors">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
