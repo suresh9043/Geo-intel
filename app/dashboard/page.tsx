@@ -30,13 +30,6 @@ function ModelBadge({ model }: { model: string }) {
   return <span className="rounded-full bg-muted text-muted-foreground px-1.5 py-0.5 text-[10px] font-semibold">{model.substring(0, 2).toUpperCase()}</span>
 }
 
-function getScoreStatus(score: number) {
-  if (score >= 75) return { label: "Strong", color: "text-emerald-700", bg: "bg-emerald-100" }
-  if (score >= 55) return { label: "Good", color: "text-blue-700", bg: "bg-blue-100" }
-  if (score >= 35) return { label: "Needs work", color: "text-amber-700", bg: "bg-amber-100" }
-  if (score >= 20) return { label: "Weak", color: "text-orange-700", bg: "bg-orange-100" }
-  return { label: "Critical", color: "text-red-700", bg: "bg-red-100" }
-}
 
 function getRecommendations(visibility: number, totalResponses: number, topCompetitor: any, sentiment: string | undefined) {
   const recs: { icon: any; title: string; detail: string; action: string; href: string; priority: "critical" | "high" | "quick" }[] = []
@@ -268,7 +261,6 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex flex-col gap-0">
                     {recs.map((rec, i) => {
-                      const Icon = rec.icon
                       return (
                         <div key={i}
                           onClick={() => rec.href !== "#run" && router.push(rec.href)}
