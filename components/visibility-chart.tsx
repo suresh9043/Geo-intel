@@ -37,11 +37,30 @@ function DeltaBadge({ delta }: { delta: number | null }) {
   )
 }
 
-function hasSevenDaySpread(runs: RunData[]) {
-  if (runs.length < 2) return false
-  const oldest = new Date(runs[0].date).getTime()
-  const newest = new Date(runs[runs.length - 1].date).getTime()
-  return newest - oldest >= 7 * 24 * 60 * 60 * 1000
+function hasSevenConsecutiveDays(runs: RunData[]) {
+  if (runs.length < 7) return false
+
+  // Get unique day strings e.g. "2026-05-01"
+  const uniqueDays = [...new Set(
+    runs.map(r => new Date(r.date).toISOString().split('T')[0])
+  )].sort()
+
+  if (uniqueDays.length < 7) return false
+
+  // Check for 7 consecutive days anywhere in the list
+  let streak = 1
+  for (let i = 1; i < uniqueDays.length; i++) {
+    const prev = new Date(uniqueDays[i - 1]).getTime()
+    const curr = new Date(uniqueDays[i]).getTime()
+    const diffDays = (curr - prev) / (24 * 60 * 60 * 1000)
+    if (diffDays === 1) {
+      streak++
+      if (streak >= 7) return true
+    } else {
+      streak = 1
+    }
+  }
+  return false
 }
 
 // ─── Scorecard ────────────────────────────────────────────────────────────────
@@ -145,5 +164,5 @@ export function VisibilityWidget({ runs }: { runs: RunData[] }) {
     )
   }
 
-  return hasSevenDaySpread(runs) ? <TrendChart runs={runs} /> : <Scorecard runs={runs} />
+  return hasSevenConsecutiveDays(runs) ? <TrendChart runs={runs} /> : <Scorecard runs={runs} />
 }
