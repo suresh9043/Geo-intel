@@ -57,7 +57,7 @@ function Scorecard({ runs }: { runs: RunData[] }) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Visibility</p>
           <p className="mt-1 text-4xl font-bold tabular-nums text-card-foreground">
-            {latest?.total > 0 ? `${latest.visibility}%` : "—"}
+            {latest?.visibility > 0 ? `${latest.visibility}%` : "—"}
           </p>
         </div>
         <DeltaBadge delta={delta} />
