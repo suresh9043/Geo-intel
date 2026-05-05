@@ -204,7 +204,7 @@ function synthesise(url: string, results: Record<string, any>) {
     url, composite_score: composite, grade, dimension_scores: dimensionScores,
     critical_findings: allFindings.filter(f => f.severity === 'Critical').slice(0, 2),
     high_findings: allFindings.filter(f => f.severity === 'High').slice(0, 3),
-    quick_wins: allFindings.filter(f => f.effort === 'Hours' && !criticalAndHighTitles.has(f.title)).slice(0, 3),
+    quick_wins: allFindings.filter(f => f.severity === 'Medium' && !criticalAndHighTitles.has(f.title)).slice(0, 3),
     all_findings: allFindings,
   }
 }
