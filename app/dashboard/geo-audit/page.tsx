@@ -285,30 +285,42 @@ function TechnicalAuditTab({ vertical }: { vertical: string }) {
 }
 
 function ContentAnalysisTab({ vertical }: { vertical: string }) {
+  const { user } = useAuth()
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<any>(null)
+  const [currentUrl, setCurrentUrl] = useState("")
   const [error, setError] = useState("")
   const [blocked, setBlocked] = useState(false)
   const [pastedContent, setPastedContent] = useState("")
+  const [history, setHistory] = useState<any[]>([])
+  const [expandedGap, setExpandedGap] = useState<number | null>(null)
 
-  const run = async (usePasted = false) => {
-    if (!url.trim()) return
+  useEffect(() => {
+    if (!user) return
+    getAnalysisHistory(user.id, 10).then(setHistory)
+  }, [user])
+
+  const run = async (usePasted = false, runUrl?: string) => {
+    const targetUrl = runUrl || url
+    if (!targetUrl.trim()) return
     setLoading(true); setError(""); setAnalysis(null); setBlocked(false)
-    const fullUrl = url.startsWith("http") ? url : "https://" + url
+    const fullUrl = targetUrl.startsWith("http") ? targetUrl : "https://" + targetUrl
     const domain = fullUrl.replace(/^https?:\/\//, "").split("/")[0]
+    if (user && !usePasted) {
+      const hit = await getCachedAnalysis(user.id, fullUrl)
+      if (hit) { setAnalysis(hit.analysis); setCurrentUrl(fullUrl); setLoading(false); return }
+    }
     try {
       const res = await fetch("/api/content-page-analysis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          url: fullUrl, domain, vertical,
-          pastedContent: usePasted ? pastedContent : undefined
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: fullUrl, domain, vertical, pastedContent: usePasted ? pastedContent : undefined }),
       })
       const data = await res.json()
-      if (data.analysis) setAnalysis(data.analysis)
-      else if (data.blocked) { setBlocked(true); setError("") }
+      if (data.analysis) {
+        setAnalysis(data.analysis); setCurrentUrl(fullUrl)
+        if (user) { await saveAnalysisResult(user.id, fullUrl, data.analysis); getAnalysisHistory(user.id, 10).then(setHistory) }
+      } else if (data.blocked) { setBlocked(true) }
       else setError(data.error || "Analysis failed")
     } catch { setError("Could not connect to analysis service") }
     setLoading(false)
@@ -317,208 +329,296 @@ function ContentAnalysisTab({ vertical }: { vertical: string }) {
   const ss = analysis ? getScoreStatus(analysis.geo_score) : null
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex gap-3">
-          <div className="flex-1 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+    <div style={{ background: "#09090b", minHeight: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Search bar */}
+      <div style={{ padding: "16px 24px", borderBottom: "1px solid #27272a" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#121215", border: "1px solid #27272a", borderRadius: 8, padding: "10px 12px" }}>
+            <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#71717a" }} />
             <input
-              type="text" value={url} onChange={e => setUrl(e.target.value)}
+              type="text" value={url}
+              onChange={e => setUrl(e.target.value)}
               onKeyDown={e => e.key === "Enter" && run()}
               placeholder="Paste a page URL — blog post, case study, whitepaper, FAQ..."
-              className="flex-1 bg-transparent text-sm text-card-foreground placeholder:text-muted-foreground outline-none"
+              style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#fafafa" }}
             />
-            {url && <button onClick={() => { setUrl(""); setAnalysis(null); setError("") }}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>}
+            {url && <button onClick={() => { setUrl(""); setAnalysis(null); setError("") }}><X className="h-3.5 w-3.5" style={{ color: "#71717a" }} /></button>}
           </div>
-          <button onClick={run} disabled={loading || !url.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm">
+          <button
+            onClick={() => run()}
+            disabled={loading || !url.trim()}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#7c3aed", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: loading || !url.trim() ? 0.5 : 1 }}
+          >
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
           </button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">Works on specific content pages — not section homepages like /blog or /resources</p>
+        <p style={{ fontSize: 11, color: "#52525b", marginTop: 8 }}>Works on specific content pages — not section homepages like /blog or /resources</p>
       </div>
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
-        </div>
-      )}
+      <div style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {blocked && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">This site blocks automated access</p>
-              <p className="text-xs text-amber-700 mt-0.5">Open the page in your browser, select all text (Ctrl+A / Cmd+A), copy it, and paste it below. We will analyse it directly.</p>
-            </div>
+        {/* Error */}
+        {error && (
+          <div style={{ background: "#3b1111", border: "1px solid #7f1d1d", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, color: "#fca5a5", fontSize: 14 }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
           </div>
-          <textarea
-            value={pastedContent}
-            onChange={e => setPastedContent(e.target.value)}
-            placeholder="Paste the page content here..."
-            rows={6}
-            className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-xs text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-amber-300 resize-none font-mono"
-          />
-          <button
-            onClick={() => run(true)}
-            disabled={loading || pastedContent.trim().length < 100}
-            className="mt-3 flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analysing...</> : <>Analyse pasted content <ArrowRight className="h-3.5 w-3.5" /></>}
-          </button>
-        </div>
-      )}
+        )}
 
-      {loading && (
-        <div className="rounded-xl border border-border bg-card p-8 flex items-center gap-6">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <div>
-            <p className="text-sm font-semibold text-card-foreground">Fetching and analysing page...</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Reading content, checking schema, assessing AI citation readiness</p>
-          </div>
-        </div>
-      )}
-
-      {analysis && ss && !loading && (
-        <div className="flex flex-col gap-4">
-          <div className={cn("rounded-2xl border-2 p-5 shadow-sm", ss.bg, ss.border)}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{analysis.page_title || url}</p>
-            <div className="flex items-end gap-3 mb-3">
-              <span className="text-6xl font-black tabular-nums text-card-foreground leading-none">{analysis.geo_score}</span>
-              <span className={cn("text-lg font-bold px-2 py-0.5 rounded-lg mb-1", ss.color, ss.bg)}>{ss.label}</span>
-              <span className="text-xs text-muted-foreground mb-2">{analysis.content_type}</span>
+        {/* Blocked fallback */}
+        {blocked && (
+          <div style={{ background: "#1c1400", border: "1px solid #78350f", borderRadius: 10, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
+              <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: "#fbbf24", marginTop: 2 }} />
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "#fbbf24", margin: 0 }}>This site blocks automated access</p>
+                <p style={{ fontSize: 12, color: "#92400e", margin: "4px 0 0" }}>Open the page in your browser, select all (Ctrl+A), copy, and paste below.</p>
+              </div>
             </div>
-            <p className="text-sm text-card-foreground leading-relaxed">{analysis.summary}</p>
-          </div>
-
-          {analysis.what_works?.length > 0 && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-2">What works</p>
-              {analysis.what_works.map((w: string, i: number) => (
-                <p key={i} className="text-xs text-emerald-700">• {w}</p>
-              ))}
-            </div>
-          )}
-
-          {analysis.critical_gaps?.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Critical Gaps and Fixes</p>
-              {analysis.critical_gaps.map((gap: any, i: number) => (
-                <div key={i} className="rounded-xl border border-red-200 bg-red-50 border-l-4 border-l-red-500 p-4">
-                  <p className="text-xs font-semibold text-red-800 mb-1">{gap.gap}</p>
-                  <p className="text-xs text-red-700 mb-2"><span className="font-semibold">Fix:</span> {gap.fix}</p>
-                  {gap.example && (
-                    <div className="bg-white/70 rounded-lg p-2.5 border border-red-100 mt-2">
-                      <p className="text-xs text-card-foreground italic">"{gap.example}"</p>
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1.5">Impact: {gap.impact}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-
-
-          {analysis.rewrite_suggestions?.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Rewrite Suggestions</p>
-              {analysis.rewrite_suggestions.map((r: any, i: number) => (
-                <div key={i} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-xs font-semibold text-amber-800 mb-2">{r.element}</p>
-                  {r.current && <p className="text-xs text-card-foreground bg-white/60 rounded p-1.5 border border-amber-100 italic mb-2">Current: "{r.current}"</p>}
-                  <p className="text-xs text-amber-900 bg-white/60 rounded p-1.5 border border-amber-100 font-medium">Suggested: "{r.suggested}"</p>
-                  <p className="text-xs text-muted-foreground mt-1.5">Why: {r.why}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {analysis.quick_wins?.length > 0 && (
-            <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-              <p className="text-xs font-semibold text-teal-800 uppercase tracking-wider mb-3">Quick wins for this page</p>
-              {analysis.quick_wins.map((w: any, i: number) => (
-                <div key={i} className="flex items-start gap-2 mb-2">
-                  <span className="text-teal-500 font-bold text-xs flex-shrink-0">{i + 1}.</span>
-                  <div>
-                    <p className="text-xs font-semibold text-teal-800">{w.action}</p>
-                    <p className="text-xs text-teal-600">{w.impact} · {w.effort}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="text-center pt-2">
-            <button onClick={() => { setUrl(""); setAnalysis(null) }} className="text-xs text-primary font-semibold hover:underline">
-              Analyse a different URL
+            <textarea
+              value={pastedContent}
+              onChange={e => setPastedContent(e.target.value)}
+              placeholder="Paste the page content here..."
+              rows={5}
+              style={{ width: "100%", background: "#121215", border: "1px solid #27272a", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#fafafa", fontFamily: "monospace", resize: "none", outline: "none", boxSizing: "border-box" }}
+            />
+            <button
+              onClick={() => run(true)}
+              disabled={loading || pastedContent.trim().length < 100}
+              style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, background: "#92400e", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+            >
+              {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analysing...</> : <>Analyse pasted content <ArrowRight className="h-3.5 w-3.5" /></>}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {!analysis && !loading && !error && (
-        <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-border bg-card px-8 py-6 flex items-center gap-8">
-            <div className="flex-shrink-0">
-              <svg width="80" height="80" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
-                <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
-                <circle cx="21" cy="33" r="4" fill="white"/>
-                <circle cx="35" cy="33" r="4" fill="white"/>
-                <circle cx="21" cy="33" r="2" fill="#3B5BDB"/>
-                <circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
-                <path d="M22 41 Q28 46 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="28" y1="22" x2="28" y2="12" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke="#3B5BDB" strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
-                <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                
-              </svg>
-              <style>{`@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+        {/* Loading */}
+        {loading && (
+          <div style={{ background: "#121215", border: "1px solid #27272a", borderRadius: 10, padding: "32px 24px", display: "flex", alignItems: "center", gap: 20 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid #7c3aed", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#fafafa", margin: 0 }}>Fetching and analysing page...</p>
+              <p style={{ fontSize: 12, color: "#71717a", margin: "4px 0 0" }}>Reading content, checking citation readiness</p>
             </div>
-            <div className="flex-1">
-              <div className="bg-primary/5 border border-primary/20 rounded-xl rounded-tl-none px-4 py-3 mb-3">
-                <p className="text-sm font-semibold text-card-foreground mb-0.5">Hi! I am Radar, your GEO analyst.</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">Paste any content page URL above and I will tell you exactly why AI engines are not citing it — and how to fix it. Works on blog posts, case studies, whitepapers, FAQs and comparison pages.</p>
+          </div>
+        )}
+
+        {/* Results */}
+        {analysis && ss && !loading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Score card */}
+            <div style={{ background: "#121215", border: "1px solid #27272a", borderRadius: 12, padding: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#71717a", margin: "0 0 4px" }}>{analysis.content_type}</p>
+                  <p style={{ fontSize: 13, color: "#a1a1aa", margin: 0, maxWidth: 500 }}>{analysis.page_title || currentUrl}</p>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 900, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.08em", background: ss.bg.includes("emerald") ? "#0a1a0f" : ss.bg.includes("violet") ? "#13091f" : ss.bg.includes("amber") ? "#140f00" : "#1a0000", color: ss.color.includes("emerald") ? "#34d399" : ss.color.includes("violet") ? "#a78bfa" : ss.color.includes("amber") ? "#fbbf24" : "#f87171", border: `1px solid ${ss.color.includes("emerald") ? "#14532d" : ss.color.includes("violet") ? "#4c1d95" : ss.color.includes("amber") ? "#78350f" : "#7f1d1d"}` }}>
+                  {ss.label}
+                </span>
               </div>
-              <div className="flex items-center gap-6">
-                {[
-                  { label: "Score 0-100", sub: "GEO readiness" },
-                  { label: "Specific gaps", sub: "Not generic tips" },
-                  { label: "Copy-paste fixes", sub: "Schema and rewrites" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    {i > 0 && <div className="w-px h-6 bg-border" />}
-                    <div>
-                      <p className="text-xs font-semibold text-card-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.sub}</p>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 20 }}>
+                <span style={{ fontSize: 72, fontWeight: 900, lineHeight: 1, color: "#fafafa", tabularNums: true } as any}>{analysis.geo_score}</span>
+                <div style={{ flex: 1, paddingBottom: 8 }}>
+                  <div style={{ height: 6, borderRadius: 3, background: "#27272a", marginBottom: 8 }}>
+                    <div style={{ height: "100%", borderRadius: 3, background: ss.color.includes("emerald") ? "#34d399" : ss.color.includes("violet") ? "#a78bfa" : ss.color.includes("amber") ? "#fbbf24" : "#f87171", width: `${analysis.geo_score}%`, transition: "width 0.7s ease" }} />
+                  </div>
+                  <p style={{ fontSize: 11, color: "#52525b", margin: 0 }}>GEO readiness · out of 100</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: "#a1a1aa", lineHeight: 1.7, marginTop: 16, marginBottom: 0 }}>{analysis.summary}</p>
+            </div>
+
+            {/* What works */}
+            {analysis.what_works?.length > 0 && (
+              <div style={{ background: "#0a1a0f", border: "1px solid #14532d", borderRadius: 10, padding: 20 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#34d399", margin: "0 0 12px" }}>What works</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {analysis.what_works.map((w: string, i: number) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                      <span style={{ color: "#34d399", fontSize: 12, marginTop: 1, flexShrink: 0 }}>✓</span>
+                      <p style={{ fontSize: 12, color: "#6ee7b7", lineHeight: 1.6, margin: 0 }}>{w}</p>
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Critical gaps */}
+            {analysis.critical_gaps?.length > 0 && (
+              <div style={{ border: "1px solid #27272a", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ background: "#18181b", borderBottom: "1px solid #27272a", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#a1a1aa", margin: 0 }}>Critical Gaps & Fixes</p>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, background: "#ef444415", color: "#f87171", border: "1px solid #7f1d1d" }}>{analysis.critical_gaps.length} gaps</span>
+                </div>
+                {analysis.critical_gaps.map((gap: any, i: number) => (
+                  <div key={i} style={{ borderTop: i > 0 ? "1px solid #18181b" : "none", background: "#0c0c0f" }}>
+                    <button
+                      onClick={() => setExpandedGap(expandedGap === i ? null : i)}
+                      style={{ width: "100%", display: "flex", alignItems: "flex-start", gap: 12, padding: "16px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+                    >
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", flexShrink: 0, marginTop: 6 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#fafafa", margin: "0 0 2px" }}>{gap.gap}</p>
+                        <p style={{ fontSize: 12, color: "#71717a", margin: 0 }}>Fix: {gap.fix}</p>
+                      </div>
+                      {expandedGap === i
+                        ? <ChevronUp className="h-4 w-4 flex-shrink-0" style={{ color: "#71717a", marginTop: 2 }} />
+                        : <ChevronDown className="h-4 w-4 flex-shrink-0" style={{ color: "#71717a", marginTop: 2 }} />}
+                    </button>
+                    {expandedGap === i && (
+                      <div style={{ padding: "0 20px 16px 38px", borderTop: "1px solid #18181b" }}>
+                        {gap.example && (
+                          <div style={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 8, padding: "10px 14px", marginBottom: 10, marginTop: 12 }}>
+                            <p style={{ fontSize: 12, fontStyle: "italic", color: "#a1a1aa", margin: 0 }}>"{gap.example}"</p>
+                          </div>
+                        )}
+                        <p style={{ fontSize: 12, color: "#52525b", margin: 0 }}>Impact: {gap.impact}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Rewrite suggestions */}
+            {analysis.rewrite_suggestions?.length > 0 && (
+              <div style={{ border: "1px solid #27272a", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ background: "#18181b", borderBottom: "1px solid #27272a", padding: "12px 20px" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#a1a1aa", margin: 0 }}>Rewrite Suggestions</p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "#27272a" }}>
+                  {analysis.rewrite_suggestions.map((r: any, i: number) => (
+                    <div key={i} style={{ background: "#0c0c0f", padding: 20 }}>
+                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#7c3aed", margin: "0 0 12px" }}>{r.element}</p>
+                      {r.current && (
+                        <div style={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
+                          <p style={{ fontSize: 10, fontWeight: 600, color: "#52525b", margin: "0 0 4px" }}>Current</p>
+                          <p style={{ fontSize: 12, fontStyle: "italic", color: "#71717a", margin: 0 }}>{r.current}</p>
+                        </div>
+                      )}
+                      <div style={{ background: "#13091f", border: "1px solid #4c1d95", borderRadius: 8, padding: "10px 14px" }}>
+                        <p style={{ fontSize: 10, fontWeight: 600, color: "#a78bfa", margin: "0 0 4px" }}>Suggested</p>
+                        <p style={{ fontSize: 12, color: "#c4b5fd", margin: 0 }}>{r.suggested}</p>
+                      </div>
+                      <p style={{ fontSize: 12, color: "#52525b", margin: "8px 0 0" }}>{r.why}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick wins */}
+            {analysis.quick_wins?.length > 0 && (
+              <div style={{ background: "#0a0f1a", border: "1px solid #1e3a5f", borderRadius: 10, padding: 20 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#60a5fa", margin: "0 0 16px" }}>Quick Wins</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {analysis.quick_wins.map((w: any, i: number) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#1e3a5f", color: "#60a5fa", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: "#93c5fd", margin: 0 }}>{w.action}</p>
+                        <p style={{ fontSize: 11, color: "#1e40af", margin: "2px 0 0" }}>{w.impact}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ textAlign: "center", paddingTop: 8 }}>
+              <button onClick={() => { setUrl(""); setAnalysis(null) }} style={{ fontSize: 12, fontWeight: 600, color: "#7c3aed", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                Analyse a different URL
+              </button>
             </div>
           </div>
+        )}
 
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: "Content type", desc: "Blog, case study, whitepaper, FAQ — each scored differently", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", n: "01" },
-              { label: "GEO gaps", desc: "Missing schema, weak entity definition, no AI-citable stats", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", n: "02" },
-              { label: "Rewrite briefs", desc: "Exact sentences to add or change — specific to the page", color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-200", n: "03" },
-              { label: "Schema code", desc: "Copy-paste JSON-LD ready to implement same day", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", n: "04" },
-            ].map(item => (
-              <div key={item.label} className={cn("rounded-xl border p-4", item.bg, item.border)}>
-                <span className={cn("text-xs font-bold", item.color)}>{item.n}</span>
-                <p className={cn("text-sm font-semibold mt-2 mb-1", item.color)}>{item.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+        {/* Empty state */}
+        {!analysis && !loading && !error && !blocked && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* History table */}
+            {history.length > 0 && (
+              <div style={{ border: "1px solid #27272a", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ background: "#18181b", borderBottom: "1px solid #27272a", padding: "12px 24px" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#a1a1aa", margin: 0 }}>Previously Analysed</p>
+                </div>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead style={{ background: "#0f0f12" }}>
+                    <tr>
+                      {["Page", "Content Type", "Score", "Status", ""].map(h => (
+                        <th key={h} style={{ padding: "10px 24px", textAlign: "left", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#52525b" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h: any, i: number) => {
+                      const s = getScoreStatus(h.analysis?.geo_score || 0)
+                      const barColor = s.color.includes("emerald") ? "#34d399" : s.color.includes("violet") ? "#a78bfa" : s.color.includes("amber") ? "#fbbf24" : "#f87171"
+                      const badgeBg = s.color.includes("emerald") ? "#0a1a0f" : s.color.includes("violet") ? "#13091f" : s.color.includes("amber") ? "#140f00" : "#1a0000"
+                      const badgeBorder = s.color.includes("emerald") ? "#14532d" : s.color.includes("violet") ? "#4c1d95" : s.color.includes("amber") ? "#78350f" : "#7f1d1d"
+                      return (
+                        <tr
+                          key={i}
+                          onClick={() => { setUrl(h.url); run(false, h.url) }}
+                          style={{ borderTop: "1px solid #18181b", background: "#0c0c0f", cursor: "pointer" }}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#18181b")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "#0c0c0f")}
+                        >
+                          <td style={{ padding: "14px 24px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <FileText className="h-4 w-4 flex-shrink-0" style={{ color: "#7c3aed" }} />
+                              <div>
+                                <p style={{ fontSize: 13, fontWeight: 500, color: "#fafafa", margin: 0, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.analysis?.page_title || h.url}</p>
+                                <p style={{ fontSize: 11, color: "#52525b", margin: "2px 0 0", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.url}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: "14px 24px", fontSize: 12, color: "#71717a" }}>{h.analysis?.content_type || "—"}</td>
+                          <td style={{ padding: "14px 24px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={{ width: 80, height: 4, borderRadius: 2, background: "#27272a" }}>
+                                <div style={{ height: "100%", borderRadius: 2, background: barColor, width: `${h.analysis?.geo_score || 0}%` }} />
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: "#fafafa" }}>{h.analysis?.geo_score || 0}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: "14px 24px" }}>
+                            <span style={{ fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 4, textTransform: "uppercase", letterSpacing: "0.06em", background: badgeBg, color: barColor, border: `1px solid ${badgeBorder}` }}>
+                              {s.label}
+                            </span>
+                          </td>
+                          <td style={{ padding: "14px 24px", textAlign: "right" }}>
+                            <ArrowRight className="h-4 w-4" style={{ color: "#52525b", marginLeft: "auto" }} />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            )}
+
+            {/* Info cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+              {[
+                { label: "Content type", desc: "Blog, case study, whitepaper, FAQ — each scored differently", color: "#60a5fa", bg: "#0a0f1a", border: "#1e3a5f", n: "01" },
+                { label: "GEO gaps", desc: "Missing entity definition, weak arguments, no AI-citable data", color: "#fbbf24", bg: "#140f00", border: "#78350f", n: "02" },
+                { label: "Rewrite briefs", desc: "Exact sentences to add or change — specific to this page", color: "#a78bfa", bg: "#13091f", border: "#4c1d95", n: "03" },
+                { label: "Quick wins", desc: "Top actions ranked by impact — ready to act on today", color: "#34d399", bg: "#0a1a0f", border: "#14532d", n: "04" },
+              ].map(item => (
+                <div key={item.label} style={{ background: item.bg, border: `1px solid ${item.border}`, borderRadius: 10, padding: 16 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: item.color }}>{item.n}</span>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: item.color, margin: "8px 0 4px" }}>{item.label}</p>
+                  <p style={{ fontSize: 12, color: "#52525b", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
-
 
 export default function GeoAuditPage() {
   const { user } = useAuth()
