@@ -116,7 +116,7 @@ export default function DashboardPage() {
   const selectedCompany = companies.find(c => c.id === selectedCompanyId)
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f1f5f9" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f0f4f8" }}>
       {showSetup && <SetupWizard onComplete={() => { setShowSetup(false); fetchData() }} onSaveExit={() => setShowSetup(false)} />}
       <Sidebar />
       <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16, alignContent: "flex-start" }}>
 
           {companies.length === 0 && !loading && (
             <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 14, padding: 48, textAlign: "center" }}>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                 ].map((k, i) => {
                   const Icon = k.icon
                   return (
-                    <div key={i} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px" }}>
+                    <div key={i} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", borderTop: `3px solid ${k.color}` }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                         <p style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: 0 }}>{k.label}</p>
                         <div style={{ width: 28, height: 28, borderRadius: 7, background: k.color + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
