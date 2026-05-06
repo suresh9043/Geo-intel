@@ -2,47 +2,40 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, RefreshCw, Play, AlertCircle, TrendingUp, Zap, ExternalLink } from "lucide-react"
-import { Sidebar } from "@/components/sidebar"
-import { SetupWizard } from "@/components/setup-wizard"
 import { useAuth } from "@/lib/auth-context"
 import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun } from "@/lib/queries"
-import { ResponseFeed } from "@/components/response-feed"
-import { VisibilityWidget } from "@/components/visibility-chart"
-import { cn } from "@/lib/utils"
+import { SetupWizard } from "@/components/setup-wizard"
+import { Sidebar } from "@/components/sidebar"
+import { TrendingUp, TrendingDown, AlertCircle, Zap, RefreshCw, Plus, ChevronRight, BarChart2, Eye, Target, Activity } from "lucide-react"
 
 function formatLastRun(iso: string | null) {
   if (!iso) return "Never"
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  const d = new Date(iso)
+  const diff = Date.now() - d.getTime()
+  const h = Math.floor(diff / 3600000)
+  if (h < 1) return "Just now"
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
 function ModelBadge({ model }: { model: string }) {
-  const m = model.toLowerCase()
-  if (m.includes("gpt")) return <span className="rounded-full bg-emerald-100 text-emerald-700 px-1.5 py-0.5 text-[10px] font-semibold">GPT</span>
-  if (m.includes("claude")) return <span className="rounded-full bg-orange-100 text-orange-700 px-1.5 py-0.5 text-[10px] font-semibold">Claude</span>
-  if (m.includes("gemini")) return <span className="rounded-full bg-blue-100 text-blue-700 px-1.5 py-0.5 text-[10px] font-semibold">Gemini</span>
-  if (m.includes("sonar") || m.includes("perplexity")) return <span className="rounded-full bg-purple-100 text-purple-700 px-1.5 py-0.5 text-[10px] font-semibold">Perplexity</span>
-  return <span className="rounded-full bg-muted text-muted-foreground px-1.5 py-0.5 text-[10px] font-semibold">{model.substring(0, 2).toUpperCase()}</span>
-}
-
-function getScoreStatus(score: number) {
-  if (score >= 75) return { label: "Strong", color: "text-emerald-700", bg: "bg-emerald-100" }
-  if (score >= 55) return { label: "Good", color: "text-blue-700", bg: "bg-blue-100" }
-  if (score >= 35) return { label: "Needs work", color: "text-amber-700", bg: "bg-amber-100" }
-  if (score >= 20) return { label: "Weak", color: "text-orange-700", bg: "bg-orange-100" }
-  return { label: "Critical", color: "text-red-700", bg: "bg-red-100" }
+  const colors: Record<string, { bg: string; color: string; label: string }> = {
+    chatgpt:    { bg: "#f0fdf4", color: "#16a34a", label: "GPT" },
+    perplexity: { bg: "#faf5ff", color: "#7c3aed", label: "PPX" },
+    gemini:     { bg: "#eff6ff", color: "#2563eb", label: "GEM" },
+    claude:     { bg: "#fff7ed", color: "#ea580c", label: "CLD" },
+  }
+  const c = colors[model.toLowerCase()] || { bg: "#f1f5f9", color: "#64748b", label: model.slice(0,3).toUpperCase() }
+  return (
+    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: c.bg, color: c.color, border: `1px solid ${c.color}20` }}>
+      {c.label}
+    </span>
+  )
 }
 
 function getRecommendations(visibility: number, totalResponses: number, topCompetitor: any, sentiment: string | undefined) {
-  const recs: { icon: any; title: string; detail: string; action: string; href: string; priority: "critical" | "high" | "quick" }[] = []
-  if (totalResponses === 0) {
-    recs.push({ icon: AlertCircle, title: "No tracking data yet", detail: "Run your first tracking job to see how AI engines mention your brand.", action: "Run now", href: "#run", priority: "critical" })
-  } else if (visibility === 0) {
+  const recs: any[] = []
+  if (visibility === 0) {
     recs.push({ icon: AlertCircle, title: "Not appearing in AI answers", detail: `Mentioned in 0 of ${totalResponses} responses. Run a GEO audit to find out why.`, action: "Run GEO audit", href: "/dashboard/geo-audit", priority: "critical" })
   } else if (visibility < 30) {
     recs.push({ icon: AlertCircle, title: `Only ${visibility}% AI visibility`, detail: "Appearing in fewer than 1 in 3 responses. Content structure likely needs improvement.", action: "Run GEO audit", href: "/dashboard/geo-audit", priority: "critical" })
@@ -53,16 +46,16 @@ function getRecommendations(visibility: number, totalResponses: number, topCompe
   if (sentiment === "negative") {
     recs.push({ icon: AlertCircle, title: "Negative sentiment detected", detail: "AI engines are describing your brand negatively. Messaging needs attention.", action: "Fix", href: "/dashboard/geo-audit", priority: "high" })
   }
-  if (recs.length < 3) recs.push({ icon: Zap, title: "Add FAQPage schema", detail: "Increases AI citation probability by 3.2×. Copy-paste fix ready.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
+  if (recs.length < 3) recs.push({ icon: Zap, title: "Add FAQPage schema", detail: "Increases AI citation probability by 3.2x. Copy-paste fix ready.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
   if (recs.length < 3) recs.push({ icon: Zap, title: "Allow AI crawler bots", detail: "Add GPTBot, PerplexityBot and ClaudeBot to robots.txt. 15 minutes.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
   if (recs.length < 3) recs.push({ icon: TrendingUp, title: "Add sameAs links", detail: "Link Wikipedia, G2, LinkedIn in Organization schema.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
   return recs.slice(0, 3)
 }
 
-const PBADGE: Record<string, string> = {
-  critical: "bg-red-100 text-red-700",
-  high: "bg-amber-100 text-amber-700",
-  quick: "bg-blue-100 text-blue-700",
+const PRIORITY_STYLE: Record<string, { bg: string; color: string; border: string; label: string; stripe: string }> = {
+  critical: { bg: "#fef2f2", color: "#dc2626", border: "#fecaca", label: "Critical", stripe: "#dc2626" },
+  high:     { bg: "#fff7ed", color: "#ea580c", border: "#fed7aa", label: "High",     stripe: "#ea580c" },
+  quick:    { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe", label: "Quick win", stripe: "#2563eb" },
 }
 
 export default function DashboardPage() {
@@ -118,238 +111,219 @@ export default function DashboardPage() {
   const sorted = [...rankings].sort((a, b) => b.visibility - a.visibility)
   const maxVis = sorted[0]?.visibility || 100
   const recs = getRecommendations(visibility, stats?.totalResponses || 0, topCompetitor, ourBrand?.sentiment)
-  const visColor = visibility >= 60 ? "#16a34a" : visibility >= 30 ? "#d97706" : "#dc2626"
+  const selectedCompany = companies.find(c => c.id === selectedCompanyId)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f1f5f9" }}>
       {showSetup && <SetupWizard onComplete={() => { setShowSetup(false); fetchData() }} onSaveExit={() => setShowSetup(false)} />}
       <Sidebar />
-      <main className="flex flex-1 flex-col overflow-hidden">
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-        {/* Header */}
-        <div className="flex-shrink-0 border-b border-border bg-card px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        {/* Top bar */}
+        <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div>
-              <h1 className="text-sm font-semibold text-card-foreground">AI Visibility Dashboard</h1>
-              {stats?.lastRunAt && <p className="text-xs text-muted-foreground">Last run: {formatLastRun(stats.lastRunAt)}</p>}
+              <h1 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>AI Visibility Dashboard</h1>
+              <p style={{ fontSize: 11, color: "#94a3b8", margin: "1px 0 0" }}>Last run: {formatLastRun(stats?.lastRun || null)}</p>
             </div>
-            {companies.length > 1 && (
-              <select value={selectedCompanyId || ""} onChange={e => setSelectedCompanyId(e.target.value)}
-                className="text-xs border border-border rounded-lg px-2 py-1 bg-background text-card-foreground outline-none">
+            {companies.length > 0 && (
+              <select
+                value={selectedCompanyId || ""}
+                onChange={e => setSelectedCompanyId(e.target.value)}
+                style={{ fontSize: 13, color: "#0f172a", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", outline: "none", marginLeft: 8 }}
+              >
                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowSetup(true)} className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors">
-              <Plus className="h-3.5 w-3.5" /> Add company
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={() => setShowSetup(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", background: "white", border: "1px solid #e2e8f0", borderRadius: 7, fontSize: 12, fontWeight: 500, color: "#64748b", cursor: "pointer" }}>
+              <Plus size={13} /> Add company
             </button>
-            <button onClick={fetchData} className="p-1.5 text-muted-foreground border border-border rounded-lg hover:bg-muted transition-colors">
-              <RefreshCw className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={handleRunNow} className="flex items-center gap-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg px-3 py-1.5 hover:bg-primary/90 transition-colors">
-              <Play className="h-3.5 w-3.5" /> Run now
+            <button onClick={handleRunNow} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", background: "#2563eb", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 600, color: "white", cursor: "pointer" }}>
+              <RefreshCw size={13} /> Run now
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
-          {companies.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-              <h2 className="text-lg font-semibold text-card-foreground">No companies tracked yet</h2>
-              <p className="text-sm text-muted-foreground">Add your first company to start tracking AI visibility</p>
-              <button onClick={() => setShowSetup(true)} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 mx-auto">
-                <Plus className="h-4 w-4" /> Add company
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {companies.length === 0 && !loading && (
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 14, padding: 48, textAlign: "center" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                <Target size={26} color="#2563eb" />
+              </div>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: "#0f172a", margin: "0 0 6px" }}>Set up your first company</h2>
+              <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 20px", maxWidth: 340, marginLeft: "auto", marginRight: "auto" }}>Track how your brand appears across ChatGPT, Perplexity, Gemini and Claude.</p>
+              <button onClick={() => setShowSetup(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 22px", background: "#2563eb", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "white", cursor: "pointer" }}>
+                <Plus size={14} /> Get started
               </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-4">
+          )}
 
-              {/* Row 1 — Hero visibility + status strip */}
-              <div className="grid grid-cols-12 gap-4">
-
-                {/* Big visibility number */}
-                <div className="col-span-2 rounded-xl border border-border bg-card p-5 flex flex-col items-center justify-center text-center">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">AI Visibility</p>
-                  <p className="text-5xl font-black tabular-nums leading-none" style={{ color: visColor }}>{visibility}%</p>
-                  <p className="text-xs text-muted-foreground mt-2">{stats?.mentionCount || 0} of {stats?.totalResponses || 0} answers</p>
-                  <div className="w-full mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${visibility}%`, background: visColor }} />
-                  </div>
-                </div>
-
-                {/* Status strip */}
-                <div className="col-span-10 rounded-xl border border-border bg-card">
-                  <div className="grid grid-cols-4 h-full divide-x divide-border">
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Your Rank</p>
-                      <p className="text-4xl font-black text-card-foreground tabular-nums">{stats?.rank ? `#${stats.rank}` : "—"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">of {stats?.shareOfVoice?.length || 0} tracked</p>
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Avg Position</p>
-                      <p className="text-4xl font-black text-card-foreground tabular-nums">{ourBrand?.avgPosition ? `#${ourBrand.avgPosition.toFixed(1)}` : "—"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">in AI numbered lists</p>
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">GEO Score</p>
-                      <p className="text-4xl font-black tabular-nums" style={{ color: visColor }}>—</p>
-                      <p className="text-xs text-muted-foreground mt-1">run audit to score</p>
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Sentiment</p>
-                      <div className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mt-1",
-                        ourBrand?.sentiment === "positive" ? "bg-emerald-100 text-emerald-700" :
-                        ourBrand?.sentiment === "negative" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground"
-                      )}>
-                        <span className={cn("h-2 w-2 rounded-full flex-shrink-0",
-                          ourBrand?.sentiment === "positive" ? "bg-emerald-500" :
-                          ourBrand?.sentiment === "negative" ? "bg-red-500" : "bg-gray-400"
-                        )} />
-                        {ourBrand?.sentiment ? ourBrand.sentiment.charAt(0).toUpperCase() + ourBrand.sentiment.slice(1) : "No data"}
+          {companies.length > 0 && (
+            <>
+              {/* KPI strip - compact */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+                {[
+                  { label: "AI Visibility", value: `${visibility}%`, sub: `${stats?.totalResponses || 0} queries`, color: "#2563eb", icon: Eye },
+                  { label: "Your Rank", value: ourBrand?.avgPosition ? `#${Math.round(ourBrand.avgPosition)}` : "—", sub: "avg position", color: "#7c3aed", icon: Target },
+                  { label: "Avg Position", value: ourBrand?.avgPosition ? `#${ourBrand.avgPosition.toFixed(1)}` : "—", sub: "in AI lists", color: "#0891b2", icon: BarChart2 },
+                  { label: "GEO Score", value: "—", sub: "run audit to score", color: "#f59e0b", icon: Activity },
+                  { label: "Sentiment", value: ourBrand?.sentiment ? ourBrand.sentiment.charAt(0).toUpperCase() + ourBrand.sentiment.slice(1) : "Neutral", sub: "brand perception", color: ourBrand?.sentiment === "positive" ? "#16a34a" : ourBrand?.sentiment === "negative" ? "#dc2626" : "#64748b", icon: TrendingUp },
+                ].map((k, i) => {
+                  const Icon = k.icon
+                  return (
+                    <div key={i} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                        <p style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: 0 }}>{k.label}</p>
+                        <div style={{ width: 28, height: 28, borderRadius: 7, background: k.color + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon size={14} color={k.color} />
+                        </div>
                       </div>
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {(ourBrand?.models || []).map((m: string) => <ModelBadge key={m} model={m} />)}
-                      </div>
+                      <p style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", margin: "0 0 3px", lineHeight: 1, letterSpacing: "-0.02em" }}>{k.value}</p>
+                      <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>{k.sub}</p>
                     </div>
-                  </div>
-                </div>
+                  )
+                })}
               </div>
 
-              {/* Row 2 — SOV + Recommendations + Responses */}
-              <div className="grid grid-cols-12 gap-4">
+              {/* Middle row */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 320px", gap: 12 }}>
 
-                {/* Share of Voice */}
-                <div className="col-span-3 rounded-xl border border-border bg-card p-4">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Share of Voice</p>
-                  {sorted.length === 0
-                    ? <p className="text-xs text-muted-foreground">Run tracking to see data</p>
-                    : <div className="flex flex-col gap-3">
-                        {sorted.map((entry, i) => (
-                          <div key={entry.name}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className={cn("text-xs truncate max-w-28", entry.isOurBrand ? "font-semibold text-primary" : "text-muted-foreground")}>
-                                {entry.name}{entry.isOurBrand && " ★"}
-                              </span>
-                              <span className={cn("text-xs font-bold tabular-nums",
-                                entry.visibility >= 60 ? "text-emerald-600" :
-                                entry.visibility >= 30 ? "text-amber-600" : "text-red-500"
-                              )}>{entry.visibility}%</span>
-                            </div>
-                            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                              <div className={cn("h-full rounded-full transition-all duration-700",
-                                entry.isOurBrand ? "bg-primary" :
-                                i === 0 ? "bg-blue-500" : i === 1 ? "bg-purple-500" : "bg-indigo-400"
-                              )} style={{ width: `${maxVis > 0 ? (entry.visibility / maxVis) * 100 : 0}%` }} />
-                            </div>
-                          </div>
-                        ))}
+                {/* Share of voice */}
+                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Share of Voice</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Your brand vs competitors</p>
+                  </div>
+                  <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {sorted.length === 0 ? (
+                      <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>No data yet</p>
+                    ) : sorted.map((r, i) => (
+                      <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: r.isOurBrand ? "#2563eb" : ["#7c3aed","#0891b2","#16a34a","#ea580c"][i % 4], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "white", flexShrink: 0 }}>
+                          {r.name.charAt(0).toUpperCase()}
+                        </div>
+                        <p style={{ fontSize: 12, fontWeight: r.isOurBrand ? 700 : 500, color: "#0f172a", margin: 0, width: 90, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {r.name}{r.isOurBrand ? " ★" : ""}
+                        </p>
+                        <div style={{ flex: 1, height: 6, borderRadius: 3, background: "#f1f5f9", overflow: "hidden" }}>
+                          <div style={{ height: "100%", borderRadius: 3, background: r.isOurBrand ? "#2563eb" : r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626", width: `${(r.visibility / maxVis) * 100}%`, transition: "width 0.5s ease" }} />
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: r.isOurBrand ? "#2563eb" : "#0f172a", width: 36, textAlign: "right", flexShrink: 0 }}>{r.visibility}%</span>
                       </div>
-                  }
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">LLM Responses</p>
-                    <ResponseFeed responses={responses.slice(0, 3)} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* LLM Responses */}
+                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>LLM Responses</p>
+                      <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>{stats?.totalResponses || 0} total</p>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {responses.length === 0 ? (
+                      <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", padding: "24px 0" }}>No responses yet</p>
+                    ) : responses.slice(0, 4).map((resp: any, i: number) => (
+                      <div key={i} style={{ padding: "10px 16px", borderTop: i > 0 ? "1px solid #f8fafc" : "none", display: "flex", alignItems: "center", gap: 10 }}>
+                        <ModelBadge model={resp.model} />
+                        <p style={{ flex: 1, fontSize: 12, color: "#374151", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resp.prompt}</p>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 10, background: resp.brand_mentioned ? "#f0fdf4" : "#fef2f2", color: resp.brand_mentioned ? "#16a34a" : "#dc2626", flexShrink: 0 }}>
+                          {resp.brand_mentioned ? "✓" : "✗"}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Recommendations */}
-                <div className="col-span-5 rounded-xl border border-border bg-card p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recommended Actions</p>
-                    <button onClick={() => router.push("/dashboard/geo-audit")} className="flex items-center gap-1 text-xs text-primary font-medium hover:underline">
-                      Full audit <ExternalLink className="h-3 w-3" />
-                    </button>
+                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Recommended Actions</p>
                   </div>
-                  <div className="flex flex-col gap-0">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "#f8fafc" }}>
                     {recs.map((rec, i) => {
+                      const p = PRIORITY_STYLE[rec.priority] || PRIORITY_STYLE.quick
                       const Icon = rec.icon
                       return (
-                        <div key={i}
-                          onClick={() => rec.href !== "#run" && router.push(rec.href)}
-                          className="flex items-start gap-3 py-3 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 -mx-4 px-4 transition-colors rounded-lg">
-                          <span className={cn("flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap", PBADGE[rec.priority])}>
-                            {rec.priority === "quick" ? "Quick win" : rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-card-foreground">{rec.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rec.detail}</p>
+                        <a key={i} href={rec.href} style={{ display: "block", background: "white", padding: "12px 16px", textDecoration: "none", borderLeft: `3px solid ${p.stripe}` }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <Icon size={12} color={p.color} />
+                              <p style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", margin: 0 }}>{rec.title}</p>
+                            </div>
+                            <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: p.bg, color: p.color, border: `1px solid ${p.border}` }}>{p.label}</span>
                           </div>
-                          <span className="text-xs text-primary font-medium flex-shrink-0 self-center whitespace-nowrap">{rec.action} →</span>
-                        </div>
+                          <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 6px", lineHeight: 1.4 }}>{rec.detail}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 600, color: p.color }}>
+                            {rec.action} <ChevronRight size={11} />
+                          </div>
+                        </a>
                       )
                     })}
                   </div>
                 </div>
-
-                {/* Visibility trend */}
-                <div className="col-span-4 rounded-xl border border-border bg-card p-4">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Visibility Trend</p>
-                  <VisibilityWidget runs={visibilityRuns} />
-                </div>
               </div>
 
-              {/* Row 3 — Brand rankings table */}
-              <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+              {/* Brand rankings table */}
+              <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ padding: "12px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <p className="text-sm font-semibold text-card-foreground">Brand Rankings</p>
-                    <p className="text-xs text-muted-foreground">Your brand vs competitors across all AI responses</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Brand Rankings</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Your brand vs competitors across all AI responses</p>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                {rankings.length === 0 ? (
+                  <div style={{ padding: "32px 20px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>No data yet — run tracking to see rankings</div>
+                ) : (
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
-                      <tr className="border-b border-border bg-muted/30">
+                      <tr style={{ background: "#f8fafc" }}>
                         {["Rank", "Brand", "Visibility", "Avg Position", "Sentiment", "Mentioned by"].map(h => (
-                          <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                          <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {rankings.length === 0 ? (
-                        <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">No data yet — run tracking to see rankings</td></tr>
-                      ) : rankings.map((r, i) => (
-                        <tr key={r.name} className={cn("border-b border-border last:border-0 transition-colors hover:bg-muted/20", r.isOurBrand && "bg-primary/5")}>
-                          <td className="px-4 py-3">
-                            <span className={cn("text-sm font-bold tabular-nums",
-                              i === 0 ? "text-amber-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : "text-muted-foreground"
-                            )}>#{r.rank}</span>
+                      {sorted.map((r, i) => (
+                        <tr key={r.name} style={{ borderTop: "1px solid #f1f5f9", background: r.isOurBrand ? "#eff6ff" : "white" }}
+                          onMouseEnter={e => { if (!r.isOurBrand) e.currentTarget.style.background = "#f8fafc" }}
+                          onMouseLeave={e => { e.currentTarget.style.background = r.isOurBrand ? "#eff6ff" : "white" }}>
+                          <td style={{ padding: "11px 16px" }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : "#cbd5e1" }}>#{i + 1}</span>
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className={cn("h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0",
-                                r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500","bg-pink-500"][i % 5]
-                              )}>{r.name.charAt(0).toUpperCase()}</div>
+                          <td style={{ padding: "11px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <div style={{ width: 26, height: 26, borderRadius: 7, background: r.isOurBrand ? "#2563eb" : ["#7c3aed","#0891b2","#16a34a","#ea580c","#ec4899"][i % 5], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "white", flexShrink: 0 }}>
+                                {r.name.charAt(0).toUpperCase()}
+                              </div>
                               <div>
-                                <p className={cn("text-sm", r.isOurBrand ? "font-semibold text-primary" : "font-medium text-card-foreground")}>{r.name}</p>
-                                <p className="text-xs text-muted-foreground">{r.mentionCount} of {r.totalResponses} responses</p>
+                                <p style={{ fontSize: 13, fontWeight: r.isOurBrand ? 700 : 500, color: "#0f172a", margin: 0 }}>{r.name}</p>
+                                <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>{r.mentionCount} of {r.totalResponses} responses</p>
                               </div>
-                              {r.isOurBrand && <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">You</span>}
+                              {r.isOurBrand && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", background: "#dbeafe", color: "#2563eb", borderRadius: 3 }}>YOU</span>}
                             </div>
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
-                                <div className={cn("h-full rounded-full",
-                                  r.visibility >= 60 ? "bg-emerald-500" :
-                                  r.visibility >= 30 ? "bg-amber-400" : "bg-red-500"
-                                )} style={{ width: `${r.visibility}%` }} />
+                          <td style={{ padding: "11px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <div style={{ width: 80, height: 5, borderRadius: 3, background: "#f1f5f9", overflow: "hidden" }}>
+                                <div style={{ height: "100%", borderRadius: 3, background: r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626", width: `${r.visibility}%` }} />
                               </div>
-                              <span className={cn("text-sm font-bold tabular-nums",
-                                r.visibility >= 60 ? "text-emerald-600" :
-                                r.visibility >= 30 ? "text-amber-600" : "text-red-500"
-                              )}>{r.visibility}%</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626" }}>{r.visibility}%</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-card-foreground tabular-nums">{r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "—"}</td>
-                          <td className="px-4 py-3">
-                            <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                              r.sentiment === "positive" ? "bg-emerald-100 text-emerald-700" :
-                              r.sentiment === "negative" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground"
-                            )}>{r.sentiment ? r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1) : "Neutral"}</span>
+                          <td style={{ padding: "11px 16px", fontSize: 13, color: "#374151" }}>{r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "—"}</td>
+                          <td style={{ padding: "11px 16px" }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: r.sentiment === "positive" ? "#f0fdf4" : r.sentiment === "negative" ? "#fef2f2" : "#f1f5f9", color: r.sentiment === "positive" ? "#16a34a" : r.sentiment === "negative" ? "#dc2626" : "#64748b" }}>
+                              {r.sentiment ? r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1) : "Neutral"}
+                            </span>
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-1 flex-wrap">
+                          <td style={{ padding: "11px 16px" }}>
+                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                               {(r.models || []).map((m: string) => <ModelBadge key={m} model={m} />)}
                             </div>
                           </td>
@@ -357,10 +331,9 @@ export default function DashboardPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                )}
               </div>
-
-            </div>
+            </>
           )}
         </div>
       </main>
