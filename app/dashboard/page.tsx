@@ -119,7 +119,7 @@ export default function DashboardPage() {
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f0f4f8" }}>
       {showSetup && <SetupWizard onComplete={() => { setShowSetup(false); fetchData() }} onSaveExit={() => setShowSetup(false)} />}
       <Sidebar />
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
         {/* Top bar */}
         <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16, alignContent: "flex-start" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16, alignItems: "stretch", paddingBottom: 0 }}>
 
           {companies.length === 0 && !loading && (
             <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 14, padding: 48, textAlign: "center" }}>
