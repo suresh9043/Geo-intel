@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, RefreshCw, Play, AlertCircle, TrendingUp, Zap, ExternalLink } from "lucide-react"
+import { Plus, RefreshCw, Play, AlertCircle, TrendingUp, Zap, ExternalLink, ArrowUp, ArrowDown } from "lucide-react"
 import { Sidebar } from "@/components/sidebar"
 import { SetupWizard } from "@/components/setup-wizard"
 import { useAuth } from "@/lib/auth-context"
@@ -113,6 +113,9 @@ export default function DashboardPage() {
   const maxVis = sorted[0]?.visibility || 100
   const recs = getRecommendations(visibility, stats?.totalResponses || 0, topCompetitor, ourBrand?.sentiment)
   const visColor = visibility >= 60 ? "#16a34a" : visibility >= 30 ? "#d97706" : "#dc2626"
+  const mentionDelta = visibilityRuns.length >= 2
+    ? visibilityRuns[visibilityRuns.length - 1].visibility - visibilityRuns[visibilityRuns.length - 2].visibility
+    : null
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -179,9 +182,19 @@ export default function DashboardPage() {
                 {/* Big visibility number */}
                 <div className="col-span-2 rounded-xl border border-border bg-card p-5 flex flex-col items-center justify-center text-center">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Mention Rate</p>
-                  <p className="text-5xl font-black tabular-nums leading-none" style={{ color: (stats?.totalResponses ?? 0) > 0 ? visColor : "hsl(var(--muted-foreground))" }}>
-                    {(stats?.totalResponses ?? 0) > 0 ? `${visibility}%` : "—"}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-5xl font-black tabular-nums leading-none" style={{ color: (stats?.totalResponses ?? 0) > 0 ? visColor : "hsl(var(--muted-foreground))" }}>
+                      {(stats?.totalResponses ?? 0) > 0 ? `${visibility}%` : "—"}
+                    </p>
+                    {mentionDelta !== null && mentionDelta !== 0 && (
+                      <span className={cn("flex items-center gap-0.5 text-xs font-semibold rounded-full px-1.5 py-0.5",
+                        mentionDelta > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                      )}>
+                        {mentionDelta > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(mentionDelta)}%
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     {(stats?.totalResponses ?? 0) > 0
                       ? `Mentioned in ${stats?.mentionCount || 0} of ${stats?.totalResponses} responses`
