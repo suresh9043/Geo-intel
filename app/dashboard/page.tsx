@@ -20,6 +20,7 @@ function formatLastRun(iso: string | null) {
 
 function ModelBadge({ model }: { model: string }) {
   if (!model) return null
+  if (!model) return null
   const colors: Record<string, { bg: string; color: string; label: string }> = {
     chatgpt:    { bg: "#f0fdf4", color: "#16a34a", label: "GPT" },
     perplexity: { bg: "#faf5ff", color: "#7c3aed", label: "PPX" },
