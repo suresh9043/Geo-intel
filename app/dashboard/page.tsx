@@ -182,15 +182,15 @@ export default function DashboardPage() {
                 {/* Big visibility number */}
                 <div className="col-span-2 rounded-xl border border-border bg-card p-5 flex flex-col items-center justify-center text-center">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Mention Rate</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-end gap-2">
                     <p className="text-5xl font-black tabular-nums leading-none" style={{ color: (stats?.totalResponses ?? 0) > 0 ? visColor : "hsl(var(--muted-foreground))" }}>
                       {(stats?.totalResponses ?? 0) > 0 ? `${visibility}%` : "—"}
                     </p>
                     {mentionDelta !== null && mentionDelta !== 0 && (
-                      <span className={cn("flex items-center gap-0.5 text-xs font-semibold rounded-full px-1.5 py-0.5",
-                        mentionDelta > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                      <span className={cn("flex items-center gap-0.5 text-[10px] font-semibold mb-1",
+                        mentionDelta > 0 ? "text-emerald-600" : "text-red-500"
                       )}>
-                        {mentionDelta > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {mentionDelta > 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
                         {Math.abs(mentionDelta)}%
                       </span>
                     )}
