@@ -83,6 +83,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
 
   async function handleGenerateCompetitors() {
     setGeneratingCompetitors(true)
+    setError("")
     try {
       const res = await fetch("/api/generate-competitors", {
         method: "POST",
@@ -90,10 +91,16 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
         body: JSON.stringify({ companyName, description, industry: vertical, geography }),
       })
       const data = await res.json()
-      if (data.competitors?.length) {
+      if (!res.ok) {
+        setError(data.error || "Failed to generate competitors")
+      } else if (data.competitors?.length) {
         setCompetitors(data.competitors.map((name: string) => ({ name, url: "" })))
+      } else {
+        setError("No competitors returned — try adding a description")
       }
-    } catch {}
+    } catch (err: any) {
+      setError(err.message || "Something went wrong")
+    }
     setGeneratingCompetitors(false)
   }
 
