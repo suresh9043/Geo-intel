@@ -8,34 +8,6 @@ import { saveCompany } from "@/lib/queries"
 
 const VERTICALS = ["SaaS", "Automation", "Agency", "Ecommerce", "Other"]
 
-const SUGGESTED_PROMPTS: Record<string, string[]> = {
-  "SaaS": [
-    "What is the best project management software?",
-    "Best CRM for small business",
-    "Top SaaS tools for startups",
-    "How to choose B2B software",
-  ],
-  "Automation": [
-    "Best intelligent automation platform for enterprise",
-    "UiPath vs Appian vs ServiceNow comparison",
-    "How to automate business processes with AI",
-    "Top RPA platforms for banking",
-  ],
-  "Agency": [
-    "Best digital marketing agencies",
-    "Top SEO agencies for enterprise",
-    "How to choose a marketing agency",
-  ],
-  "Ecommerce": [
-    "Best ecommerce platform for small business",
-    "Shopify vs WooCommerce comparison",
-    "How to start an online store",
-  ],
-  "Other": [
-    "Best software solutions for enterprise",
-    "Top platforms for digital transformation",
-  ],
-}
 
 interface SetupWizardProps {
   onComplete: () => void
@@ -63,12 +35,6 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
   // Step 3 — Prompts
   const [prompts, setPrompts] = useState<string[]>([])
   const [customPrompt, setCustomPrompt] = useState("")
-
-  const suggestedPrompts = SUGGESTED_PROMPTS[vertical] || SUGGESTED_PROMPTS["Other"]
-
-  function togglePrompt(p: string) {
-    setPrompts(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])
-  }
 
   function addCompetitor() {
     setCompetitors(prev => [...prev, { name: "", url: "" }])
@@ -273,23 +239,23 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
           {/* Step 2 — Prompts */}
           {step === 2 && (
             <div className="flex flex-col gap-3">
-              <p className="text-xs text-gray-500">Select prompts your buyers ask AI engines. We'll track these daily across ChatGPT, Perplexity, Gemini and Claude.</p>
-              <div className="flex flex-col gap-1.5">
-                {suggestedPrompts.map(p => (
-                  <button key={p} onClick={() => togglePrompt(p)} className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors ${prompts.includes(p) ? "border-[#3B5BDB] bg-blue-50" : "border-gray-200 hover:bg-gray-50"}`}>
-                    <div className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${prompts.includes(p) ? "bg-[#3B5BDB] border-[#3B5BDB]" : "border-gray-300"}`}>
-                      {prompts.includes(p) && <Check className="h-2.5 w-2.5 text-white" />}
-                    </div>
-                    <span className="text-xs text-gray-800">{p}</span>
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-gray-500">Add the questions your buyers ask AI engines. We'll track these across ChatGPT, Perplexity, Gemini and Claude.</p>
               <div className="flex gap-2">
-                <input value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustomPrompt()} placeholder="Add your own prompt..." className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-100" />
+                <input value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustomPrompt()} placeholder="e.g. Best AI agent evaluation tools?" className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#3B5BDB]" />
                 <button onClick={addCustomPrompt} disabled={!customPrompt.trim()} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors">Add</button>
               </div>
+              <div className="flex flex-col gap-1.5">
+                {prompts.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                    <span className="text-xs text-gray-800">{p}</span>
+                    <button onClick={() => setPrompts(prev => prev.filter((_, idx) => idx !== i))} className="ml-2 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
               {prompts.length > 0 && (
-                <p className="text-xs text-[#3B5BDB] font-medium">{prompts.length} prompt{prompts.length > 1 ? "s" : ""} selected</p>
+                <p className="text-xs text-[#3B5BDB] font-medium">{prompts.length} prompt{prompts.length > 1 ? "s" : ""} added</p>
               )}
             </div>
           )}
