@@ -238,11 +238,6 @@ export default function DashboardPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(stats?.totalResponses ?? 0) > 0
-                          ? `Mentioned in ${stats?.mentionCount || 0} of ${stats?.totalResponses} responses`
-                          : "No responses yet"}
-                      </p>
                     </div>
                   </div>
                   <VisibilityWidget runs={visibilityRuns} />
