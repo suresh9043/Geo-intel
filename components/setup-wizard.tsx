@@ -96,7 +96,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
       } else if (data.competitors?.length) {
         setCompetitors(data.competitors.map((name: string) => ({ name, url: "" })))
       } else {
-        setError("No competitors returned — try adding a description")
+        setError(data.error || "No competitors returned — try adding a description")
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong")
