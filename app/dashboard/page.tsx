@@ -240,16 +240,15 @@ export default function DashboardPage() {
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setShowCompetitors(s => !s)}
-                      className={cn("text-xs font-medium rounded-lg px-3 py-1.5 border transition-colors",
-                        showCompetitors
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "text-muted-foreground border-border hover:bg-muted"
-                      )}
-                    >
-                      {showCompetitors ? "Hide Competitors" : "Show Competitors"}
-                    </button>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showCompetitors}
+                        onChange={e => setShowCompetitors(e.target.checked)}
+                        className="h-3.5 w-3.5 accent-primary cursor-pointer"
+                      />
+                      <span className="text-xs text-muted-foreground">Show Competitors</span>
+                    </label>
                   </div>
                   <VisibilityWidget runs={visibilityRuns} showCompetitors={showCompetitors} />
                 </div>
