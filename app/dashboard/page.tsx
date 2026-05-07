@@ -215,37 +215,11 @@ export default function DashboardPage() {
           ) : (
             <div className="flex flex-col gap-4">
 
-              {/* Row 1 — Hero visibility + status strip */}
+              {/* Row 1 — Status strip full width */}
               <div className="grid grid-cols-12 gap-4">
 
-                {/* Big visibility number */}
-                <div className="col-span-4 rounded-xl border border-border bg-card p-5 flex flex-col items-center justify-center text-center">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Mention Rate</p>
-                  <div className="flex items-end gap-2">
-                    <p className="text-5xl font-black tabular-nums leading-none" style={{ color: (stats?.totalResponses ?? 0) > 0 ? visColor : "hsl(var(--muted-foreground))" }}>
-                      {(stats?.totalResponses ?? 0) > 0 ? `${visibility}%` : "—"}
-                    </p>
-                    {mentionDelta !== null && mentionDelta !== 0 && (
-                      <span className={cn("flex items-center gap-0.5 text-[10px] font-semibold mb-1",
-                        mentionDelta > 0 ? "text-emerald-600" : "text-red-500"
-                      )}>
-                        {mentionDelta > 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
-                        {Math.abs(mentionDelta)}%
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {(stats?.totalResponses ?? 0) > 0
-                      ? `Mentioned in ${stats?.mentionCount || 0} of ${stats?.totalResponses} responses`
-                      : "No responses yet"}
-                  </p>
-                  <div className="w-full mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${visibility}%`, background: visColor }} />
-                  </div>
-                </div>
-
                 {/* Status strip */}
-                <div className="col-span-8 rounded-xl border border-border bg-card">
+                <div className="col-span-12 rounded-xl border border-border bg-card">
                   <div className="grid grid-cols-3 h-full divide-x divide-border">
                     <div className="p-5">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Your Rank</p>
@@ -278,16 +252,75 @@ export default function DashboardPage() {
               </div>
 
               {/* Row 2 — Visibility Trend + Share of Voice + Recommended Actions */}
+              {/* Row 2 — Visibility Trend (70%) + Visibility Rank (30%) */}
               <div className="grid grid-cols-12 gap-4">
 
-                {/* Visibility trend */}
-                <div className="col-span-4 rounded-xl border border-border bg-card p-4">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Visibility Trend</p>
+                {/* Visibility trend — hero (70%) */}
+                <div className="col-span-8 rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Mention Rate</p>
+                      <div className="flex items-end gap-2">
+                        <p className="text-4xl font-black tabular-nums leading-none" style={{ color: (stats?.totalResponses ?? 0) > 0 ? visColor : "hsl(var(--muted-foreground))" }}>
+                          {(stats?.totalResponses ?? 0) > 0 ? `${visibility}%` : "—"}
+                        </p>
+                        {mentionDelta !== null && mentionDelta !== 0 && (
+                          <span className={cn("flex items-center gap-0.5 text-[10px] font-semibold mb-1",
+                            mentionDelta > 0 ? "text-emerald-600" : "text-red-500"
+                          )}>
+                            {mentionDelta > 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+                            {Math.abs(mentionDelta)}%
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(stats?.totalResponses ?? 0) > 0
+                          ? `Mentioned in ${stats?.mentionCount || 0} of ${stats?.totalResponses} responses`
+                          : "No responses yet"}
+                      </p>
+                    </div>
+                  </div>
                   <VisibilityWidget runs={visibilityRuns} />
                 </div>
 
+                {/* Visibility Rank (30%) */}
+                <div className="col-span-4 rounded-xl border border-border bg-card p-5">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Visibility Rank</p>
+                  {sorted.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No data yet</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {sorted.map((entry, i) => (
+                        <div key={entry.name} className={cn("flex items-center gap-3 rounded-lg px-3 py-2.5", entry.isOurBrand && "bg-primary/5 border border-primary/20")}>
+                          <span className={cn("text-sm font-black tabular-nums w-6 flex-shrink-0",
+                            i === 0 ? "text-amber-500" : i === 1 ? "text-gray-400" : "text-muted-foreground"
+                          )}>#{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-xs font-semibold truncate", entry.isOurBrand ? "text-primary" : "text-card-foreground")}>
+                              {entry.name}{entry.isOurBrand && " ★"}
+                            </p>
+                            <div className="mt-1 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                              <div className={cn("h-full rounded-full transition-all duration-700",
+                                entry.isOurBrand ? "bg-primary" :
+                                i === 0 ? "bg-blue-500" : i === 1 ? "bg-purple-500" : "bg-indigo-400"
+                              )} style={{ width: `${maxVis > 0 ? (entry.visibility / maxVis) * 100 : 0}%` }} />
+                            </div>
+                          </div>
+                          <span className={cn("text-xs font-bold tabular-nums flex-shrink-0",
+                            entry.visibility >= 60 ? "text-emerald-600" :
+                            entry.visibility >= 30 ? "text-amber-600" : "text-muted-foreground"
+                          )}>{entry.visibility > 0 ? `${entry.visibility}%` : "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Row 3 — Share of Voice + Recommended Actions */}
+              <div className="grid grid-cols-12 gap-4">
                 {/* Share of Voice */}
-                <div className="col-span-3 rounded-xl border border-border bg-card p-4">
+                <div className="col-span-4 rounded-xl border border-border bg-card p-4">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Share of Voice</p>
                   {sorted.length === 0
                     ? <p className="text-xs text-muted-foreground">Run tracking to see data</p>
@@ -315,8 +348,8 @@ export default function DashboardPage() {
                   }
                 </div>
 
-                {/* Recommendations */}
-                <div className="col-span-5 rounded-xl border border-border bg-card p-4">
+                {/* Recommended Actions */}
+                <div className="col-span-8 rounded-xl border border-border bg-card p-4">
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recommended Actions</p>
                     <button onClick={() => router.push("/dashboard/geo-audit")} className="flex items-center gap-1 text-xs text-primary font-medium hover:underline">
@@ -324,22 +357,20 @@ export default function DashboardPage() {
                     </button>
                   </div>
                   <div className="flex flex-col gap-0">
-                    {recs.map((rec, i) => {
-                      return (
-                        <div key={i}
-                          onClick={() => rec.href !== "#run" && router.push(rec.href)}
-                          className="flex items-start gap-3 py-3 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 -mx-4 px-4 transition-colors rounded-lg">
-                          <span className={cn("flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap", PBADGE[rec.priority])}>
-                            {rec.priority === "quick" ? "Quick win" : rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-card-foreground">{rec.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rec.detail}</p>
-                          </div>
-                          <span className="text-xs text-primary font-medium flex-shrink-0 self-center whitespace-nowrap">{rec.action} →</span>
+                    {recs.map((rec, i) => (
+                      <div key={i}
+                        onClick={() => rec.href !== "#run" && router.push(rec.href)}
+                        className="flex items-start gap-3 py-3 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 -mx-4 px-4 transition-colors rounded-lg">
+                        <span className={cn("flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap", PBADGE[rec.priority])}>
+                          {rec.priority === "quick" ? "Quick win" : rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-card-foreground">{rec.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rec.detail}</p>
                         </div>
-                      )
-                    })}
+                        <span className="text-xs text-primary font-medium flex-shrink-0 self-center whitespace-nowrap">{rec.action} →</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
