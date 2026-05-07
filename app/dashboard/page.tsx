@@ -296,67 +296,77 @@ export default function DashboardPage() {
 
                 {/* Brand Mentions */}
                 <div className="col-span-6 rounded-xl border border-border bg-card p-5">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Brand Mentions</p>
+                  <div className="mb-5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Brand Mentions</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Times each brand appeared in AI responses</p>
+                  </div>
                   {rankings.length === 0 ? (
                     <p className="text-xs text-muted-foreground">No data yet</p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {rankings.map((r, i) => {
-                        const maxMentions = Math.max(...rankings.map(x => x.mentionCount || 0), 1)
-                        return (
-                          <div key={r.name} className="flex items-center gap-3">
-                            <div className={cn("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
-                              r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500"][i % 4]
-                            )}>{r.name.charAt(0).toUpperCase()}</div>
-                            <span className={cn("w-28 flex-shrink-0 truncate text-xs", r.isOurBrand ? "font-semibold text-card-foreground" : "text-muted-foreground")}>
-                              {r.name}{r.isOurBrand && " ★"}
-                            </span>
-                            <div className="flex flex-1 items-center gap-2">
-                              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                <div className={cn("h-full rounded-full transition-all duration-500",
-                                  r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500"][i % 4]
-                                )} style={{ width: `${((r.mentionCount || 0) / maxMentions) * 100}%` }} />
+                  ) : (() => {
+                    const maxMentions = Math.max(...rankings.map(x => x.mentionCount || 0), 1)
+                    const colors = ["bg-primary", "bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500"]
+                    return (
+                      <div className="flex flex-col gap-4">
+                        {rankings.map((r, i) => (
+                          <div key={r.name}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-2">
+                                <div className={cn("h-2 w-2 rounded-full flex-shrink-0", colors[i % colors.length])} />
+                                <span className={cn("text-xs truncate max-w-40", r.isOurBrand ? "font-semibold text-card-foreground" : "text-muted-foreground")}>
+                                  {r.name}{r.isOurBrand && <span className="ml-1 text-primary text-[10px]">YOU</span>}
+                                </span>
                               </div>
-                              <span className="w-20 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-card-foreground">
-                                {r.mentionCount || 0} <span className="text-muted-foreground font-normal">of {r.totalResponses}</span>
-                              </span>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-sm font-bold tabular-nums text-card-foreground">{r.mentionCount || 0}</span>
+                                <span className="text-[10px] text-muted-foreground">/ {r.totalResponses}</span>
+                              </div>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                              <div className={cn("h-full rounded-full transition-all duration-700", colors[i % colors.length])}
+                                style={{ width: `${((r.mentionCount || 0) / maxMentions) * 100}%` }} />
                             </div>
                           </div>
-                        )
-                      })}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </div>
 
                 {/* Average Position */}
                 <div className="col-span-6 rounded-xl border border-border bg-card p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Average Position</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Where brands appear in AI numbered lists</p>
-                    </div>
+                  <div className="mb-5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Average Position</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Avg rank in AI numbered lists (lower is better)</p>
                   </div>
                   {rankings.length === 0 ? (
                     <p className="text-xs text-muted-foreground">No data yet</p>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      {rankings.map((r, i) => (
-                        <div key={r.name} className="flex items-center gap-3">
-                          <div className={cn("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
-                            r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500"][i % 4]
-                          )}>{r.name.charAt(0).toUpperCase()}</div>
-                          <span className={cn("flex-1 truncate text-xs", r.isOurBrand ? "font-semibold text-card-foreground" : "text-muted-foreground")}>
-                            {r.name}{r.isOurBrand && " ★"}
-                          </span>
-                          <span className={cn("text-sm font-bold tabular-nums",
-                            r.avgPosition && r.avgPosition <= 2 ? "text-emerald-600" :
-                            r.avgPosition && r.avgPosition <= 4 ? "text-amber-600" : "text-muted-foreground"
-                          )}>
-                            {r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "—"}
-                          </span>
-                        </div>
-                      ))}
-                      <p className="text-[10px] text-muted-foreground mt-1">— means not found in numbered lists yet</p>
+                      {rankings.map((r, i) => {
+                        const posLabel = r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "—"
+                        const posColor = r.avgPosition
+                          ? r.avgPosition <= 2 ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+                          : r.avgPosition <= 4 ? "text-amber-600 bg-amber-50 border-amber-200"
+                          : "text-red-500 bg-red-50 border-red-200"
+                          : "text-muted-foreground bg-muted border-border"
+                        return (
+                          <div key={r.name} className={cn("flex items-center justify-between rounded-lg border px-4 py-3 transition-colors", r.isOurBrand ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border")}>
+                            <div className="flex items-center gap-2.5">
+                              <div className={cn("flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
+                                r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500"][i % 4]
+                              )}>{r.name.charAt(0).toUpperCase()}</div>
+                              <div>
+                                <p className={cn("text-xs font-semibold", r.isOurBrand ? "text-primary" : "text-card-foreground")}>{r.name}</p>
+                                {r.isOurBrand && <p className="text-[10px] text-muted-foreground">Your brand</p>}
+                              </div>
+                            </div>
+                            <span className={cn("rounded-full border px-2.5 py-1 text-sm font-bold tabular-nums", posColor)}>
+                              {posLabel}
+                            </span>
+                          </div>
+                        )
+                      })}
+                      <p className="text-[10px] text-muted-foreground">— not yet detected in numbered lists</p>
                     </div>
                   )}
                 </div>
