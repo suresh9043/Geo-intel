@@ -215,41 +215,6 @@ export default function DashboardPage() {
           ) : (
             <div className="flex flex-col gap-4">
 
-              {/* Row 1 — Status strip full width */}
-              <div className="grid grid-cols-12 gap-4">
-
-                {/* Status strip */}
-                <div className="col-span-12 rounded-xl border border-border bg-card">
-                  <div className="grid grid-cols-3 h-full divide-x divide-border">
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Your Rank</p>
-                      <p className="text-4xl font-black text-card-foreground tabular-nums">{stats?.rank ? `#${stats.rank}` : "—"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">of {stats?.shareOfVoice?.length || 0} tracked</p>
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Avg Position</p>
-                      <p className="text-4xl font-black text-card-foreground tabular-nums">{ourBrand?.avgPosition ? `#${ourBrand.avgPosition.toFixed(1)}` : "—"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">in AI numbered lists</p>
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Sentiment</p>
-                      <div className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mt-1",
-                        ourBrand?.sentiment === "positive" ? "bg-emerald-100 text-emerald-700" :
-                        ourBrand?.sentiment === "negative" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground"
-                      )}>
-                        <span className={cn("h-2 w-2 rounded-full flex-shrink-0",
-                          ourBrand?.sentiment === "positive" ? "bg-emerald-500" :
-                          ourBrand?.sentiment === "negative" ? "bg-red-500" : "bg-gray-400"
-                        )} />
-                        {ourBrand?.sentiment ? ourBrand.sentiment.charAt(0).toUpperCase() + ourBrand.sentiment.slice(1) : "No data"}
-                      </div>
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {(ourBrand?.models || []).map((m: string) => <ModelBadge key={m} model={m} />)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Row 2 — Visibility Trend + Share of Voice + Recommended Actions */}
               {/* Row 2 — Visibility Trend (70%) + Visibility Rank (30%) */}
