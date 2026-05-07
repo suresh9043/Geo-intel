@@ -79,7 +79,11 @@ export default function DashboardPage() {
     if (!user) return
     getCompanies(user.id).then(data => {
       setCompanies(data)
-      if (data.length > 0) setSelectedCompanyId(data[0].id)
+      if (data.length > 0) {
+        const saved = localStorage.getItem('selectedCompanyId')
+        const valid = saved && data.find(c => c.id === saved)
+        setSelectedCompanyId(valid ? saved : data[0].id)
+      }
     })
   }, [user])
 
@@ -125,7 +129,7 @@ export default function DashboardPage() {
       <Sidebar
         companies={companies}
         selectedCompanyId={selectedCompanyId || undefined}
-        onSelectCompany={setSelectedCompanyId}
+        onSelectCompany={(id) => { setSelectedCompanyId(id); localStorage.setItem('selectedCompanyId', id) }}
         onCreateNew={() => setShowSetup(true)}
         onDeleteCompany={(id) => {
           const remaining = companies.filter(c => c.id !== id)
