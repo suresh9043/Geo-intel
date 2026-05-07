@@ -116,6 +116,13 @@ export async function POST(req: NextRequest) {
     // Mark run complete
     await db.from('runs').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', runId)
 
+    // Extract brand positions from responses using Haiku (fire and forget)
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(req.url).origin : 'http://localhost:3000'}/api/extract-positions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runId, companyId }),
+    }).catch(() => {})
+
     return NextResponse.json({ success: true, runId })
 
   } catch (err: any) {

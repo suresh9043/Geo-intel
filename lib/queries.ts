@@ -288,7 +288,7 @@ export async function getRankings(companyId: string) {
 
   const { data: responses } = await supabase
     .from('raw_responses')
-    .select('response_text, requested_model, provider')
+    .select('response_text, requested_model, provider, positions_json')
     .eq('company_id', companyId)
     .eq('status', 'success')
     .not('response_text', 'is', null)
@@ -305,17 +305,15 @@ export async function getRankings(companyId: string) {
     const visibility = Math.round((mentionCount / total) * 100)
     const models = [...new Set(mentioning.map(r => r.requested_model))]
 
-    // Basic sentiment
-    let positive = 0, negative = 0
-    mentioning.forEach(r => {
-      const idx = r.response_text!.toLowerCase().indexOf(entity.name.toLowerCase())
-      const ctx = r.response_text!.toLowerCase().substring(Math.max(0, idx - 100), idx + 200)
-      if (/recommend|best|top|leading|excellent|great|popular/.test(ctx)) positive++
-      if (/not recommend|avoid|poor|bad|worst/.test(ctx)) negative++
-    })
-    const sentiment = positive > negative ? 'positive' : negative > positive ? 'negative' : 'neutral'
+    // Avg position from Haiku-extracted positions_json
+    const positions = responses!
+      .map(r => r.positions_json?.[entity.name])
+      .filter((p): p is number => typeof p === 'number' && p > 0)
+    const avgPosition = positions.length > 0
+      ? parseFloat((positions.reduce((a, b) => a + b, 0) / positions.length).toFixed(1))
+      : null
 
-    return { name: entity.name, isOurBrand: entity.isOurBrand, visibility, mentionCount, totalResponses: total, models, sentiment, avgPosition: null }
+    return { name: entity.name, isOurBrand: entity.isOurBrand, visibility, mentionCount, totalResponses: total, models, avgPosition }
   })
 
   return rankings
