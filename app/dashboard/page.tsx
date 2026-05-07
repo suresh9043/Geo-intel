@@ -350,16 +350,18 @@ export default function DashboardPage() {
                           ? r.avgPosition <= 2 ? "text-emerald-600 bg-emerald-50 border-emerald-200"
                           : r.avgPosition <= 4 ? "text-amber-600 bg-amber-50 border-amber-200"
                           : "text-red-500 bg-red-50 border-red-200"
-                          : "text-muted-foreground bg-muted border-border"
+                          : "text-gray-400 bg-gray-50 border-gray-200"
+                        const circleColors = ["#3b82f6","#8b5cf6","#10b981","#f97316"]
+                        const circleColor = r.isOurBrand ? "#3B5BDB" : circleColors[i % 4]
                         return (
-                          <div key={r.name} className={cn("flex items-center justify-between rounded-lg border px-4 py-3 transition-colors", r.isOurBrand ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border")}>
+                          <div key={r.name} className="flex items-center justify-between rounded-lg border px-4 py-3 transition-colors"
+                            style={r.isOurBrand ? { backgroundColor: "rgba(59,91,219,0.05)", borderColor: "rgba(59,91,219,0.2)" } : { backgroundColor: "rgba(0,0,0,0.02)", borderColor: "#e5e5e5" }}>
                             <div className="flex items-center gap-2.5">
-                              <div className={cn("flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
-                                r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500"][i % 4]
-                              )}>{r.name.charAt(0).toUpperCase()}</div>
+                              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                style={{ backgroundColor: circleColor }}>{r.name.charAt(0).toUpperCase()}</div>
                               <div>
-                                <p className={cn("text-xs font-semibold", r.isOurBrand ? "text-primary" : "text-card-foreground")}>{r.name}</p>
-                                {r.isOurBrand && <p className="text-[10px] text-muted-foreground">Your brand</p>}
+                                <p className="text-xs font-semibold" style={{ color: r.isOurBrand ? "#3B5BDB" : "#1a1a1a" }}>{r.name}</p>
+                                {r.isOurBrand && <p className="text-[10px] text-gray-400">Your brand</p>}
                               </div>
                             </div>
                             <span className={cn("rounded-full border px-2.5 py-1 text-sm font-bold tabular-nums", posColor)}>
@@ -436,11 +438,12 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className={cn("h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0",
-                                r.isOurBrand ? "bg-primary" : ["bg-blue-500","bg-purple-500","bg-emerald-500","bg-orange-500","bg-pink-500"][i % 5]
-                              )}>{r.name.charAt(0).toUpperCase()}</div>
+                              <div className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                                style={{ backgroundColor: r.isOurBrand ? "#3B5BDB" : ["#3b82f6","#8b5cf6","#10b981","#f97316","#ec4899"][i % 5] }}>
+                                {r.name.charAt(0).toUpperCase()}</div>
                               <div>
-                                <p className={cn("text-sm", r.isOurBrand ? "font-semibold text-primary" : "font-medium text-card-foreground")}>{r.name}</p>
+                                <p className={cn("text-sm", r.isOurBrand ? "font-semibold" : "font-medium text-gray-800")}
+                                  style={r.isOurBrand ? { color: "#3B5BDB" } : {}}>{r.name}</p>
                                 <p className="text-xs text-muted-foreground">{r.mentionCount} of {r.totalResponses} responses</p>
                               </div>
                               {r.isOurBrand && <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">You</span>}
