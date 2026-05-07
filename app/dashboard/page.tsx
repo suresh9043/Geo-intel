@@ -141,7 +141,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex-shrink-0 border-b border-border bg-card px-6 py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-sm font-semibold text-card-foreground">AI Visibility Dashboard</h1>
+            <h1 className="text-base font-bold text-card-foreground">{companies.find(c => c.id === selectedCompanyId)?.name || "AI Visibility Dashboard"}</h1>
             {stats?.lastRunAt && <p className="text-xs text-muted-foreground">Last run: {formatLastRun(stats.lastRunAt)}</p>}
           </div>
           <div className="flex items-center gap-2">
