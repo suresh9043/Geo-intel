@@ -62,6 +62,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [showSetup, setShowSetup] = useState(false)
+  const [activeTab, setActiveTab] = useState<"visibility" | "prompts" | "citations">("visibility")
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([])
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
   const [selectedModel, setSelectedModel] = useState("all")
@@ -164,8 +165,46 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex-shrink-0 border-b border-border bg-card px-6">
+          <div className="flex gap-1">
+            {(["visibility", "prompts", "citations"] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-4 py-2.5 text-xs font-semibold capitalize border-b-2 transition-colors",
+                  activeTab === tab
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-card-foreground"
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex-1 overflow-y-auto p-5">
-          {companies.length === 0 ? (
+
+          {/* Prompts tab */}
+          {activeTab === "prompts" && (
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <p className="text-sm font-medium text-card-foreground">Prompts</p>
+              <p className="text-xs text-muted-foreground">Coming soon</p>
+            </div>
+          )}
+
+          {/* Citations tab */}
+          {activeTab === "citations" && (
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <p className="text-sm font-medium text-card-foreground">Citations</p>
+              <p className="text-xs text-muted-foreground">Coming soon</p>
+            </div>
+          )}
+
+          {/* Visibility tab */}
+          {activeTab === "visibility" && (companies.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
               <h2 className="text-lg font-semibold text-card-foreground">No companies tracked yet</h2>
               <p className="text-sm text-muted-foreground">Add your first company to start tracking AI visibility</p>
@@ -384,7 +423,7 @@ export default function DashboardPage() {
               </div>
 
             </div>
-          )}
+          ))}
         </div>
       </main>
     </div>
