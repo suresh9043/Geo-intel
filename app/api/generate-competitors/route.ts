@@ -34,11 +34,13 @@ Return ONLY a JSON array with no extra text or markdown:
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
+      max_tokens: 1000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 } as any],
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const rawText = response.content[0].type === 'text' ? response.content[0].text.trim() : ''
+    const textBlock = response.content.filter(b => b.type === 'text').pop()
+    const rawText = textBlock?.type === 'text' ? textBlock.text.trim() : ''
     let raw = rawText
 
     // Strip markdown code fences
