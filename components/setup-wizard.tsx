@@ -149,7 +149,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
     setLoading(true)
     setError("")
     try {
-      await saveCompany(user.id, {
+      const companyId = await saveCompany(user.id, {
         name: companyName,
         url: websiteUrl,
         description,
@@ -161,6 +161,14 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
           .filter(m => selectedModels.includes(m.slug))
           .map(m => ({ provider: m.provider, model: m.slug })),
       })
+
+      // Fire tracking job immediately
+      await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId }),
+      })
+
       onComplete()
     } catch (err: any) {
       setError(err.message || "Something went wrong")
@@ -383,7 +391,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
                 Continue <ChevronRight className="h-4 w-4" />
               </button>
             : <button onClick={handleSubmit} disabled={loading || !canNext} className="flex items-center gap-2 rounded-lg bg-[#3B5BDB] px-5 py-2 text-sm font-semibold text-white hover:bg-[#3451c4] disabled:opacity-60 transition-colors">
-                {loading ? "Starting tracking..." : "🚀 Start tracking"}
+                {loading ? "Running first scan…" : "🚀 Start tracking"}
               </button>
           }
         </div>
