@@ -21,6 +21,7 @@ Respond with ONLY a raw JSON array of 5 strings. No explanation, no markdown, no
     })
 
     let raw = response.content[0].type === 'text' ? response.content[0].text.trim() : ''
+    console.log('[generate-competitors] prompt:', prompt)
     console.log('[generate-competitors] raw:', raw)
 
     // Strip markdown code fences
