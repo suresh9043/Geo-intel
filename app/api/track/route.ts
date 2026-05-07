@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
   try {
     const { companyId } = await req.json()
     if (!companyId) return NextResponse.json({ error: 'companyId required' }, { status: 400 })
+    console.log('[track] starting for company:', companyId)
 
     // Fetch prompts and models
     const [{ data: prompts, error: pe }, { data: models, error: me }] = await Promise.all([
@@ -75,9 +76,13 @@ export async function POST(req: NextRequest) {
       db.from('tracked_models').select('id, provider, model_slug').eq('company_id', companyId).eq('is_active', true),
     ])
 
+    console.log('[track] prompts:', prompts?.length, 'models:', models?.map(m => m.model_slug))
     if (pe) return NextResponse.json({ error: pe.message }, { status: 500 })
     if (me) return NextResponse.json({ error: me.message }, { status: 500 })
-    if (!prompts?.length || !models?.length) return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
+    if (!prompts?.length || !models?.length) {
+      console.log('[track] no prompts or models — aborting')
+      return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
+    }
 
     // Create run
     const { data: run, error: re } = await db.from('runs').insert({ company_id: companyId, status: 'in_progress', started_at: new Date().toISOString() }).select('id').single()
@@ -94,6 +99,7 @@ export async function POST(req: NextRequest) {
       await Promise.all(chunk.map(async ({ prompt, model }) => {
         const slug = MODEL_SLUGS[model.model_slug] || model.model_slug
         const result = await queryOpenRouter(prompt.text, slug)
+        console.log(`[track] ${model.model_slug} → ${slug}: ${result.ok ? 'ok' : (result as any).error}`)
 
         await db.from('raw_responses').insert({
           run_id: runId,
