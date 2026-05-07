@@ -253,7 +253,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
                   )}
                 </div>
               ))}
-              {competitors.length < 5 && (
+              {competitors.length < 6 && (
                 <button onClick={addCompetitor} className="flex items-center gap-1.5 text-xs text-[#3B5BDB] font-medium hover:underline">
                   <Plus className="h-3.5 w-3.5" /> Add another competitor
                 </button>

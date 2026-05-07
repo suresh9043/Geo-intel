@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
     if (!companyName) return NextResponse.json({ error: 'companyName required' }, { status: 400 })
 
     const geoContext = geography && geography !== 'Worldwide' ? ` operating in ${geography}` : ''
-    const prompt = `List the top 4 direct competitors of "${companyName}"${description ? ` (${description})` : ''}${industry ? ` in the ${industry} industry` : ''}${geoContext}.
+    const prompt = `List the top 5 direct competitors of "${companyName}"${description ? ` (${description})` : ''}${industry ? ` in the ${industry} industry` : ''}${geoContext}.
 
-Return ONLY a JSON array of competitor names, no other text. Example: ["Competitor A", "Competitor B", "Competitor C", "Competitor D"]`
+Return ONLY a JSON array of exactly 5 competitor names, no other text. Example: ["Competitor A", "Competitor B", "Competitor C", "Competitor D", "Competitor E"]`
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -24,7 +24,7 @@ Return ONLY a JSON array of competitor names, no other text. Example: ["Competit
     const match = raw.match(/\[[\s\S]*\]/)
     const competitors: string[] = match ? JSON.parse(match[0]) : []
 
-    return NextResponse.json({ competitors: competitors.slice(0, 4) })
+    return NextResponse.json({ competitors: competitors.slice(0, 5) })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
