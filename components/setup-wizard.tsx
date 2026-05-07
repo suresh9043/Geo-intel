@@ -47,7 +47,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [generatingCompetitors, setGeneratingCompetitors] = useState(false)
-  const [competitorDebug, setCompetitorDebug] = useState<{ prompt: string; raw: string } | null>(null)
+
   const [error, setError] = useState("")
 
   // Step 1 — Company
@@ -92,7 +92,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
         body: JSON.stringify({ companyName, websiteUrl, description, industry: vertical, geography }),
       })
       const data = await res.json()
-      if (data.debug) setCompetitorDebug(data.debug)
+
       if (!res.ok) {
         setError(data.error || "Failed to generate competitors")
       } else if (data.competitors?.length) {
@@ -266,14 +266,6 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
                 <button onClick={addCompetitor} className="flex items-center gap-1.5 text-xs text-[#3B5BDB] font-medium hover:underline">
                   <Plus className="h-3.5 w-3.5" /> Add another competitor
                 </button>
-              )}
-              {competitorDebug && (
-                <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs space-y-2">
-                  <p className="font-semibold text-gray-500 uppercase tracking-wider">Prompt sent</p>
-                  <pre className="whitespace-pre-wrap text-gray-700 font-mono">{competitorDebug.prompt}</pre>
-                  <p className="font-semibold text-gray-500 uppercase tracking-wider">Raw response</p>
-                  <pre className="whitespace-pre-wrap text-gray-700 font-mono">{competitorDebug.raw}</pre>
-                </div>
               )}
             </div>
           )}

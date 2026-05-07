@@ -55,10 +55,10 @@ Return ONLY a JSON array with no extra text or markdown:
           ? { name: item.name || '', url: item.website || '' }
           : { name: item, url: '' }
       )
-      return NextResponse.json({ competitors, debug: { prompt, raw: rawText } })
+      return NextResponse.json({ competitors })
     }
 
-    return NextResponse.json({ error: 'Could not parse competitors from response', debug: { prompt, raw: rawText } })
+    return NextResponse.json({ error: 'Could not parse competitors from response' })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
