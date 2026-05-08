@@ -477,7 +477,6 @@ export default function GeoAuditV2() {
                   </div>
                 ))}
               </div>
-          )}
 
           {/* Report */}
           {report && !loading && (
@@ -555,7 +554,6 @@ export default function GeoAuditV2() {
             </div>
           )}
 
-          </>}
 
           {/* Content Analysis Tab */}
           {activeTab === "Content Analysis" && (
