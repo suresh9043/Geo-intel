@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Play, RefreshCw, ExternalLink, ChevronDown, ArrowUp, ArrowDown, Eye, ClipboardList, BarChart2, Clock, Zap, LogOut } from "lucide-react"
+import { Plus, Play, RefreshCw, ExternalLink, ChevronDown, ArrowUp, ArrowDown, Eye, ClipboardList, BarChart2, Clock, Zap, LogOut, Radio, Trophy, Hash, Target, LayoutList, Lightbulb, MessageSquare } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun } from "@/lib/queries"
 import { VisibilityWidget } from "@/components/visibility-chart"
@@ -60,6 +60,20 @@ function getRecommendations(visibility: number, totalResponses: number, topCompe
 }
 
 // --- Sub-components -----------------------------------------------------------
+
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <div className="relative group flex-shrink-0">
+      <div className="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center cursor-help text-slate-400 hover:border-slate-400 hover:text-slate-600 transition-colors">
+        <span className="text-[9px] font-bold leading-none">?</span>
+      </div>
+      <div className="absolute right-0 top-5 z-50 hidden group-hover:block w-52 rounded-lg bg-slate-800 text-white text-xs leading-relaxed px-3 py-2 shadow-xl pointer-events-none">
+        {text}
+        <div className="absolute -top-1 right-1.5 w-2 h-2 bg-slate-800 rotate-45" />
+      </div>
+    </div>
+  )
+}
 
 function ModelBadge({ model }: { model: string }) {
   const m = model.toLowerCase()
@@ -345,7 +359,7 @@ export default function DashboardV2() {
                   <div className="rounded-xl flex flex-col min-h-[320px] overflow-hidden" style={cardStyle("mention")}>
                     <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
                       <div className="flex items-center gap-3">
-                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Mention Rate</h3>
+                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Radio className="h-3.5 w-3.5 text-slate-400" />Mention Rate</h3>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-xl font-extrabold text-slate-900">{hasData ? `${visibility}%` : "—"}</span>
                           {mentionDelta !== null && mentionDelta !== 0 && (
@@ -370,6 +384,7 @@ export default function DashboardV2() {
                           <input type="checkbox" checked={showCompetitors} onChange={e => setShowCompetitors(e.target.checked)} className="h-3 w-3 rounded" style={{ accentColor: BRAND }} />
                           <span className="text-sm text-slate-400">Competitors</span>
                         </label>
+                        <InfoTooltip text="% of AI responses that mention your brand. Calculated as (responses mentioning you / total responses) x 100." />
                       </div>
                     </div>
                     {loading ? <CardSkeleton rows={2} /> : (
@@ -398,8 +413,9 @@ export default function DashboardV2() {
                   onMouseEnter={() => setHoveredCard("rank")}
                   onMouseLeave={() => setHoveredCard(null)}>
                   <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("rank")}>
-                    <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
-                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Visibility Rank</h3>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5 text-slate-400" />Visibility Rank</h3>
+                      <InfoTooltip text="Ranks your brand against competitors by how often each appears in AI responses. Higher = more visible to AI engines." />
                     </div>
                     {loading ? <CardSkeleton rows={4} /> : sorted.length === 0 ? (
                       <p className="text-xs text-slate-400 p-4">No data yet</p>
@@ -442,8 +458,9 @@ export default function DashboardV2() {
                       onMouseEnter={() => setHoveredCard("mentions")}
                       onMouseLeave={() => setHoveredCard(null)}>
                       <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("mentions")}>
-                        <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
-                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Brand Mentions</h3>
+                        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Hash className="h-3.5 w-3.5 text-slate-400" />Brand Mentions</h3>
+                          <InfoTooltip text="How many times each brand appeared across all AI responses. Shows raw citation count vs total responses." />
                         </div>
                         {loading ? <CardSkeleton /> : (
                           <div className="p-3">
@@ -476,8 +493,9 @@ export default function DashboardV2() {
                       onMouseEnter={() => setHoveredCard("position")}
                       onMouseLeave={() => setHoveredCard(null)}>
                       <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("position")}>
-                        <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
-                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Average Position</h3>
+                        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-slate-400" />Average Position</h3>
+                          <InfoTooltip text="Where your brand ranks in AI numbered lists on average. Position 1 is best. Lower number = AI mentions you earlier." />
                         </div>
                         {loading ? <CardSkeleton /> : (
                           <div className="p-3 space-y-1.5 flex-1">
@@ -512,8 +530,9 @@ export default function DashboardV2() {
                   {/* Row 3: Brand Rankings */}
                   <div onMouseEnter={() => setHoveredCard("table")} onMouseLeave={() => setHoveredCard(null)}>
                     <div className="rounded-xl overflow-hidden" style={cardStyle("table")}>
-                      <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
-                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Brand Rankings</h3>
+                      <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><LayoutList className="h-3.5 w-3.5 text-slate-400" />Brand Rankings</h3>
+                        <InfoTooltip text="Full comparison of your brand vs competitors — visibility %, average list position, and which AI models mention each brand." />
                       </div>
                       {loading ? <CardSkeleton rows={4} /> : (
                         <div className="overflow-x-auto">
@@ -578,10 +597,13 @@ export default function DashboardV2() {
               <div onMouseEnter={() => setHoveredCard("actions")} onMouseLeave={() => setHoveredCard(null)}>
                 <div className="rounded-xl overflow-hidden" style={cardStyle("actions")}>
                   <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Quick Actions</h3>
-                    <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
-                      View all <ExternalLink className="h-3 w-3" />
-                    </a>
+                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Lightbulb className="h-3.5 w-3.5 text-slate-400" />Quick Actions</h3>
+                    <div className="flex items-center gap-2">
+                      <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
+                        View all <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <InfoTooltip text="AI-generated recommendations based on your visibility data. Prioritised by impact — fix critical issues first." />
+                    </div>
                   </div>
                   <div className="p-3 space-y-1.5">
                     {recs.map((rec, i) => {
@@ -616,8 +638,11 @@ export default function DashboardV2() {
               <div onMouseEnter={() => setHoveredCard("feed")} onMouseLeave={() => setHoveredCard(null)}>
                 <div className="rounded-xl overflow-hidden" style={cardStyle("feed")}>
                   <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Response Feed</h3>
-                    <span className="text-sm font-medium text-slate-400">{responses.length} latest</span>
+                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-slate-400" />Response Feed</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-400">{responses.length} latest</span>
+                      <InfoTooltip text="Latest AI responses to your tracked prompts. Click any row to read the full response and see if your brand was mentioned." />
+                    </div>
                   </div>
                   <div className="p-3 space-y-1.5">
                     {loading ? <CardSkeleton rows={3} /> : responses.length === 0 ? (
