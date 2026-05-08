@@ -417,45 +417,24 @@ export default function GeoAuditV2() {
           {!report && !loading && (
             <>
 
-              {/* Feature cards */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* Feature cards - 5 dimensions */}
+              <div className="grid grid-cols-5 gap-3">
                 {[
-                  {
-                    title: "Real data",
-                    icon: "🔍",
-                    num: "01",
-                    color: BRAND,
-                    bg: "#eff6ff",
-                    border: "#bfdbfe",
-                    detail: "We fetch your site, check robots.txt, extract schema and analyse content structure.",
-                  },
-                  {
-                    title: "5 dimensions scored",
-                    icon: "📊",
-                    num: "02",
-                    color: "#ea580c",
-                    bg: "#fff7ed",
-                    border: "#fed7aa",
-                    detail: "Crawlability, content depth, schema markup, authority signals and competitive positioning.",
-                  },
-                  {
-                    title: "Fixes ready to ship",
-                    icon: "⚡",
-                    num: "03",
-                    color: "#059669",
-                    bg: "#ecfdf5",
-                    border: "#a7f3d0",
-                    detail: "Every finding has a copy-paste fix — schema JSON-LD, robots.txt snippets, content rewrites.",
-                  },
+                  { title: "Crawlability", icon: "🤖", num: "01", color: BRAND, bg: "#eff6ff", border: "#bfdbfe", detail: "robots.txt, llms.txt, AI bot access" },
+                  { title: "Content", icon: "📝", num: "02", color: "#7c3aed", bg: "#faf5ff", border: "#ddd6fe", detail: "Entity definition, citation signals" },
+                  { title: "Schema", icon: "🔧", num: "03", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa", detail: "FAQPage, SoftwareApp, Organization" },
+                  { title: "Authority", icon: "⭐", num: "04", color: "#0891b2", bg: "#ecfeff", border: "#a5f3fc", detail: "G2, Wikipedia, brand recognition" },
+                  { title: "Competitive", icon: "📊", num: "05", color: "#059669", bg: "#ecfdf5", border: "#a7f3d0", detail: "Comparison pages, positioning" },
                 ].map(card => (
-                  <div key={card.title} className="rounded-xl p-5 flex flex-col gap-3 hover:shadow-md transition-all cursor-default"
-                    style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}>
+                  <div key={card.title}
+                    className="rounded-xl p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-default border-t-2"
+                    style={{ backgroundColor: card.bg, border: `1px solid ${card.border}`, borderTopColor: card.color, borderTopWidth: 2 }}>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl">{card.icon}</span>
-                      <span className="text-xs font-bold opacity-30" style={{ color: card.color }}>{card.num}</span>
+                      <span className="text-lg">{card.icon}</span>
+                      <span className="text-[9px] font-black opacity-30" style={{ color: card.color }}>{card.num}</span>
                     </div>
-                    <h3 className="text-sm font-bold text-slate-800 mb-1">{card.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">{card.detail}</p>
+                    <h3 className="text-xs font-bold text-slate-800">{card.title}</h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{card.detail}</p>
                   </div>
                 ))}
               </div>
