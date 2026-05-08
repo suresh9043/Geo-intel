@@ -327,12 +327,8 @@ export default function DashboardV2() {
                 <option value="all">All models</option>
                 {(stats?.availableModels || []).map((m: string) => <option key={m} value={m}>{m}</option>)}
               </select>
-              <button onClick={fetchData} className="p-1.5 text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+              <button onClick={async () => { await handleReprocessPositions(); fetchData() }} className="p-1.5 text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors" title="Refresh and reprocess positions">
                 <RefreshCw className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={handleReprocessPositions} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold transition-all border border-slate-200 text-slate-600 hover:bg-slate-50"
-                title="Recalculate average positions from existing responses">
-                <Target className="h-3.5 w-3.5" /> Reprocess
               </button>
               <button onClick={handleRunNow} className="flex items-center gap-1.5 text-white px-3 py-1.5 rounded-md text-sm font-semibold transition-all shadow-sm" style={{ backgroundColor: BRAND }}
                 title="Press R to run">
