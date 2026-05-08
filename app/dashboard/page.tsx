@@ -187,6 +187,12 @@ export default function DashboardV2() {
     setTimeout(fetchData, 3000)
   }
 
+  const handleReprocessPositions = async () => {
+    if (!selectedCompanyId) return
+    await fetch("/api/reprocess-positions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: selectedCompanyId }) })
+    setTimeout(fetchData, 2000)
+  }
+
   if (authLoading || !user) return null
 
   const sorted = [...rankings].sort((a, b) => b.visibility - a.visibility)
@@ -323,6 +329,10 @@ export default function DashboardV2() {
               </select>
               <button onClick={fetchData} className="p-1.5 text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
                 <RefreshCw className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={handleReprocessPositions} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold transition-all border border-slate-200 text-slate-600 hover:bg-slate-50"
+                title="Recalculate average positions from existing responses">
+                <Target className="h-3.5 w-3.5" /> Reprocess
               </button>
               <button onClick={handleRunNow} className="flex items-center gap-1.5 text-white px-3 py-1.5 rounded-md text-sm font-semibold transition-all shadow-sm" style={{ backgroundColor: BRAND }}
                 title="Press R to run">
