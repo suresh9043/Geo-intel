@@ -66,10 +66,12 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
 
   // Step 2 — Competitors
   const [competitors, setCompetitors] = useState([{ name: "", url: "" }])
+  const [competitorCount, setCompetitorCount] = useState(5)
 
   // Step 3 — Prompts
   const [prompts, setPrompts] = useState<string[]>([])
   const [customPrompt, setCustomPrompt] = useState("")
+  const [promptCount, setPromptCount] = useState(5)
 
   // Step 4 — Models
   const [selectedModels, setSelectedModels] = useState<string[]>([])
@@ -97,7 +99,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
       const res = await fetch("/api/generate-competitors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyName, websiteUrl, description, industry: vertical, geography }),
+        body: JSON.stringify({ companyName, websiteUrl, description, industry: vertical, geography, count: competitorCount }),
       })
       const data = await res.json()
 
@@ -121,7 +123,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
       const res = await fetch("/api/generate-prompts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyName, websiteUrl, description, geography }),
+        body: JSON.stringify({ companyName, websiteUrl, description, geography, count: promptCount }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -282,13 +284,20 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">Add competitors to compare against. You can skip this and add them later.</p>
-                <button
-                  onClick={handleGenerateCompetitors}
-                  disabled={generatingCompetitors || !companyName.trim()}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#3B5BDB] px-3 py-1.5 text-xs font-semibold text-[#3B5BDB] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap ml-3 flex-shrink-0"
-                >
-                  {generatingCompetitors ? "Generating…" : "✦ Generate"}
-                </button>
+                <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                  <input
+                    type="number" min={1} max={10} value={competitorCount}
+                    onChange={e => setCompetitorCount(Math.min(10, Math.max(1, Number(e.target.value))))}
+                    className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700 text-center outline-none focus:border-[#3B5BDB] focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
+                    onClick={handleGenerateCompetitors}
+                    disabled={generatingCompetitors || !companyName.trim()}
+                    className="flex items-center gap-1.5 rounded-lg border border-[#3B5BDB] px-3 py-1.5 text-xs font-semibold text-[#3B5BDB] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                  >
+                    {generatingCompetitors ? "Generating…" : "✦ Generate"}
+                  </button>
+                </div>
               </div>
               {competitors.map((c, i) => (
                 <div key={i} className="flex gap-2">
@@ -301,7 +310,7 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
                   )}
                 </div>
               ))}
-              {competitors.length < 6 && (
+              {competitors.length < 11 && (
                 <button onClick={addCompetitor} className="flex items-center gap-1.5 text-xs text-[#3B5BDB] font-medium hover:underline">
                   <Plus className="h-3.5 w-3.5" /> Add another competitor
                 </button>
@@ -314,13 +323,20 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">Add the questions your buyers ask AI engines. We'll track these across ChatGPT, Perplexity, Gemini and Claude.</p>
-                <button
-                  onClick={handleGeneratePrompts}
-                  disabled={generatingPrompts || !companyName.trim()}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#3B5BDB] px-3 py-1.5 text-xs font-semibold text-[#3B5BDB] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap ml-3 flex-shrink-0"
-                >
-                  {generatingPrompts ? "Generating…" : "✦ Generate"}
-                </button>
+                <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                  <input
+                    type="number" min={1} max={10} value={promptCount}
+                    onChange={e => setPromptCount(Math.min(10, Math.max(1, Number(e.target.value))))}
+                    className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700 text-center outline-none focus:border-[#3B5BDB] focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
+                    onClick={handleGeneratePrompts}
+                    disabled={generatingPrompts || !companyName.trim()}
+                    className="flex items-center gap-1.5 rounded-lg border border-[#3B5BDB] px-3 py-1.5 text-xs font-semibold text-[#3B5BDB] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                  >
+                    {generatingPrompts ? "Generating…" : "✦ Generate"}
+                  </button>
+                </div>
               </div>
               <div className="flex gap-2">
                 <input value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustomPrompt()} placeholder="e.g. Best AI agent evaluation tools?" className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#3B5BDB]" />

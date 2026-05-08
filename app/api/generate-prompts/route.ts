@@ -5,12 +5,12 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
-    const { companyName, websiteUrl, description, geography } = await req.json()
+    const { companyName, websiteUrl, description, geography, count = 5 } = await req.json()
     if (!companyName) return NextResponse.json({ error: 'companyName required' }, { status: 400 })
 
     const prompt = `You are analyzing customer discovery behavior in chat LLMs.
 
-Generate 5 discovery prompts that potential customers would search to find solutions like the given company, BEFORE they know the company exists.
+Generate ${count} discovery prompts that potential customers would search to find solutions like the given company, BEFORE they know the company exists.
 
 **Company Details:**
 - Name: ${companyName}
@@ -26,7 +26,7 @@ Generate 5 discovery prompts that potential customers would search to find solut
 5. Reflect geography only if it meaningfully changes the query
 
 **Output strictly as JSON:**
-["query1", "query2", "query3", "query4", "query5"]
+["query1", "query2", "...up to query${count}"]
 
 Return only the JSON array. No explanation, no preamble.`
 
@@ -45,7 +45,7 @@ Return only the JSON array. No explanation, no preamble.`
     const match = raw.match(/\[[\s\S]*\]/)
     if (match) {
       const prompts: string[] = JSON.parse(match[0])
-      return NextResponse.json({ prompts: prompts.slice(0, 5) })
+      return NextResponse.json({ prompts: prompts.slice(0, count) })
     }
 
     return NextResponse.json({ error: 'Could not parse prompts from response' })

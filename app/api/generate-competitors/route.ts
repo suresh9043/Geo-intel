@@ -5,10 +5,10 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
-    const { companyName, websiteUrl, description, industry, geography } = await req.json()
+    const { companyName, websiteUrl, description, industry, geography, count = 5 } = await req.json()
     if (!companyName) return NextResponse.json({ error: 'companyName required' }, { status: 400 })
 
-    const prompt = `You are a competitive intelligence analyst. Identify 5 direct and indirect competitors for the given company.
+    const prompt = `You are a competitive intelligence analyst. Identify ${count} direct and indirect competitors for the given company.
 
 **Company Details:**
 - Name: ${companyName}
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 - Geography: ${geography || 'Worldwide'}
 
 **Requirements:**
-1. Return exactly 5 competitors (prioritize direct market competitors)
+1. Return exactly ${count} competitors (prioritize direct market competitors)
 2. For each competitor, provide:
    - Company name
    - Website (if available)
@@ -50,7 +50,7 @@ Return ONLY a JSON array with no extra text or markdown:
     const match = raw.match(/\[[\s\S]*\]/)
     if (match) {
       const parsed = JSON.parse(match[0])
-      const competitors = parsed.slice(0, 5).map((item: any) =>
+      const competitors = parsed.slice(0, count).map((item: any) =>
         typeof item === 'object'
           ? { name: item.name || '', url: item.website || '' }
           : { name: item, url: '' }
