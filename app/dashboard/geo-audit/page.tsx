@@ -1,18 +1,38 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { saveAnalysisResult, getAnalysisHistory, getCachedAnalysis } from "@/lib/queries"
-import { Sidebar } from "@/components/sidebar"
-import { Search, Loader2, ChevronDown, ChevronUp, Zap, AlertTriangle, AlertCircle, Info, ArrowRight, X, FileText, BarChart2, Copy, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { getCompanies, saveAnalysisResult, getCachedAnalysis } from "@/lib/queries"
+import { Plus, Search, Loader2, ChevronDown, ChevronUp, Zap, AlertTriangle, AlertCircle, Info, ArrowRight, X, Eye, ClipboardList, BarChart2, Copy, Check, LogOut } from "lucide-react"
+import { SetupWizard } from "@/components/setup-wizard"
+
+const BRAND = "#003ec7"
+const BRAND_ACTIVE = "#002b92"
+const BRAND_LIGHT = "#e6ebf9"
+
+const glassSidebar: React.CSSProperties = {
+  background: "rgba(239,244,255,0.92)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRight: "1px solid #c4c5d7",
+}
+
+const glassCard: React.CSSProperties = {
+  background: "rgba(229,238,255,0.4)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.3)",
+}
+
+// --- Helpers ------------------------------------------------------------------
 
 function getScoreStatus(score: number) {
-  if (score >= 75) return { label: "Strong",    color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-300" }
-  if (score >= 55) return { label: "Good",       color: "text-blue-700",   bg: "bg-blue-50",   border: "border-blue-300"   }
-  if (score >= 35) return { label: "Needs work", color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-300"  }
-  if (score >= 20) return { label: "Weak",       color: "text-orange-700", bg: "bg-orange-50", border: "border-orange-300" }
-  return               { label: "Critical",  color: "text-red-700",    bg: "bg-red-50",    border: "border-red-300"    }
+  if (score >= 75) return { label: "Strong",      color: "#059669", bg: "#ecfdf5", border: "#6ee7b7" }
+  if (score >= 55) return { label: "Good",         color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" }
+  if (score >= 35) return { label: "Needs work",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" }
+  if (score >= 20) return { label: "Weak",         color: "#ea580c", bg: "#fff7ed", border: "#fdba74" }
+  return               { label: "Critical",    color: "#dc2626", bg: "#fef2f2", border: "#fca5a5" }
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
@@ -20,22 +40,25 @@ const DIMENSION_LABELS: Record<string, string> = {
   "geo-authority": "Authority", "geo-schema": "Schema", "geo-crawl": "Crawlability",
 }
 
-const SEVERITY_STYLES: Record<string, { border: string; bg: string; icon: any; label: string; badge: string }> = {
-  Critical: { border: "border-l-red-500",    bg: "bg-red-50",    icon: AlertCircle,   label: "Critical", badge: "bg-red-100 text-red-700"     },
-  High:     { border: "border-l-orange-400", bg: "bg-orange-50", icon: AlertTriangle, label: "High",     badge: "bg-orange-100 text-orange-700" },
-  Medium:   { border: "border-l-amber-400",  bg: "bg-amber-50",  icon: Info,          label: "Medium",   badge: "bg-amber-100 text-amber-700"   },
+const SEVERITY_CONFIG: Record<string, { borderColor: string; bg: string; badgeBg: string; badgeColor: string; icon: any }> = {
+  Critical: { borderColor: "#ef4444", bg: "#fef2f2", badgeBg: "#fee2e2", badgeColor: "#b91c1c", icon: AlertCircle },
+  High:     { borderColor: "#f97316", bg: "#fff7ed", badgeBg: "#ffedd5", badgeColor: "#c2410c", icon: AlertTriangle },
+  Medium:   { borderColor: "#f59e0b", bg: "#fffbeb", badgeBg: "#fef3c7", badgeColor: "#92400e", icon: Info },
 }
 
-function ScoreBar({ score, dimension }: { score: number; dimension: string }) {
-  const color = score >= 70 ? "bg-emerald-500" : score >= 50 ? "bg-amber-400" : "bg-red-500"
-  const textColor = score >= 70 ? "text-emerald-600" : score >= 50 ? "text-amber-600" : "text-red-500"
+// --- Sub-components -----------------------------------------------------------
+
+function ScoreBar({ score: rawScore, dimension }: { score: any; dimension: string }) {
+  const score = typeof rawScore === 'object' ? (rawScore?.score ?? 0) : rawScore
+  const color = score >= 70 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444"
+  const textColor = score >= 70 ? "#059669" : score >= 50 ? "#d97706" : "#dc2626"
   return (
     <div className="flex items-center gap-3">
-      <span className="w-24 flex-shrink-0 text-xs font-medium text-muted-foreground">{DIMENSION_LABELS[dimension]}</span>
-      <div className="flex-1 h-2.5 rounded-full bg-white/60 overflow-hidden">
-        <div className={cn("h-full rounded-full transition-all duration-700", color)} style={{ width: `${score}%` }} />
+      <span className="w-24 flex-shrink-0 text-sm font-medium text-slate-500">{DIMENSION_LABELS[dimension]}</span>
+      <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score}%`, backgroundColor: color }} />
       </div>
-      <span className={cn("w-8 flex-shrink-0 text-right text-sm font-bold tabular-nums", textColor)}>{score}</span>
+      <span className="w-8 flex-shrink-0 text-right text-xs font-bold tabular-nums" style={{ color: textColor }}>{score}</span>
     </div>
   )
 }
@@ -45,8 +68,8 @@ function FindingRow({ finding, domain, vertical }: { finding: any; domain: strin
   const [loadingFix, setLoadingFix] = useState(false)
   const [fix, setFix] = useState<any>(null)
   const [copied, setCopied] = useState(false)
-  const style = SEVERITY_STYLES[finding.severity] || SEVERITY_STYLES.Medium
-  const Icon = style.icon
+  const cfg = SEVERITY_CONFIG[finding.severity] || SEVERITY_CONFIG.Medium
+  const Icon = cfg.icon
 
   const getFix = async () => {
     setLoadingFix(true)
@@ -58,51 +81,67 @@ function FindingRow({ finding, domain, vertical }: { finding: any; domain: strin
     setLoadingFix(false)
   }
 
+  const borderColors: Record<string, string> = { Critical: "#ef4444", High: "#f97316", Medium: "#f59e0b" }
+  const borderColor = borderColors[finding.severity] || "#f59e0b"
+
   return (
-    <div className={cn("rounded-xl border border-border border-l-4 overflow-hidden shadow-sm", style.border, style.bg)}>
-      <button onClick={() => setOpen(o => !o)} className="flex w-full items-start gap-3 px-4 py-4 text-left hover:brightness-95 transition-all">
-        <span className={cn("flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold flex items-center gap-1.5 mt-0.5", style.badge)}>
-          <Icon className="h-3 w-3" />{style.label}
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-card-foreground">{finding.title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{DIMENSION_LABELS[finding.dimension]}</p>
+    <div className="rounded-xl overflow-hidden border-l-4" style={{
+      background: "rgba(229,238,255,0.4)",
+      backdropFilter: "blur(12px)",
+      border: "1px solid rgba(255,255,255,0.3)",
+      borderLeftColor: borderColor,
+      borderLeftWidth: "4px",
+    }}>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-3 text-left hover:bg-white/20 transition-colors">
+        <div className="flex items-center gap-3">
+          <span className="px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-tight" style={{ backgroundColor: cfg.badgeBg, color: cfg.badgeColor }}>
+            {finding.severity}
+          </span>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">{finding.title}</h3>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-0.5">{DIMENSION_LABELS[finding.dimension]}</p>
+          </div>
         </div>
-        {open ? <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" /> : <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />}
+        {open ? <ChevronUp className="h-4 w-4 text-slate-400 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" />}
       </button>
+
       {open && (
-        <div className="border-t border-border/50 px-5 py-4 flex flex-col gap-4 bg-white/40">
+        <div className="px-4 pb-4 pt-2 space-y-3 border-t border-slate-200/30">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">The Problem</p>
-            <p className="text-sm text-card-foreground leading-relaxed">{finding.detail}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">The Problem</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{finding.detail}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Recommendation</p>
-            <p className="text-sm text-card-foreground leading-relaxed">{finding.recommendation}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Recommendation</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{finding.recommendation}</p>
           </div>
-          {!fix && (
-            <button onClick={getFix} disabled={loadingFix} className="flex w-fit items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors">
+          {!fix ? (
+            <button onClick={getFix} disabled={loadingFix}
+              className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:text-white transition-all shadow-sm"
+              style={{ color: BRAND }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = BRAND; (e.currentTarget as HTMLElement).style.color = "white" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "white"; (e.currentTarget as HTMLElement).style.color = BRAND }}>
               {loadingFix ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating...</> : <><Zap className="h-3.5 w-3.5" /> Get fix</>}
             </button>
-          )}
-          {fix && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col gap-3">
-              <p className="text-xs font-semibold text-primary uppercase tracking-wider">Generated Fix</p>
-              <p className="text-sm text-card-foreground leading-relaxed">{fix.summary}</p>
+          ) : (
+            <div className="rounded-xl p-4 flex flex-col gap-3" style={{ backgroundColor: BRAND_LIGHT, border: "1px solid rgba(0,62,199,0.2)" }}>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: BRAND }}>Generated Fix</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{fix.summary}</p>
               {fix.code && (
-                <div className="rounded-lg bg-muted overflow-hidden">
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-                    <span className="text-xs text-muted-foreground font-mono">Implementation</span>
-                    <button onClick={() => { navigator.clipboard.writeText(fix.code); setCopied(true); setTimeout(() => setCopied(false), 2000) }} className={cn("flex items-center gap-1.5 text-xs font-medium", copied ? "text-emerald-600" : "text-muted-foreground")}>
+                <div className="rounded-lg bg-slate-900 overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700">
+                    <span className="text-xs text-slate-400 font-mono">Implementation</span>
+                    <button onClick={() => { navigator.clipboard.writeText(fix.code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                      className="flex items-center gap-1.5 text-xs font-medium" style={{ color: copied ? "#10b981" : "#94a3b8" }}>
                       {copied ? <><Check className="h-3 w-3" /> Copied!</> : <><Copy className="h-3 w-3" /> Copy</>}
                     </button>
                   </div>
-                  <pre className="p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap">{fix.code}</pre>
+                  <pre className="p-3 text-xs font-mono text-slate-200 overflow-x-auto whitespace-pre-wrap">{fix.code}</pre>
                 </div>
               )}
-              {fix.instructions && fix.instructions.map((step: string, i: number) => (
-                <div key={i} className="flex gap-2 text-xs text-card-foreground">
-                  <span className="flex-shrink-0 font-bold text-primary">{i + 1}.</span>{step}
+              {fix.instructions?.map((step: string, i: number) => (
+                <div key={i} className="flex gap-2 text-sm text-slate-700">
+                  <span className="flex-shrink-0 font-bold" style={{ color: BRAND }}>{i + 1}.</span>{step}
                 </div>
               ))}
             </div>
@@ -113,13 +152,63 @@ function FindingRow({ finding, domain, vertical }: { finding: any; domain: strin
   )
 }
 
-function TechnicalAuditTab({ vertical }: { vertical: string }) {
+// --- Main Page ----------------------------------------------------------------
+
+export default function GeoAuditV2() {
+  const router = useRouter()
+  const { user, loading: authLoading, signOut } = useAuth()
+  const [showSetup, setShowSetup] = useState(false)
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([])
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("Technical Audit")
+
+  // Technical Audit state
   const [url, setUrl] = useState("")
+  const [vertical, setVertical] = useState("SaaS")
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<any>(null)
   const [error, setError] = useState("")
 
-  const domain = report?.url?.replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0] || ""
+  // Content Analysis state
+  const [caUrl, setCaUrl] = useState("")
+  const [caLoading, setCaLoading] = useState(false)
+  const [caAnalysis, setCaAnalysis] = useState<any>(null)
+  const [caError, setCaError] = useState("")
+  const [caBlocked, setCaBlocked] = useState(false)
+  const [caPasted, setCaPasted] = useState("")
+
+  const runContentAnalysis = async (usePasted = false) => {
+    if (!caUrl.trim()) return
+    setCaLoading(true); setCaError(""); setCaAnalysis(null); setCaBlocked(false)
+    const fullUrl = caUrl.startsWith("http") ? caUrl : "https://" + caUrl
+    const domain = fullUrl.replace(/^https?:\/\//, "").split("/")[0]
+    try {
+      const res = await fetch("/api/content-page-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: fullUrl, domain, vertical, pastedContent: usePasted ? caPasted : undefined }),
+      })
+      const data = await res.json()
+      if (data.analysis) setCaAnalysis(data.analysis)
+      else if (data.blocked) { setCaBlocked(true); setCaError("") }
+      else setCaError(data.error || "Analysis failed")
+    } catch { setCaError("Could not connect to analysis service") }
+    setCaLoading(false)
+  }
+
+  useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
+
+  useEffect(() => {
+    if (!user) return
+    getCompanies(user.id).then(data => {
+      setCompanies(data)
+      if (data.length > 0) {
+        const saved = localStorage.getItem('selectedCompanyId')
+        const valid = saved && data.find(c => c.id === saved)
+        setSelectedCompanyId(valid ? saved : data[0].id)
+      }
+    })
+  }, [user])
 
   const runAudit = async () => {
     if (!url.trim()) return
@@ -127,431 +216,632 @@ function TechnicalAuditTab({ vertical }: { vertical: string }) {
     try {
       const res = await fetch("/api/geo-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: url.trim(), vertical }) })
       const data = await res.json()
-      if (data.report) setReport(data.report)
-      else setError(data.error || "Audit failed")
+      if (data.report) {
+        setReport(data.report)
+        if (user) await saveAnalysisResult(user.id, url.trim(), data.report)
+      } else setError(data.error || "Audit failed")
     } catch { setError("Failed to connect to audit service") }
     setLoading(false)
   }
 
-  const allFindings = report ? [...report.critical_findings, ...report.high_findings, ...(report.all_findings || []).filter((f: any) => f.severity === "Medium")] : []
+  if (authLoading || !user) return null
+
+  const domain = report?.url?.replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0] || ""
+  const allFindings = report ? [...(report.critical_findings || []), ...(report.high_findings || []), ...(report.all_findings || []).filter((f: any) => f.severity === "Medium")] : []
   const ss = report ? getScoreStatus(report.composite_score) : null
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex gap-3">
-          <div className="flex-1 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-            <input type="text" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && runAudit()} placeholder="Enter website URL (e.g. appian.com)" className="flex-1 bg-transparent text-sm text-card-foreground placeholder:text-muted-foreground outline-none" />
-            {url && <button onClick={() => setUrl("")}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>}
-          </div>
-          <button onClick={runAudit} disabled={loading || !url.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm">
-            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Run Audit <ArrowRight className="h-4 w-4" /></>}
-          </button>
-        </div>
-
-      </div>
-
-      {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2"><AlertCircle className="h-4 w-4 flex-shrink-0" />{error}</div>}
-
-      {loading && (
-        <div className="flex flex-col items-center justify-center gap-4 py-20">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-sm font-semibold text-card-foreground">Running GEO audit...</p>
-          <p className="text-xs text-muted-foreground">5 AI agents analysing your site · ~30 seconds</p>
-        </div>
+    <div className="flex h-screen overflow-hidden antialiased text-slate-900" style={{ background: "#f8fafc" }}>
+      {showSetup && (
+        <SetupWizard
+          onComplete={() => { setShowSetup(false); if (user) getCompanies(user.id).then(setCompanies) }}
+          onSaveExit={() => setShowSetup(false)}
+        />
       )}
 
-      {report && !loading && ss && (
-        <div className="flex flex-col gap-5">
-          <div className={cn("rounded-2xl border-2 p-6 shadow-md", ss.bg, ss.border)}>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{report.url}</p>
-                <div className="flex items-end gap-3">
-                  <span className="text-7xl font-black tabular-nums text-card-foreground leading-none">{report.composite_score}</span>
-                  <div className="mb-2">
-                    <span className={cn("text-lg font-bold px-2 py-0.5 rounded-lg", ss.color, ss.bg)}>{ss.label}</span>
-                    <p className="text-xs text-muted-foreground mt-2">GEO Score · out of 100</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2.5 min-w-64 bg-white/50 rounded-xl p-4 border border-white/70">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Dimension Scores</p>
-                {Object.entries(report.dimension_scores || {}).map(([dim, data]: [string, any]) => (
-                  <ScoreBar key={dim} score={data.score} dimension={dim} />
-                ))}
-              </div>
+      {/* -- Sidebar -- */}
+      <aside className="w-72 flex flex-col fixed inset-y-0 left-0 z-50" style={{ ...glassSidebar, color: "#0b1c30" }}>
+        <div className="p-5 border-b border-[#c4c5d7]/30">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-white text-sm" style={{ backgroundColor: BRAND }}>G</div>
+            <span className="text-lg font-bold tracking-tight">Geo Intel</span>
+          </div>
+          <div className="pt-4 border-t border-[#c4c5d7]/40 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+              {user?.email?.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-bold text-[#0b1c30] truncate">
+                {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0]}
+              </p>
+              <p className="text-xs text-[#434654] truncate">{user?.email}</p>
             </div>
           </div>
-          {/* Crawl status strip */}
-          {report.raw_data && (
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-                <p className="text-xs font-semibold text-card-foreground">AI Crawler Access</p>
-                <span className="text-xs text-muted-foreground">Critical for AI citation</span>
+        </div>
+        <nav className="flex-1 overflow-y-auto p-3 space-y-6">
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2">
+              <h3 className="text-xs font-bold text-[#434654] uppercase tracking-widest">Companies</h3>
+              <button onClick={() => setShowSetup(true)} className="text-[#434654] hover:text-[#0b1c30] transition-colors">
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+            <ul className="space-y-0.5">
+              {companies.map((c, i) => {
+                const isActive = c.id === selectedCompanyId
+                const avatarColors = ["#003ec7","#7c3aed","#059669","#ea580c","#0891b2","#db2777"]
+                const avatarBg = avatarColors[i % avatarColors.length]
+                return (
+                  <li key={c.id}>
+                    <button onClick={() => { setSelectedCompanyId(c.id); localStorage.setItem('selectedCompanyId', c.id); router.push('/dashboard') }}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all text-left"
+                      style={isActive ? { backgroundColor: BRAND_ACTIVE, color: "white" } : { color: "#434654" }}>
+                      <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                        style={{ backgroundColor: isActive ? "rgba(255,255,255,0.25)" : avatarBg }}>
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="truncate">{c.name}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+          <div>
+            <h3 className="px-2 text-xs font-bold text-[#434654] uppercase tracking-widest mb-2">Tools</h3>
+            <ul className="space-y-0.5">
+              <li>
+                <a href="/dashboard" className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors text-[#434654] hover:text-[#0b1c30] hover:bg-[#002b92]/5">
+                  <Eye className="w-4 h-4" /> AI Visibility
+                </a>
+              </li>
+              <li>
+                <a href="/dashboard/geo-audit" className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-bold transition-colors" style={{ backgroundColor: "rgba(0,43,146,0.1)", color: BRAND }}>
+                  <ClipboardList className="w-4 h-4" /> Geo Audit
+                </a>
+              </li>
+              <li>
+                <a href="#" className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors text-[#434654] hover:text-[#0b1c30] hover:bg-[#002b92]/5">
+                  <BarChart2 className="w-4 h-4" /> Citations
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div className="p-3 border-t border-[#c4c5d7]/30">
+          <button onClick={() => signOut()} className="flex items-center gap-2 px-2 w-full text-sm font-semibold text-[#434654] hover:text-[#0b1c30] transition-colors">
+            <LogOut className="h-3.5 w-3.5" /> Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* -- Main -- */}
+      <main className="flex-1 ml-72 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Header */}
+        <header className="sticky top-0 z-40 flex-shrink-0" style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderBottom: "1px solid rgba(226,232,240,0.7)" }}>
+          <div className="px-5 flex items-center justify-between h-16 pt-2">
+            <div>
+              <h2 className="font-bold text-slate-900 text-2xl leading-none">GEO Audit</h2>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Analyse your AI search readiness</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 px-5">
+            {["Technical Audit", "Content Analysis"].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} className="px-1 text-sm font-medium py-2.5 transition-colors"
+                style={activeTab === tab ? { fontWeight: 700, color: BRAND, borderBottom: `2px solid ${BRAND}` } : { color: "#64748b" }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+          {/* Technical Audit Tab */}
+          {activeTab === "Technical Audit" && <>
+
+          {/* URL Input — prominent search bar */}
+          <section className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Enter a URL to audit</p>
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && runAudit()}
+                  placeholder="e.g. noveum.ai/product or appian.com/platform"
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white transition-all placeholder:text-slate-400"
+                  style={{ boxShadow: url ? `0 0 0 2px ${BRAND}30` : undefined, borderColor: url ? BRAND : undefined }}
+                />
+                {url && (
+                  <button onClick={() => setUrl("")} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
-              <div className="grid grid-cols-5 divide-x divide-border">
-                {[
-                  { label: "GPTBot", status: report.raw_data?.ai_bot_status?.GPTBot },
-                  { label: "PerplexityBot", status: report.raw_data?.ai_bot_status?.PerplexityBot },
-                  { label: "ClaudeBot", status: report.raw_data?.ai_bot_status?.ClaudeBot },
-                  { label: "Google-Extended", status: report.raw_data?.ai_bot_status?.["Google-Extended"] },
-                  { label: "LLMs.txt", status: report.raw_data?.has_llms_txt ? "found" : "missing" },
-                ].map(item => {
-                  const isGood = item.status === "allowed" || item.status === "found"
-                  const isBad = item.status === "blocked" || item.status === "missing"
-                  return (
-                    <div key={item.label} className="px-4 py-3 flex flex-col items-center gap-1.5">
-                      <div className={cn("w-2 h-2 rounded-full", isGood ? "bg-emerald-500" : isBad ? "bg-red-500" : "bg-amber-400")} />
-                      <p className="text-xs font-medium text-card-foreground text-center">{item.label}</p>
-                      <p className={cn("text-xs font-semibold capitalize", isGood ? "text-emerald-600" : isBad ? "text-red-600" : "text-amber-600")}>
-                        {item.status || "unknown"}
+              <button onClick={runAudit} disabled={loading || !url.trim()}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-all shadow-sm hover:opacity-90"
+                style={{ backgroundColor: BRAND }}>
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-400 px-1">Works best on specific content pages, not section homepages like /blog or /resources</p>
+          </section>
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
+            </div>
+          )}
+
+          {/* Loading — step progress */}
+          {loading && (
+            <div className="rounded-2xl bg-white border border-slate-200 p-8 flex flex-col items-center gap-5 shadow-sm">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full border-4 border-slate-100 flex items-center justify-center">
+                  <Loader2 className="h-7 w-7 animate-spin" style={{ color: BRAND }} />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-slate-800">Analysing {url}</p>
+                <p className="text-xs text-slate-400 mt-1 mb-5">5 AI agents are reviewing your page</p>
+                <div className="flex flex-col gap-2 text-left max-w-xs mx-auto">
+                  {["Fetching page & robots.txt", "Extracting schema markup", "Scoring content depth", "Checking authority signals", "Generating fixes"].map((step, i) => (
+                    <div key={step} className="flex items-center gap-2.5 text-xs text-slate-500">
+                      <Loader2 className="h-3 w-3 animate-spin flex-shrink-0" style={{ color: BRAND }} />
+                      {step}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Intro - only show when no report and not loading */}
+          {!report && !loading && (
+            <>
+              {/* Radar intro - speech bubble style */}
+              <section className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 60%, #ede9fe 100%)', border: '1px solid rgba(99,102,241,0.12)' }}>
+                <div className="p-6 flex items-start gap-6">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                    <svg width="72" height="72" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
+                      <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke={BRAND} strokeWidth="1.5"/>
+                      <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
+                      <circle cx="21" cy="33" r="2" fill={BRAND}/><circle cx="35" cy="33" r="2" fill={BRAND}/>
+                      <path d="M22 41 Q28 46 34 41" fill="none" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
+                      <line x1="28" y1="22" x2="28" y2="12" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
+                      <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke={BRAND} strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
+                      <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
+                      <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
+                    </svg>
+                    <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
+                    <span className="text-xs font-bold" style={{ color: BRAND }}>Radar</span>
+                  </div>
+
+                  {/* Speech bubble */}
+                  <div className="flex-1">
+                    <div className="bg-white/80 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm border border-white/60 mb-4">
+                      <p className="text-sm font-bold text-slate-900 mb-1">Hi! I am Radar, your GEO analyst.</p>
+                      <p className="text-sm text-slate-500 leading-relaxed">
+                        Enter any website URL and I will audit it across 5 GEO dimensions. You will get a score, specific findings, and copy-paste fixes ready to implement.
                       </p>
                     </div>
-                  )
-                })}
+                    {/* Stats row */}
+                    <div className="flex items-center gap-8 px-1">
+                      {[
+                        { value: "0-100", label: "GEO Score", color: BRAND },
+                        { value: "5", label: "Dimensions", color: "#7c3aed" },
+                        { value: "Same day", label: "Fixes ready", color: "#059669" },
+                      ].map((stat, i) => (
+                        <div key={stat.label} className="flex items-center gap-3">
+                          {i > 0 && <div className="w-px h-6 bg-indigo-200" />}
+                          <div>
+                            <p className="text-base font-extrabold" style={{ color: stat.color }}>{stat.value}</p>
+                            <p className="text-xs text-slate-400">{stat.label}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Feature cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  {
+                    title: "Real data",
+                    icon: "🔍",
+                    num: "01",
+                    color: BRAND,
+                    bg: "#eff6ff",
+                    border: "#bfdbfe",
+                    detail: "We fetch your site, check robots.txt, extract schema and analyse content structure.",
+                  },
+                  {
+                    title: "5 dimensions scored",
+                    icon: "📊",
+                    num: "02",
+                    color: "#ea580c",
+                    bg: "#fff7ed",
+                    border: "#fed7aa",
+                    detail: "Crawlability, content depth, schema markup, authority signals and competitive positioning.",
+                  },
+                  {
+                    title: "Fixes ready to ship",
+                    icon: "⚡",
+                    num: "03",
+                    color: "#059669",
+                    bg: "#ecfdf5",
+                    border: "#a7f3d0",
+                    detail: "Every finding has a copy-paste fix — schema JSON-LD, robots.txt snippets, content rewrites.",
+                  },
+                ].map(card => (
+                  <div key={card.title} className="rounded-xl p-5 flex flex-col gap-3 hover:shadow-md transition-all cursor-default"
+                    style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">{card.icon}</span>
+                      <span className="text-xs font-bold opacity-30" style={{ color: card.color }}>{card.num}</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-1">{card.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{card.detail}</p>
+                  </div>
+                ))}
               </div>
-            </div>
+            </>
           )}
 
-          {allFindings.length > 0 && (
+          {/* Report */}
+          {report && !loading && (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-sm font-semibold text-card-foreground">Findings & Fixes</h2>
-                <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">{allFindings.length} issues found</span>
+
+              {/* Hero Score Grid */}
+              <div className="grid grid-cols-12 gap-3">
+
+                {/* GEO Score Card */}
+                <div className="col-span-4">
+                  <div className="rounded-xl h-full overflow-hidden" style={glassCard}>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest truncate">{report.url || domain}</h3>
+                    </div>
+                    <div className="p-5 flex items-center gap-4">
+                      <span className="text-6xl font-extrabold text-slate-900 leading-none tabular-nums">{report.composite_score}</span>
+                      <div>
+                        <p className="text-lg font-bold uppercase tracking-tight leading-tight" style={{ color: ss!.color }}>{ss!.label}</p>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">GEO Score / 100</p>
+                        <div className="flex gap-3 mt-3">
+                          <div className="text-center">
+                            <p className="text-lg font-extrabold text-red-500">{report.critical_findings?.length || 0}</p>
+                            <p className="text-xs text-slate-400">Critical</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-extrabold text-orange-500">{report.high_findings?.length || 0}</p>
+                            <p className="text-xs text-slate-400">High</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dimension Scores Card */}
+                <div className="col-span-8">
+                  <div className="rounded-xl h-full overflow-hidden" style={glassCard}>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Dimension Scores</h3>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {Object.entries(report.dimension_scores || {}).map(([dim, data]: [string, any]) => {
+                        const s = typeof data === 'object' ? (data.score ?? 0) : (data as number)
+                        const barColor = s >= 70 ? "#10b981" : s >= 40 ? "#f97316" : "#ef4444"
+                        const textColor = s >= 70 ? "#059669" : s >= 40 ? "#ea580c" : "#dc2626"
+                        return (
+                          <div key={dim} className="grid grid-cols-12 items-center gap-3">
+                            <span className="col-span-2 text-sm font-semibold text-slate-600 truncate">{DIMENSION_LABELS[dim]}</span>
+                            <div className="col-span-9 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${s}%`, backgroundColor: barColor }} />
+                            </div>
+                            <span className="col-span-1 text-xs font-bold text-right tabular-nums" style={{ color: textColor }}>{s}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
-              {allFindings.map((f: any, i: number) => <FindingRow key={i} finding={f} domain={domain} vertical={vertical} />)}
+
+              {/* Findings & Fixes */}
+              {allFindings.length > 0 && (
+                <section className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Findings & Fixes</h2>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{allFindings.length} issues found</span>
+                  </div>
+                  <div className="space-y-2">
+                    {allFindings.map((f: any, i: number) => (
+                      <FindingRow key={i} finding={f} domain={domain} vertical={vertical} />
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {!report && !loading && !error && (
-        <div className="flex flex-col gap-4">
-          <div className="rounded-xl border border-border bg-card px-8 py-6 flex items-center gap-8">
-            <div className="flex-shrink-0">
-              <svg width="72" height="72" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
-                <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
-                <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
-                <circle cx="21" cy="33" r="2" fill="#3B5BDB"/><circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
-                <path d="M22 41 Q28 46 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="28" y1="22" x2="28" y2="12" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke="#3B5BDB" strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
-                <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                
-              </svg>
-              <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
-            </div>
-            <div className="flex-1">
-              <div className="bg-primary/5 border border-primary/20 rounded-xl rounded-tl-none px-4 py-3 mb-3">
-                <p className="text-sm font-semibold text-card-foreground mb-0.5">Hi! I am Radar, your GEO analyst.</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">Enter any website domain and I will audit it across 5 GEO dimensions. You will get a score, specific findings, and copy-paste fixes ready to implement.</p>
-              </div>
-              <div className="flex items-center gap-6">
-                {[
-                  { label: "Score 0-100", sub: "With status label" },
-                  { label: "5 dimensions", sub: "Full breakdown" },
-                  { label: "Copy-paste fixes", sub: "Ready same day" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    {i > 0 && <div className="w-px h-6 bg-border" />}
+          </>}
+
+          {/* Content Analysis Tab */}
+          {activeTab === "Content Analysis" && (
+            <div className="space-y-4">
+
+              {/* URL Input */}
+              <section className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Paste a content page URL</p>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </div>
+                    <input
+                      value={caUrl}
+                      onChange={e => setCaUrl(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && runContentAnalysis()}
+                      placeholder="e.g. noveum.ai/blog/agent-evaluation or appian.com/case-study/..."
+                      className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white transition-all placeholder:text-slate-400"
+                      style={{ boxShadow: caUrl ? `0 0 0 2px ${BRAND}30` : undefined, borderColor: caUrl ? BRAND : undefined }}
+                    />
+                    {caUrl && (
+                      <button onClick={() => { setCaUrl(""); setCaAnalysis(null); setCaError("") }} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <button onClick={() => runContentAnalysis()} disabled={caLoading || !caUrl.trim()}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-all shadow-sm hover:opacity-90"
+                    style={{ backgroundColor: BRAND }}>
+                    {caLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-slate-400 px-1">Works best on specific content pages — blog posts, case studies, whitepapers, FAQs</p>
+              </section>
+
+              {/* Error */}
+              {caError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />{caError}
+                </div>
+              )}
+
+              {/* Blocked — paste fallback */}
+              {caBlocked && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-semibold text-card-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.sub}</p>
+                      <p className="text-sm font-bold text-amber-800">This site blocks automated access</p>
+                      <p className="text-xs text-amber-700 mt-0.5">Open the page in your browser, select all text (Ctrl+A), copy it, and paste below.</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Real data", desc: "We fetch your site, check robots.txt, extract schema and analyse content structure.", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
-              { label: "5 dimensions scored", desc: "Crawlability, content depth, schema markup, authority signals and competitive positioning.", color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-200" },
-              { label: "Fixes ready to ship", desc: "Every finding has a copy-paste fix — schema JSON-LD, robots.txt snippets, content rewrites.", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
-            ].map(item => (
-              <div key={item.label} className={`rounded-xl border p-4 ${item.bg} ${item.border}`}>
-                <p className={`text-sm font-semibold mb-1 ${item.color}`}>{item.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ContentAnalysisTab({ vertical }: { vertical: string }) {
-  const [url, setUrl] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [analysis, setAnalysis] = useState<any>(null)
-  const [error, setError] = useState("")
-  const [blocked, setBlocked] = useState(false)
-  const [pastedContent, setPastedContent] = useState("")
-
-  const run = async (usePasted = false) => {
-    if (!url.trim()) return
-    setLoading(true); setError(""); setAnalysis(null); setBlocked(false)
-    const fullUrl = url.startsWith("http") ? url : "https://" + url
-    const domain = fullUrl.replace(/^https?:\/\//, "").split("/")[0]
-    try {
-      const res = await fetch("/api/content-page-analysis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          url: fullUrl, domain, vertical,
-          pastedContent: usePasted ? pastedContent : undefined
-        }),
-      })
-      const data = await res.json()
-      if (data.analysis) setAnalysis(data.analysis)
-      else if (data.blocked) { setBlocked(true); setError("") }
-      else setError(data.error || "Analysis failed")
-    } catch { setError("Could not connect to analysis service") }
-    setLoading(false)
-  }
-
-  const ss = analysis ? getScoreStatus(analysis.geo_score) : null
-
-  return (
-    <div className="flex flex-col gap-5">
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex gap-3">
-          <div className="flex-1 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-            <input
-              type="text" value={url} onChange={e => setUrl(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && run()}
-              placeholder="Paste a page URL — blog post, case study, whitepaper, FAQ..."
-              className="flex-1 bg-transparent text-sm text-card-foreground placeholder:text-muted-foreground outline-none"
-            />
-            {url && <button onClick={() => { setUrl(""); setAnalysis(null); setError("") }}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>}
-          </div>
-          <button onClick={run} disabled={loading || !url.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm">
-            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
-          </button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">Works on specific content pages — not section homepages like /blog or /resources</p>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
-        </div>
-      )}
-
-      {blocked && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">This site blocks automated access</p>
-              <p className="text-xs text-amber-700 mt-0.5">Open the page in your browser, select all text (Ctrl+A / Cmd+A), copy it, and paste it below. We will analyse it directly.</p>
-            </div>
-          </div>
-          <textarea
-            value={pastedContent}
-            onChange={e => setPastedContent(e.target.value)}
-            placeholder="Paste the page content here..."
-            rows={6}
-            className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-xs text-card-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-amber-300 resize-none font-mono"
-          />
-          <button
-            onClick={() => run(true)}
-            disabled={loading || pastedContent.trim().length < 100}
-            className="mt-3 flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analysing...</> : <>Analyse pasted content <ArrowRight className="h-3.5 w-3.5" /></>}
-          </button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="rounded-xl border border-border bg-card p-8 flex items-center gap-6">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <div>
-            <p className="text-sm font-semibold text-card-foreground">Fetching and analysing page...</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Reading content, checking schema, assessing AI citation readiness</p>
-          </div>
-        </div>
-      )}
-
-      {analysis && ss && !loading && (
-        <div className="flex flex-col gap-4">
-          <div className={cn("rounded-2xl border-2 p-5 shadow-sm", ss.bg, ss.border)}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{analysis.page_title || url}</p>
-            <div className="flex items-end gap-3 mb-3">
-              <span className="text-6xl font-black tabular-nums text-card-foreground leading-none">{analysis.geo_score}</span>
-              <span className={cn("text-lg font-bold px-2 py-0.5 rounded-lg mb-1", ss.color, ss.bg)}>{ss.label}</span>
-              <span className="text-xs text-muted-foreground mb-2">{analysis.content_type}</span>
-            </div>
-            <p className="text-sm text-card-foreground leading-relaxed">{analysis.summary}</p>
-          </div>
-
-          {analysis.what_works?.length > 0 && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-2">What works</p>
-              {analysis.what_works.map((w: string, i: number) => (
-                <p key={i} className="text-xs text-emerald-700">• {w}</p>
-              ))}
-            </div>
-          )}
-
-          {analysis.critical_gaps?.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Critical Gaps and Fixes</p>
-              {analysis.critical_gaps.map((gap: any, i: number) => (
-                <div key={i} className="rounded-xl border border-red-200 bg-red-50 border-l-4 border-l-red-500 p-4">
-                  <p className="text-xs font-semibold text-red-800 mb-1">{gap.gap}</p>
-                  <p className="text-xs text-red-700 mb-2"><span className="font-semibold">Fix:</span> {gap.fix}</p>
-                  {gap.example && (
-                    <div className="bg-white/70 rounded-lg p-2.5 border border-red-100 mt-2">
-                      <p className="text-xs text-card-foreground italic">"{gap.example}"</p>
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1.5">Impact: {gap.impact}</p>
+                  <textarea value={caPasted} onChange={e => setCaPasted(e.target.value)}
+                    placeholder="Paste the page content here..." rows={6}
+                    className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-xs placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-amber-300 resize-none font-mono" />
+                  <button onClick={() => runContentAnalysis(true)} disabled={caLoading || caPasted.trim().length < 100}
+                    className="mt-3 flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50 transition-colors bg-amber-600 hover:bg-amber-700">
+                    {caLoading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analysing...</> : <>Analyse pasted content <ArrowRight className="h-3.5 w-3.5" /></>}
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-
-
-          {analysis.rewrite_suggestions?.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Rewrite Suggestions</p>
-              {analysis.rewrite_suggestions.map((r: any, i: number) => (
-                <div key={i} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-xs font-semibold text-amber-800 mb-2">{r.element}</p>
-                  {r.current && <p className="text-xs text-card-foreground bg-white/60 rounded p-1.5 border border-amber-100 italic mb-2">Current: "{r.current}"</p>}
-                  <p className="text-xs text-amber-900 bg-white/60 rounded p-1.5 border border-amber-100 font-medium">Suggested: "{r.suggested}"</p>
-                  <p className="text-xs text-muted-foreground mt-1.5">Why: {r.why}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {analysis.quick_wins?.length > 0 && (
-            <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-              <p className="text-xs font-semibold text-teal-800 uppercase tracking-wider mb-3">Quick wins for this page</p>
-              {analysis.quick_wins.map((w: any, i: number) => (
-                <div key={i} className="flex items-start gap-2 mb-2">
-                  <span className="text-teal-500 font-bold text-xs flex-shrink-0">{i + 1}.</span>
-                  <div>
-                    <p className="text-xs font-semibold text-teal-800">{w.action}</p>
-                    <p className="text-xs text-teal-600">{w.impact} · {w.effort}</p>
+              {/* Loading */}
+              {caLoading && (
+                <div className="rounded-2xl bg-white border border-slate-200 p-8 flex flex-col items-center gap-5 shadow-sm">
+                  <Loader2 className="h-8 w-8 animate-spin" style={{ color: BRAND }} />
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-slate-800">Analysing {caUrl}</p>
+                    <p className="text-xs text-slate-400 mt-1">Reading content, checking schema, assessing AI citation readiness...</p>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Intro */}
+              {!caAnalysis && !caLoading && !caBlocked && (
+                <>
+                  {/* Radar card */}
+                  <section className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 60%, #ede9fe 100%)', border: '1px solid rgba(99,102,241,0.12)' }}>
+                    <div className="p-6 flex items-start gap-6">
+                      <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                        <svg width="72" height="72" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
+                          <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke={BRAND} strokeWidth="1.5"/>
+                          <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
+                          <circle cx="21" cy="33" r="2" fill={BRAND}/><circle cx="35" cy="33" r="2" fill={BRAND}/>
+                          <path d="M22 41 Q28 46 34 41" fill="none" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
+                          <line x1="28" y1="22" x2="28" y2="12" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
+                          <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke={BRAND} strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
+                          <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
+                          <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
+                        </svg>
+                        <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
+                        <span className="text-xs font-bold" style={{ color: BRAND }}>Radar</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-white/80 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm border border-white/60 mb-4">
+                          <p className="text-sm font-bold text-slate-900 mb-1">Hi! I am Radar, your GEO analyst.</p>
+                          <p className="text-sm text-slate-500 leading-relaxed">
+                            Paste any content page URL and I will tell you exactly why AI engines are not citing it — and how to fix it. Works on blog posts, case studies, whitepapers, FAQs and comparison pages.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-8 px-1">
+                          {[
+                            { value: "0-100", label: "GEO Score", color: BRAND },
+                            { value: "Specific", label: "Gaps found", color: "#7c3aed" },
+                            { value: "Same day", label: "Fixes ready", color: "#059669" },
+                          ].map((stat, i) => (
+                            <div key={stat.label} className="flex items-center gap-3">
+                              {i > 0 && <div className="w-px h-6 bg-indigo-200" />}
+                              <div>
+                                <p className="text-base font-extrabold" style={{ color: stat.color }}>{stat.value}</p>
+                                <p className="text-xs text-slate-400">{stat.label}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Feature cards — 4 columns */}
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { title: "Content type", icon: "📄", num: "01", color: BRAND, bg: "#eff6ff", border: "#bfdbfe", detail: "Blog, case study, whitepaper, FAQ — each scored differently" },
+                      { title: "GEO gaps", icon: "🔎", num: "02", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa", detail: "Missing schema, weak entity definition, no AI-citable stats" },
+                      { title: "Rewrite briefs", icon: "✍️", num: "03", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe", detail: "Exact sentences to add or change — specific to the page" },
+                      { title: "Schema code", icon: "⚡", num: "04", color: "#059669", bg: "#ecfdf5", border: "#a7f3d0", detail: "Copy-paste JSON-LD ready to implement same day" },
+                    ].map(card => (
+                      <div key={card.title} className="rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-all"
+                        style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl">{card.icon}</span>
+                          <span className="text-xs font-bold opacity-30" style={{ color: card.color }}>{card.num}</span>
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-800">{card.title}</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed">{card.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Results */}
+              {caAnalysis && !caLoading && (() => {
+                const ss = getScoreStatus(caAnalysis.geo_score)
+                return (
+                  <div className="flex flex-col gap-3">
+
+                    {/* Score + summary — glass card matching Technical Audit style */}
+                    <div className="rounded-xl overflow-hidden" style={glassCard}>
+                      <div className="px-4 py-2.5 border-b border-slate-200/60" style={{ background: "rgba(255,255,255,0.5)" }}>
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest truncate max-w-lg">{caAnalysis.page_title || caUrl}</h3>
+                          {caAnalysis.content_type && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-slate-500 border border-slate-200 ml-2 flex-shrink-0">{caAnalysis.content_type}</span>}
+                        </div>
+                      </div>
+                      <div className="p-5 flex items-start gap-5">
+                        <div className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl border-2 flex-shrink-0"
+                          style={{ borderColor: ss.border, backgroundColor: ss.bg }}>
+                          <span className="text-3xl font-extrabold tabular-nums" style={{ color: ss.color }}>{caAnalysis.geo_score}</span>
+                          <span className="text-xs font-bold uppercase tracking-wider mt-0.5" style={{ color: ss.color }}>{ss.label}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Summary</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">{caAnalysis.summary}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* What works */}
+                    {caAnalysis.what_works?.length > 0 && (
+                      <div className="rounded-xl overflow-hidden" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#10b981", borderLeftWidth: "4px" }}>
+                        <div className="px-4 py-2.5 border-b border-slate-200/30" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest">What works</h3>
+                        </div>
+                        <div className="p-4 space-y-2">
+                          {caAnalysis.what_works.map((w: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <span className="text-emerald-500 font-bold text-sm flex-shrink-0">+</span>
+                              <p className="text-sm text-slate-700">{w}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Critical Gaps */}
+                    {caAnalysis.critical_gaps?.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between px-1">
+                          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Critical Gaps & Fixes</h2>
+                          <span className="text-xs font-bold text-slate-400">{caAnalysis.critical_gaps.length} gaps found</span>
+                        </div>
+                        {caAnalysis.critical_gaps.map((gap: any, i: number) => (
+                          <div key={i} className="rounded-xl overflow-hidden border-l-4" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#ef4444", borderLeftWidth: "4px" }}>
+                            <div className="px-4 py-2.5 border-b border-slate-200/30 flex items-center gap-2" style={{ background: "rgba(255,255,255,0.5)" }}>
+                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">Gap</span>
+                              <p className="text-sm font-bold text-slate-900">{gap.gap}</p>
+                            </div>
+                            <div className="px-4 py-3 space-y-2">
+                              <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Fix</p>
+                                <p className="text-sm text-slate-700">{gap.fix}</p>
+                              </div>
+                              {gap.example && (
+                                <p className="text-xs text-slate-500 italic bg-white/70 rounded-lg px-3 py-2">"{gap.example}"</p>
+                              )}
+                              {gap.impact && <p className="text-xs text-slate-400">Impact: {gap.impact}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Rewrite Suggestions */}
+                    {caAnalysis.rewrite_suggestions?.length > 0 && (
+                      <div className="space-y-2">
+                        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider px-1">Rewrite Suggestions</h2>
+                        {caAnalysis.rewrite_suggestions.map((r: any, i: number) => (
+                          <div key={i} className="rounded-xl overflow-hidden border-l-4" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#f59e0b", borderLeftWidth: "4px" }}>
+                            <div className="px-4 py-2.5 border-b border-slate-200/30" style={{ background: "rgba(255,255,255,0.5)" }}>
+                              <p className="text-sm font-bold text-slate-900">{r.element}</p>
+                            </div>
+                            <div className="px-4 py-3 space-y-2">
+                              {r.current && <p className="text-xs text-slate-500 italic bg-white/60 rounded-lg px-3 py-2 border border-slate-200/50">Before: "{r.current}"</p>}
+                              <p className="text-xs text-slate-800 font-semibold bg-amber-50/60 rounded-lg px-3 py-2 border border-amber-200/50">After: "{r.suggested}"</p>
+                              {r.why && <p className="text-xs text-slate-400">Why: {r.why}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Quick wins */}
+                    {caAnalysis.quick_wins?.length > 0 && (
+                      <div className="rounded-xl overflow-hidden" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#0891b2", borderLeftWidth: "4px" }}>
+                        <div className="px-4 py-2.5 border-b border-slate-200/30" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-xs font-bold text-cyan-700 uppercase tracking-widest">Quick Wins</h3>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          {caAnalysis.quick_wins.map((w: any, i: number) => (
+                            <div key={i} className="flex items-start gap-3">
+                              <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: BRAND }}>{i + 1}</span>
+                              <div>
+                                <p className="text-sm font-semibold text-slate-800">{w.action}</p>
+                                <p className="text-xs text-slate-400 mt-0.5">{w.impact} · {w.effort}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <button onClick={() => { setCaUrl(""); setCaAnalysis(null) }}
+                      className="text-sm font-semibold hover:underline text-center pt-1" style={{ color: BRAND }}>
+                      Analyse a different URL
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
           )}
-
-          <div className="text-center pt-2">
-            <button onClick={() => { setUrl(""); setAnalysis(null) }} className="text-xs text-primary font-semibold hover:underline">
-              Analyse a different URL
-            </button>
-          </div>
         </div>
-      )}
 
-      {!analysis && !loading && !error && (
-        <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-border bg-card px-8 py-6 flex items-center gap-8">
-            <div className="flex-shrink-0">
-              <svg width="80" height="80" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
-                <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
-                <circle cx="21" cy="33" r="4" fill="white"/>
-                <circle cx="35" cy="33" r="4" fill="white"/>
-                <circle cx="21" cy="33" r="2" fill="#3B5BDB"/>
-                <circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
-                <path d="M22 41 Q28 46 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="28" y1="22" x2="28" y2="12" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-                <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke="#3B5BDB" strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
-                <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-                
-              </svg>
-              <style>{`@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-            </div>
-            <div className="flex-1">
-              <div className="bg-primary/5 border border-primary/20 rounded-xl rounded-tl-none px-4 py-3 mb-3">
-                <p className="text-sm font-semibold text-card-foreground mb-0.5">Hi! I am Radar, your GEO analyst.</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">Paste any content page URL above and I will tell you exactly why AI engines are not citing it — and how to fix it. Works on blog posts, case studies, whitepapers, FAQs and comparison pages.</p>
-              </div>
-              <div className="flex items-center gap-6">
-                {[
-                  { label: "Score 0-100", sub: "GEO readiness" },
-                  { label: "Specific gaps", sub: "Not generic tips" },
-                  { label: "Copy-paste fixes", sub: "Schema and rewrites" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    {i > 0 && <div className="w-px h-6 bg-border" />}
-                    <div>
-                      <p className="text-xs font-semibold text-card-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: "Content type", desc: "Blog, case study, whitepaper, FAQ — each scored differently", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", n: "01" },
-              { label: "GEO gaps", desc: "Missing schema, weak entity definition, no AI-citable stats", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", n: "02" },
-              { label: "Rewrite briefs", desc: "Exact sentences to add or change — specific to the page", color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-200", n: "03" },
-              { label: "Schema code", desc: "Copy-paste JSON-LD ready to implement same day", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", n: "04" },
-            ].map(item => (
-              <div key={item.label} className={cn("rounded-xl border p-4", item.bg, item.border)}>
-                <span className={cn("text-xs font-bold", item.color)}>{item.n}</span>
-                <p className={cn("text-sm font-semibold mt-2 mb-1", item.color)}>{item.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-
-export default function GeoAuditPage() {
-  const { user } = useAuth()
-  const [tab, setTab] = useState<"audit" | "content">("audit")
-  const [vertical] = useState("saas")
-
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <main className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-shrink-0 border-b border-border bg-card px-6 py-4">
-          <h1 className="text-base font-semibold text-card-foreground">GEO Audit</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Analyse your AI search readiness</p>
-        </div>
-        <div className="flex-shrink-0 border-b border-border bg-card px-6">
-          <div className="flex gap-0">
-            {[{ id: "audit", label: "Technical Audit", icon: BarChart2 }, { id: "content", label: "Content Analysis", icon: FileText }].map(t => {
-              const Icon = t.icon
-              return (
-                <button key={t.id} onClick={() => setTab(t.id as any)} className={cn("flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors", tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-card-foreground")}>
-                  <Icon className="h-4 w-4" />{t.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl">
-            {tab === "audit"   && <TechnicalAuditTab vertical={vertical} />}
-            {tab === "content" && <ContentAnalysisTab vertical={vertical} />}
-          </div>
-        </div>
       </main>
     </div>
   )
 }
+
+
