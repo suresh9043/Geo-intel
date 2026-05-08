@@ -415,28 +415,9 @@ export default function GeoAuditV2() {
 
           {/* Intro - only show when no report and not loading */}
           {!report && !loading && (
-            <>
-              {/* Radar intro - speech bubble style */}
-              <section className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 60%, #ede9fe 100%)', border: '1px solid rgba(99,102,241,0.12)' }}>
-                <div className="p-6 flex items-start gap-6">
-                  {/* Avatar */}
-                  <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                    <svg width="72" height="72" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
-                      <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke={BRAND} strokeWidth="1.5"/>
-                      <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
-                      <circle cx="21" cy="33" r="2" fill={BRAND}/><circle cx="35" cy="33" r="2" fill={BRAND}/>
-                      <path d="M22 41 Q28 46 34 41" fill="none" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
-                      <line x1="28" y1="22" x2="28" y2="12" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
-                      <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke={BRAND} strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
-                      <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
-                      <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke={BRAND} strokeWidth="1"/>
-                    </svg>
-                    <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
-                    <span className="text-xs font-bold" style={{ color: BRAND }}>Radar</span>
-                  </div>
 
-                  {/* Speech bubble */}
-                  <div className="grid grid-cols-3 gap-3">
+              {/* Feature cards */}
+              <div className="grid grid-cols-3 gap-3">
                 {[
                   {
                     title: "Real data",
@@ -477,6 +458,8 @@ export default function GeoAuditV2() {
                   </div>
                 ))}
               </div>
+            </>
+          )}
 
           {/* Report */}
           {report && !loading && (
@@ -554,6 +537,7 @@ export default function GeoAuditV2() {
             </div>
           )}
 
+          </>}
 
           {/* Content Analysis Tab */}
           {activeTab === "Content Analysis" && (
