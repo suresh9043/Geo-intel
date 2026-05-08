@@ -477,7 +477,6 @@ export default function GeoAuditV2() {
                   </div>
                 ))}
               </div>
-            </>
           )}
 
           {/* Report */}
