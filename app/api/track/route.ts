@@ -5,10 +5,10 @@ const MODEL_SLUGS: Record<string, string> = {
   'GPT-5.3': 'openai/gpt-5.3-chat',
   'GPT-5.5': 'openai/gpt-5.5',
   'Claude Sonnet 4.6': 'anthropic/claude-sonnet-4.6',
-  'Claude Opus 4.6': 'anthropic/claude-opus-4.6',
+  'Claude Opus 4.6': 'anthropic/claude-opus-4.6-fast',
   'Claude Haiku 4.5': 'anthropic/claude-haiku-4.5',
   'Sonar': 'perplexity/sonar',
-  'Gemini 3 Flash': 'google/gemini-3-flash-preview',
+  'Gemini 3 Flash': 'google/gemini-flash-latest',
 }
 
 function getServiceClient() {
@@ -35,7 +35,11 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
         'HTTP-Referer': 'https://geointel.app',
         'X-Title': 'GeoIntel',
       },
-      body: JSON.stringify({ model: modelSlug, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({
+        model: modelSlug,
+        messages: [{ role: 'user', content: prompt }],
+        plugins: [{ id: 'web', max_results: 5 }],
+      }),
       signal: controller.signal,
     })
     clearTimeout(timeout)
@@ -68,6 +72,7 @@ export async function POST(req: NextRequest) {
   try {
     const { companyId } = await req.json()
     if (!companyId) return NextResponse.json({ error: 'companyId required' }, { status: 400 })
+    console.log('[track] starting for company:', companyId)
 
     // Fetch prompts and models
     const [{ data: prompts, error: pe }, { data: models, error: me }] = await Promise.all([
@@ -75,9 +80,13 @@ export async function POST(req: NextRequest) {
       db.from('tracked_models').select('id, provider, model_slug').eq('company_id', companyId).eq('is_active', true),
     ])
 
+    console.log('[track] prompts:', prompts?.length, 'models:', models?.map(m => m.model_slug))
     if (pe) return NextResponse.json({ error: pe.message }, { status: 500 })
     if (me) return NextResponse.json({ error: me.message }, { status: 500 })
-    if (!prompts?.length || !models?.length) return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
+    if (!prompts?.length || !models?.length) {
+      console.log('[track] no prompts or models — aborting')
+      return NextResponse.json({ error: 'No prompts or models configured' }, { status: 400 })
+    }
 
     // Create run
     const { data: run, error: re } = await db.from('runs').insert({ company_id: companyId, status: 'in_progress', started_at: new Date().toISOString() }).select('id').single()
@@ -94,6 +103,7 @@ export async function POST(req: NextRequest) {
       await Promise.all(chunk.map(async ({ prompt, model }) => {
         const slug = MODEL_SLUGS[model.model_slug] || model.model_slug
         const result = await queryOpenRouter(prompt.text, slug)
+        console.log(`[track] ${model.model_slug} → ${slug}: ${result.ok ? 'ok' : (result as any).error}`)
 
         await db.from('raw_responses').insert({
           run_id: runId,
@@ -115,6 +125,13 @@ export async function POST(req: NextRequest) {
 
     // Mark run complete
     await db.from('runs').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', runId)
+
+    // Extract brand positions from responses using Haiku (fire and forget)
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(req.url).origin : 'http://localhost:3000'}/api/extract-positions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runId, companyId }),
+    }).catch(() => {})
 
     return NextResponse.json({ success: true, runId })
 

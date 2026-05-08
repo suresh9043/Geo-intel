@@ -2,75 +2,140 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { Plus, Play, RefreshCw, ExternalLink, ChevronDown, ArrowUp, ArrowDown, Eye, ClipboardList, Clock, Zap, LogOut, Radio, Trophy, Hash, Target, LayoutList, Lightbulb, MessageSquare } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun } from "@/lib/queries"
+import { VisibilityWidget } from "@/components/visibility-chart"
 import { SetupWizard } from "@/components/setup-wizard"
-import { Sidebar } from "@/components/sidebar"
-import { TrendingUp, TrendingDown, AlertCircle, Zap, RefreshCw, Plus, ChevronRight, BarChart2, Eye, Target, Activity } from "lucide-react"
+
+const BRAND = "#003ec7"
+const BRAND_LIGHT = "#e6ebf9"
+const BRAND_ACTIVE = "#002b92"
+const AVATAR_COLORS = [BRAND, "#1e293b", "#059669", "#7c3aed", "#ea580c", "#0891b2"]
+
+// --- Styles -------------------------------------------------------------------
+
+const glassSidebar: React.CSSProperties = {
+  background: "rgba(239,244,255,0.92)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderRight: "1px solid #c4c5d7",
+}
+
+const glassCard: React.CSSProperties = {
+  background: "rgba(255,255,255,0.7)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(191,219,254,0.4)",
+  backgroundColor: "rgba(219,234,254,0.12)",
+  transition: "box-shadow 0.2s ease",
+}
+
+// --- Helpers ------------------------------------------------------------------
 
 function formatLastRun(iso: string | null) {
-  if (!iso) return "Never"
-  const d = new Date(iso)
-  const diff = Date.now() - d.getTime()
-  const h = Math.floor(diff / 3600000)
-  if (h < 1) return "Just now"
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
+  if (!iso) return null
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
 }
 
-function ModelBadge({ model }: { model: string }) {
-  if (!model) return null
-  if (!model) return null
-  const colors: Record<string, { bg: string; color: string; label: string }> = {
-    chatgpt:    { bg: "#f0fdf4", color: "#16a34a", label: "GPT" },
-    perplexity: { bg: "#faf5ff", color: "#7c3aed", label: "PPX" },
-    gemini:     { bg: "#eff6ff", color: "#2563eb", label: "GEM" },
-    claude:     { bg: "#fff7ed", color: "#ea580c", label: "CLD" },
-  }
-  const c = colors[model.toLowerCase()] || { bg: "#f1f5f9", color: "#64748b", label: model.slice(0,3).toUpperCase() }
-  return (
-    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: c.bg, color: c.color, border: `1px solid ${c.color}20` }}>
-      {c.label}
-    </span>
-  )
-}
-
-function getRecommendations(visibility: number, totalResponses: number, topCompetitor: any, sentiment: string | undefined) {
-  const recs: any[] = []
-  if (visibility === 0) {
-    recs.push({ icon: AlertCircle, title: "Not appearing in AI answers", detail: `Mentioned in 0 of ${totalResponses} responses. Run a GEO audit to find out why.`, action: "Run GEO audit", href: "/dashboard/geo-audit", priority: "critical" })
+function getRecommendations(visibility: number, totalResponses: number, topCompetitor: any) {
+  const recs: { priority: string; title: string; detail: string; action: string }[] = []
+  if (totalResponses === 0 || visibility === 0) {
+    recs.push({ priority: "Critical", title: "Missing AI visibility", detail: `Seen in 0 of ${totalResponses} responses.`, action: "Fix now" })
   } else if (visibility < 30) {
-    recs.push({ icon: AlertCircle, title: `Only ${visibility}% AI visibility`, detail: "Appearing in fewer than 1 in 3 responses. Content structure likely needs improvement.", action: "Run GEO audit", href: "/dashboard/geo-audit", priority: "critical" })
+    recs.push({ priority: "Critical", title: `Only ${visibility}% AI visibility`, detail: "Appearing in fewer than 1 in 3 responses.", action: "Fix now" })
   }
   if (topCompetitor && topCompetitor.visibility > visibility + 20) {
-    recs.push({ icon: TrendingUp, title: `${topCompetitor.name} leads by ${topCompetitor.visibility - visibility}%`, detail: "They likely have FAQPage schema, stronger authority signals, and better entity definition.", action: "Compare", href: "/dashboard/geo-audit", priority: "high" })
+    recs.push({ priority: "High", title: `${topCompetitor.name} leads by ${topCompetitor.visibility - visibility}%`, detail: "Stronger authority signals and entity definition.", action: "Compare" })
   }
-  if (sentiment === "negative") {
-    recs.push({ icon: AlertCircle, title: "Negative sentiment detected", detail: "AI engines are describing your brand negatively. Messaging needs attention.", action: "Fix", href: "/dashboard/geo-audit", priority: "high" })
-  }
-  if (recs.length < 3) recs.push({ icon: Zap, title: "Add FAQPage schema", detail: "Increases AI citation probability by 3.2x. Copy-paste fix ready.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
-  if (recs.length < 3) recs.push({ icon: Zap, title: "Allow AI crawler bots", detail: "Add GPTBot, PerplexityBot and ClaudeBot to robots.txt. 15 minutes.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
-  if (recs.length < 3) recs.push({ icon: TrendingUp, title: "Add sameAs links", detail: "Link Wikipedia, G2, LinkedIn in Organization schema.", action: "Get fix", href: "/dashboard/geo-audit", priority: "quick" })
+  if (recs.length < 3) recs.push({ priority: "Win", title: "Add FAQ schema", detail: "Increases AI citation probability. Copy-paste fix ready.", action: "Get fix" })
+  if (recs.length < 3) recs.push({ priority: "Win", title: "Allow AI crawler bots", detail: "Add GPTBot, PerplexityBot to robots.txt.", action: "Get fix" })
   return recs.slice(0, 3)
 }
 
-const PRIORITY_STYLE: Record<string, { bg: string; color: string; border: string; label: string; stripe: string }> = {
-  critical: { bg: "#fef2f2", color: "#dc2626", border: "#fecaca", label: "Critical", stripe: "#dc2626" },
-  high:     { bg: "#fff7ed", color: "#ea580c", border: "#fed7aa", label: "High",     stripe: "#ea580c" },
-  quick:    { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe", label: "Quick win", stripe: "#2563eb" },
+// --- Sub-components -----------------------------------------------------------
+
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <div className="relative group flex-shrink-0">
+      <div className="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center cursor-help text-slate-400 hover:border-slate-400 hover:text-slate-600 transition-colors">
+        <span className="text-[9px] font-bold leading-none">?</span>
+      </div>
+      <div className="absolute right-0 top-5 z-50 hidden group-hover:block w-52 rounded-lg bg-slate-800 text-white text-xs leading-relaxed px-3 py-2 shadow-xl pointer-events-none">
+        {text}
+        <div className="absolute -top-1 right-1.5 w-2 h-2 bg-slate-800 rotate-45" />
+      </div>
+    </div>
+  )
 }
 
-export default function DashboardPage() {
+function ModelBadge({ model }: { model: string }) {
+  const m = model.toLowerCase()
+  if (m.includes("gpt")) return <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-semibold">GPT</span>
+  if (m.includes("claude")) return <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-xs font-semibold">Claude</span>
+  if (m.includes("gemini")) return <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-xs font-semibold">Gemini</span>
+  if (m.includes("sonar") || m.includes("perplexity")) return <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-md text-xs font-semibold">Sonar</span>
+  return <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md text-xs font-semibold">{model.slice(0, 6)}</span>
+}
+
+function SkeletonBar({ w = "100%" }: { w?: string }) {
+  return <div className="h-3 rounded-full bg-slate-200 animate-pulse" style={{ width: w }} />
+}
+
+function CardSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="p-4 space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <SkeletonBar w={`${60 + (i * 15) % 40}%`} />
+          <SkeletonBar w="100%" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ZeroState({ companyName, onRunNow }: { companyName: string; onRunNow: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: BRAND_LIGHT }}>
+        <Zap className="h-7 w-7" style={{ color: BRAND }} />
+      </div>
+      <h3 className="text-sm font-bold text-slate-800 mb-1">{companyName} hasn't appeared in AI responses yet</h3>
+      <p className="text-xs text-slate-400 max-w-xs mb-5">Run your first tracking job to see how AI engines like ChatGPT, Claude and Gemini respond to your discovery prompts.</p>
+      <button onClick={onRunNow} className="flex items-center gap-2 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm" style={{ backgroundColor: BRAND }}>
+        <Play className="h-3.5 w-3.5" fill="currentColor" /> Run first scan
+      </button>
+    </div>
+  )
+}
+
+// --- Main Page ----------------------------------------------------------------
+
+export default function DashboardV2() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
   const [showSetup, setShowSetup] = useState(false)
+  const [showCompetitors, setShowCompetitors] = useState(false)
+  const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "ytd">("30d")
+  const [activeTab, setActiveTab] = useState("Visibility")
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([])
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
+  const [selectedModel, setSelectedModel] = useState("all")
   const [stats, setStats] = useState<any>(null)
   const [rankings, setRankings] = useState<any[]>([])
   const [responses, setResponses] = useState<any[]>([])
   const [visibilityRuns, setVisibilityRuns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedResponse, setExpandedResponse] = useState<string | null>(null)
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [barsVisible, setBarsVisible] = useState(false)
 
   useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
 
@@ -78,26 +143,43 @@ export default function DashboardPage() {
     if (!user) return
     getCompanies(user.id).then(data => {
       setCompanies(data)
-      if (data.length > 0) setSelectedCompanyId(data[0].id)
+      if (data.length > 0) {
+        const saved = localStorage.getItem('selectedCompanyId')
+        const valid = saved && data.find(c => c.id === saved)
+        setSelectedCompanyId(valid ? saved : data[0].id)
+      }
     })
   }, [user])
 
   const fetchData = useCallback(async () => {
     if (!selectedCompanyId) return
     setLoading(true)
+    setBarsVisible(false)
     try {
       const [s, r, resp, runs] = await Promise.all([
-        getDashboardStats(selectedCompanyId, 30, "all"),
+        getDashboardStats(selectedCompanyId, 30, selectedModel),
         getRankings(selectedCompanyId),
         getResponses(selectedCompanyId, 8),
         getVisibilityPerRun(selectedCompanyId),
       ])
       setStats(s); setRankings(r); setResponses(resp); setVisibilityRuns(runs)
+      setTimeout(() => setBarsVisible(true), 100)
     } catch {}
     setLoading(false)
-  }, [selectedCompanyId])
+  }, [selectedCompanyId, selectedModel])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Keyboard shortcut R â†' Run now
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'r' && !e.metaKey && !e.ctrlKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+        handleRunNow()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [selectedCompanyId])
 
   const handleRunNow = async () => {
     if (!selectedCompanyId) return
@@ -107,233 +189,499 @@ export default function DashboardPage() {
 
   if (authLoading || !user) return null
 
-  const ourBrand = rankings.find(r => r.isOurBrand)
-  const topCompetitor = rankings.filter(r => !r.isOurBrand).sort((a, b) => b.visibility - a.visibility)[0]
-  const visibility = stats?.visibility || 0
   const sorted = [...rankings].sort((a, b) => b.visibility - a.visibility)
   const maxVis = sorted[0]?.visibility || 100
-  const recs = getRecommendations(visibility, stats?.totalResponses || 0, topCompetitor, ourBrand?.sentiment)
-  const selectedCompany = companies.find(c => c.id === selectedCompanyId)
+  const maxMentions = Math.max(...rankings.map(x => x.mentionCount || 0), 1)
+  const topCompetitor = rankings.filter(r => !r.isOurBrand).sort((a, b) => b.visibility - a.visibility)[0]
+  const visibility = stats?.visibility || 0
+  const hasData = (stats?.totalResponses ?? 0) > 0
+  const mentionDelta = visibilityRuns.length >= 2
+    ? visibilityRuns[visibilityRuns.length - 1].visibility - visibilityRuns[visibilityRuns.length - 2].visibility
+    : null
+  const recs = getRecommendations(visibility, stats?.totalResponses || 0, topCompetitor)
+  const selectedCompanyName = companies.find(c => c.id === selectedCompanyId)?.name || "Dashboard"
+  const lastRun = formatLastRun(stats?.lastRunAt)
+
+  // Unique models across all rankings
+  const allModels = [...new Set(rankings.flatMap(r => r.models || []))]
+
+  function cardStyle(id: string): React.CSSProperties {
+    return {
+      ...glassCard,
+      boxShadow: hoveredCard === id
+        ? "0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,62,199,0.06)"
+        : "0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04)",
+    }
+  }
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f0f4f8" }}>
-      {showSetup && <SetupWizard onComplete={() => { setShowSetup(false); fetchData() }} onSaveExit={() => setShowSetup(false)} />}
-      <Sidebar />
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+    <div className="flex h-screen overflow-hidden antialiased text-slate-900" style={{ background: "#f8fafc" }}>
+      {showSetup && (
+        <SetupWizard
+          onComplete={() => { setShowSetup(false); if (user) getCompanies(user.id).then(data => { setCompanies(data); if (data.length > 0) setSelectedCompanyId(data[0].id) }) }}
+          onSaveExit={() => setShowSetup(false)}
+        />
+      )}
 
-        {/* Top bar */}
-        <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div>
-              <h1 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>AI Visibility Dashboard</h1>
-              <p style={{ fontSize: 11, color: "#94a3b8", margin: "1px 0 0" }}>Last run: {formatLastRun(stats?.lastRun || null)}</p>
-            </div>
-            {companies.length > 0 && (
-              <select
-                value={selectedCompanyId || ""}
-                onChange={e => setSelectedCompanyId(e.target.value)}
-                style={{ fontSize: 13, color: "#0f172a", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", outline: "none", marginLeft: 8 }}
-              >
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            )}
+      {/* Sidebar */}
+      <aside className="w-72 flex flex-col fixed inset-y-0 left-0 z-50" style={{ ...glassSidebar, color: "#0b1c30" }}>
+        <div className="p-5 border-b border-[#c4c5d7]/30">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-white text-sm" style={{ backgroundColor: BRAND }}>G</div>
+            <span className="text-lg font-bold tracking-tight">Geo Intel</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button onClick={() => setShowSetup(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", background: "white", border: "1px solid #e2e8f0", borderRadius: 7, fontSize: 12, fontWeight: 500, color: "#64748b", cursor: "pointer" }}>
-              <Plus size={13} /> Add company
-            </button>
-            <button onClick={handleRunNow} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", background: "#2563eb", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 600, color: "white", cursor: "pointer" }}>
-              <RefreshCw size={13} /> Run now
-            </button>
+          <div className="pt-4 border-t border-[#c4c5d7]/40 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+              {user?.email?.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-bold text-[#0b1c30] truncate">
+                {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0]}
+              </p>
+              <p className="text-xs text-[#434654] truncate">{user?.email}</p>
+            </div>
           </div>
         </div>
-
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16, alignItems: "stretch", paddingBottom: 0 }}>
-
-          {companies.length === 0 && !loading && (
-            <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 14, padding: 48, textAlign: "center" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-                <Target size={26} color="#2563eb" />
-              </div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: "#0f172a", margin: "0 0 6px" }}>Set up your first company</h2>
-              <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 20px", maxWidth: 340, marginLeft: "auto", marginRight: "auto" }}>Track how your brand appears across ChatGPT, Perplexity, Gemini and Claude.</p>
-              <button onClick={() => setShowSetup(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 22px", background: "#2563eb", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "white", cursor: "pointer" }}>
-                <Plus size={14} /> Get started
+        <nav className="flex-1 overflow-y-auto p-3 space-y-6">
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2">
+              <h3 className="text-sm font-bold text-[#434654] uppercase tracking-widest">Companies</h3>
+              <button onClick={() => setShowSetup(true)} className="text-[#434654] hover:text-[#0b1c30] transition-colors" title="Add company">
+                <Plus className="h-3 w-3" />
               </button>
             </div>
-          )}
+            <ul className="space-y-0.5">
+              {companies.length === 0 ? (
+                <li className="px-2.5 py-1.5 text-xs text-[#434654]">No companies yet</li>
+              ) : companies.map((c, i) => {
+                const isActive = c.id === selectedCompanyId
+                const avatarColors = ["#003ec7","#7c3aed","#059669","#ea580c","#0891b2","#db2777"]
+                const avatarBg = avatarColors[i % avatarColors.length]
+                return (
+                  <li key={c.id}>
+                    <button onClick={() => { setSelectedCompanyId(c.id); localStorage.setItem('selectedCompanyId', c.id) }}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all text-left"
+                      style={isActive ? { backgroundColor: BRAND_ACTIVE, color: "white" } : { color: "#434654" }}>
+                      <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                        style={{ backgroundColor: isActive ? "rgba(255,255,255,0.25)" : avatarBg }}>
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="truncate">{c.name}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+          <div>
+            <h3 className="px-2 text-sm font-bold text-[#434654] uppercase tracking-widest mb-2">Tools</h3>
+            <ul className="space-y-0.5">
+              {[
+                { label: "AI Visibility", icon: <Eye className="w-4 h-4" />, href: "/dashboard" },
+                { label: "Geo Audit", icon: <ClipboardList className="w-4 h-4" />, href: "/dashboard/geo-audit" },
+              ].map(item => (
+                <li key={item.label}>
+                  <a href={item.href} className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all text-[#434654] hover:text-[#0b1c30] hover:bg-[#002b92]/5">
+                    {item.icon}{item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+        <div className="p-3 border-t border-[#c4c5d7]/30">
+          <button onClick={() => signOut()} className="flex items-center gap-2 px-2 w-full text-sm font-semibold text-[#434654] hover:text-[#0b1c30] transition-colors">
+            <LogOut className="h-3.5 w-3.5" /> Sign out
+          </button>
+        </div>
+      </aside>
 
-          {companies.length > 0 && (
+      {/* Main */}
+      <main className="flex-1 ml-72 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Header */}
+        <header className="sticky top-0 z-40 flex-shrink-0" style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderBottom: "1px solid rgba(226,232,240,0.7)" }}>
+          <div className="px-5 flex items-center justify-between h-14">
+            <div className="flex items-center gap-3">
+              <h2 className="font-bold text-slate-900 text-2xl">{selectedCompanyName}</h2>
+              {lastRun && (
+                <span className="flex items-center gap-1 text-sm text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                  <Clock className="h-3 w-3" /> {lastRun}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {allModels.length > 0 && (
+                <div className="flex items-center gap-1 mr-1">
+                  {allModels.slice(0, 4).map(m => <ModelBadge key={m} model={m} />)}
+                </div>
+              )}
+              <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)}
+                className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-slate-50 text-slate-500 outline-none">
+                <option value="all">All models</option>
+                {(stats?.availableModels || []).map((m: string) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <button onClick={fetchData} className="p-1.5 text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+                <RefreshCw className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={handleRunNow} className="flex items-center gap-1.5 text-white px-3 py-1.5 rounded-md text-sm font-semibold transition-all shadow-sm" style={{ backgroundColor: BRAND }}
+                title="Press R to run">
+                <Play className="h-3.5 w-3.5" fill="currentColor" /> Run now
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 px-5">
+            {[
+              { label: "Visibility", icon: <Eye className="h-3.5 w-3.5" /> },
+              { label: "Prompts", icon: <MessageSquare className="h-3.5 w-3.5" /> },
+              { label: "Citations", icon: <ClipboardList className="h-3.5 w-3.5" /> },
+            ].map(({ label, icon }) => (
+              <button key={label} onClick={() => setActiveTab(label)} className="flex items-center gap-1.5 px-1 text-sm py-2 transition-colors"
+                style={activeTab === label ? { fontWeight: 700, color: BRAND, borderBottom: `2px solid ${BRAND}` } : { fontWeight: 500, color: "#64748b" }}>
+                {icon}{label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {companies.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <ZeroState companyName="Your first company" onRunNow={() => setShowSetup(true)} />
+            </div>
+          ) : (
             <>
-              {/* KPI strip - compact */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
-                {[
-                  { label: "AI Visibility", value: `${visibility}%`, sub: `${stats?.totalResponses || 0} queries`, color: "#2563eb", icon: Eye },
-                  { label: "Your Rank", value: ourBrand?.avgPosition ? `#${Math.round(ourBrand.avgPosition)}` : "—", sub: "avg position", color: "#7c3aed", icon: Target },
-                  { label: "Avg Position", value: ourBrand?.avgPosition ? `#${ourBrand.avgPosition.toFixed(1)}` : "—", sub: "in AI lists", color: "#0891b2", icon: BarChart2 },
-                  { label: "GEO Score", value: "—", sub: "run audit to score", color: "#f59e0b", icon: Activity },
-                  { label: "Sentiment", value: ourBrand?.sentiment ? ourBrand.sentiment.charAt(0).toUpperCase() + ourBrand.sentiment.slice(1) : "Neutral", sub: "brand perception", color: ourBrand?.sentiment === "positive" ? "#16a34a" : ourBrand?.sentiment === "negative" ? "#dc2626" : "#64748b", icon: TrendingUp },
-                ].map((k, i) => {
-                  const Icon = k.icon
-                  return (
-                    <div key={i} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", borderTop: `3px solid ${k.color}` }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                        <p style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: 0 }}>{k.label}</p>
-                        <div style={{ width: 28, height: 28, borderRadius: 7, background: k.color + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <Icon size={14} color={k.color} />
+              {/* Row 1: Mention Rate + Visibility Rank */}
+              <div className="grid grid-cols-12 gap-3">
+
+                {/* Mention Rate */}
+                <div className="col-span-8"
+                  onMouseEnter={() => setHoveredCard("mention")}
+                  onMouseLeave={() => setHoveredCard(null)}>
+                  <div className="rounded-xl flex flex-col min-h-[320px] overflow-hidden" style={cardStyle("mention")}>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Radio className="h-3.5 w-3.5 text-slate-400" />Mention Rate</h3>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xl font-extrabold text-slate-900">{hasData ? `${visibility}%` : "—"}</span>
+                          {mentionDelta !== null && mentionDelta !== 0 && (
+                            <span className={`flex items-center gap-0.5 text-xs font-medium ${mentionDelta > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                              {mentionDelta > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                              {Math.abs(mentionDelta)}%
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <p style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", margin: "0 0 3px", lineHeight: 1, letterSpacing: "-0.02em" }}>{k.value}</p>
-                      <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>{k.sub}</p>
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={chartPeriod}
+                          onChange={e => setChartPeriod(e.target.value as any)}
+                          className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-500 outline-none"
+                        >
+                          <option value="7d">Last 7 days</option>
+                          <option value="30d">Last 30 days</option>
+                          <option value="ytd">Year to date</option>
+                        </select>
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input type="checkbox" checked={showCompetitors} onChange={e => setShowCompetitors(e.target.checked)} className="h-3 w-3 rounded" style={{ accentColor: BRAND }} />
+                          <span className="text-sm text-slate-400">Competitors</span>
+                        </label>
+                        <InfoTooltip text="% of AI responses that mention your brand. Calculated as (responses mentioning you / total responses) x 100." />
+                      </div>
                     </div>
-                  )
-                })}
+                    {loading ? <CardSkeleton rows={2} /> : (
+                      <div className="p-4 flex flex-col flex-1">
+                        {!hasData && <p className="text-xs text-slate-400 mb-2">{selectedCompanyName} hasn't appeared in any AI responses yet</p>}
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Visibility Trend</h4>
+                          {lastRun && <span className="text-xs font-medium text-slate-400">Last run: {lastRun}</span>}
+                        </div>
+                        <div className="flex-1">
+                          <VisibilityWidget runs={(() => {
+                            const now = Date.now()
+                            if (chartPeriod === "7d") return visibilityRuns.filter(r => now - new Date(r.date).getTime() <= 7 * 86400000)
+                            if (chartPeriod === "30d") return visibilityRuns.filter(r => now - new Date(r.date).getTime() <= 30 * 86400000)
+                            const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime()
+                            return visibilityRuns.filter(r => new Date(r.date).getTime() >= startOfYear)
+                          })()} showCompetitors={showCompetitors} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Visibility Rank */}
+                <div className="col-span-4"
+                  onMouseEnter={() => setHoveredCard("rank")}
+                  onMouseLeave={() => setHoveredCard(null)}>
+                  <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("rank")}>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5 text-slate-400" />Visibility Rank</h3>
+                      <InfoTooltip text="Ranks your brand against competitors by how often each appears in AI responses. Higher = more visible to AI engines." />
+                    </div>
+                    {loading ? <CardSkeleton rows={4} /> : sorted.length === 0 ? (
+                      <p className="text-xs text-slate-400 p-4">No data yet</p>
+                    ) : (
+                      <div className="p-3 space-y-3 flex-1">
+                        {sorted.map((entry, i) => (
+                          <div key={entry.name} className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-medium">
+                              <span style={entry.isOurBrand ? { color: BRAND, fontWeight: 700 } : { color: "#64748b" }}>
+                                #{i + 1} {entry.name}{entry.isOurBrand && " *"}
+                              </span>
+                              <span className="font-bold text-slate-900">{entry.visibility > 0 ? `${entry.visibility}%` : "0%"}</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full" style={{
+                                width: barsVisible ? `${maxVis > 0 ? (entry.visibility / maxVis) * 100 : 0}%` : "0%",
+                                backgroundColor: entry.isOurBrand ? BRAND : AVATAR_COLORS[i + 1] || "#94a3b8",
+                                opacity: entry.isOurBrand ? 1 : 0.75,
+                                transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
+                              }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Middle row */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 320px", gap: 12 }}>
-
-                {/* Share of voice */}
-                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
-                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Share of Voice</p>
-                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Your brand vs competitors</p>
-                  </div>
-                  <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                    {sorted.length === 0 ? (
-                      <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>No data yet</p>
-                    ) : sorted.map((r, i) => (
-                      <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 24, height: 24, borderRadius: 6, background: r.isOurBrand ? "#2563eb" : ["#7c3aed","#0891b2","#16a34a","#ea580c"][i % 4], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "white", flexShrink: 0 }}>
-                          {r.name.charAt(0).toUpperCase()}
-                        </div>
-                        <p style={{ fontSize: 12, fontWeight: r.isOurBrand ? 700 : 500, color: "#0f172a", margin: 0, width: 90, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {r.name}{r.isOurBrand ? " ★" : ""}
-                        </p>
-                        <div style={{ flex: 1, height: 6, borderRadius: 3, background: "#f1f5f9", overflow: "hidden" }}>
-                          <div style={{ height: "100%", borderRadius: 3, background: r.isOurBrand ? "#2563eb" : r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626", width: `${(r.visibility / maxVis) * 100}%`, transition: "width 0.5s ease" }} />
-                        </div>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: r.isOurBrand ? "#2563eb" : "#0f172a", width: 36, textAlign: "right", flexShrink: 0 }}>{r.visibility}%</span>
-                      </div>
-                    ))}
-                  </div>
+              {/* Row 2: Brand Mentions + Average Position */}
+              {!hasData ? (
+                <div className="rounded-xl overflow-hidden" style={glassCard}>
+                  <ZeroState companyName={selectedCompanyName} onRunNow={handleRunNow} />
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-12 gap-3">
+                    {/* Brand Mentions */}
+                    <div className="col-span-7"
+                      onMouseEnter={() => setHoveredCard("mentions")}
+                      onMouseLeave={() => setHoveredCard(null)}>
+                      <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("mentions")}>
+                        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Hash className="h-3.5 w-3.5 text-slate-400" />Brand Mentions</h3>
+                          <InfoTooltip text="How many times each brand appeared across all AI responses. Shows raw citation count vs total responses." />
+                        </div>
+                        {loading ? <CardSkeleton /> : (
+                          <div className="p-3">
+                            <p className="text-xs text-slate-400 mb-3">Times appeared in AI responses</p>
+                            <div className="space-y-2.5">
+                              {rankings.map((r, i) => (
+                                <div key={r.name} className="flex items-center gap-3">
+                                  <span className="w-20 text-sm font-medium text-slate-600 truncate">{r.name}</span>
+                                  <div className="flex-1 h-6 rounded-md relative overflow-hidden" style={{ background: "rgba(241,245,249,0.6)" }}>
+                                    <div className="absolute inset-y-0 left-0 rounded-r-md" style={{
+                                      width: barsVisible ? `${((r.mentionCount || 0) / maxMentions) * 100}%` : "0%",
+                                      backgroundColor: AVATAR_COLORS[i] || "#94a3b8",
+                                      opacity: r.isOurBrand ? 1 : 0.8,
+                                      transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
+                                    }} />
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold" style={{
+                                      color: ((r.mentionCount || 0) / maxMentions) > 0.5 ? "rgba(255,255,255,0.9)" : "#94a3b8"
+                                    }}>{r.mentionCount || 0}/{r.totalResponses}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                {/* LLM Responses */}
-                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
-                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>LLM Responses</p>
-                      <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>{stats?.totalResponses || 0} total</p>
+                    {/* Average Position */}
+                    <div className="col-span-5"
+                      onMouseEnter={() => setHoveredCard("position")}
+                      onMouseLeave={() => setHoveredCard(null)}>
+                      <div className="rounded-xl flex flex-col h-full overflow-hidden" style={cardStyle("position")}>
+                        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-slate-400" />Average Position</h3>
+                          <InfoTooltip text="Where your brand ranks in AI numbered lists on average. Position 1 is best. Lower number = AI mentions you earlier." />
+                        </div>
+                        {loading ? <CardSkeleton /> : (
+                          <div className="p-3 space-y-1.5 flex-1">
+                            {rankings.map((r, i) => {
+                              const posLabel = r.avgPosition ? ('#' + r.avgPosition.toFixed(1)) : 'n/a'
+                              const posStyle: React.CSSProperties = r.avgPosition
+                                ? r.avgPosition <= 2 ? { background: "#ecfdf5", color: "#059669" }
+                                : r.avgPosition <= 4 ? { background: "#fffbeb", color: "#d97706" }
+                                : { background: "#fef2f2", color: "#dc2626" }
+                                : { background: "#f1f5f9", color: "#64748b" }
+                              return (
+                                <div key={r.name} className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-100/50 hover:bg-white/60 transition-colors">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                                      style={{ backgroundColor: AVATAR_COLORS[i] || "#94a3b8" }}>
+                                      {r.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700">{r.name}</span>
+                                    {r.isOurBrand && <span className="text-xs font-bold" style={{ color: BRAND }}>YOU</span>}
+                                  </div>
+                                  <span className="px-1.5 py-0.5 rounded-md text-sm font-bold" style={posStyle}>{posLabel}</span>
+                                </div>
+                              )
+                            })}
+                            <p className="text-xs text-slate-400 pt-1 px-1">"" not yet detected in numbered lists</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    {responses.length === 0 ? (
-                      <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", padding: "24px 0" }}>No responses yet</p>
-                    ) : responses.slice(0, 4).map((resp: any, i: number) => (
-                      <div key={i} style={{ padding: "10px 16px", borderTop: i > 0 ? "1px solid #f8fafc" : "none", display: "flex", alignItems: "center", gap: 10 }}>
-                        <ModelBadge model={resp.model} />
-                        <p style={{ flex: 1, fontSize: 12, color: "#374151", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resp.prompt}</p>
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 10, background: resp.brand_mentioned ? "#f0fdf4" : "#fef2f2", color: resp.brand_mentioned ? "#16a34a" : "#dc2626", flexShrink: 0 }}>
-                          {resp.brand_mentioned ? "✓" : "✗"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Recommendations */}
-                <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
-                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Recommended Actions</p>
+                  {/* Row 3: Brand Rankings */}
+                  <div onMouseEnter={() => setHoveredCard("table")} onMouseLeave={() => setHoveredCard(null)}>
+                    <div className="rounded-xl overflow-hidden" style={cardStyle("table")}>
+                      <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><LayoutList className="h-3.5 w-3.5 text-slate-400" />Brand Rankings</h3>
+                        <InfoTooltip text="Full comparison of your brand vs competitors — visibility %, average list position, and which AI models mention each brand." />
+                      </div>
+                      {loading ? <CardSkeleton rows={4} /> : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left">
+                            <thead>
+                              <tr className="border-b border-slate-100" style={{ background: "rgba(248,250,252,0.4)" }}>
+                                {["Rank", "Brand", "Visibility", "Avg Pos", "Source"].map(h => (
+                                  <th key={h} className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100/50">
+                              {rankings.length === 0 ? (
+                                <tr><td colSpan={5} className="px-4 py-8 text-center text-xs text-slate-400">No data yet</td></tr>
+                              ) : rankings.map((r, i) => (
+                                <tr key={r.name} className="transition-colors hover:bg-white/40" style={r.isOurBrand ? { background: "rgba(0,62,199,0.04)" } : {}}>
+                                  <td className="px-4 py-2.5 text-sm font-bold text-slate-900">#{r.rank}</td>
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                                        style={{ backgroundColor: AVATAR_COLORS[i] || "#94a3b8" }}>
+                                        {r.name.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <span className="text-sm font-semibold text-slate-800">{r.name}</span>
+                                        {r.isOurBrand && <span className="ml-1.5 px-1 py-0.5 text-xs font-bold rounded" style={{ background: BRAND_LIGHT, color: BRAND }}>YOU</span>}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-slate-100 h-1 rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full" style={{
+                                          width: barsVisible ? `${r.visibility}%` : "0%",
+                                          backgroundColor: r.visibility >= 60 ? "#10b981" : r.visibility >= 30 ? "#f59e0b" : "#ef4444",
+                                          transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
+                                        }} />
+                                      </div>
+                                      <span className="text-sm font-bold" style={{ color: r.visibility >= 60 ? "#059669" : r.visibility >= 30 ? "#d97706" : "#dc2626" }}>
+                                        {r.visibility}%
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-2.5 text-sm font-medium text-slate-500">{r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "n/a"}</td>
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex gap-1 flex-wrap">
+                                      {(r.models || []).map((m: string) => <ModelBadge key={m} model={m} />)}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "#f8fafc" }}>
+                </>
+              )}
+
+              {/* Row 4: Quick Actions */}
+              <div onMouseEnter={() => setHoveredCard("actions")} onMouseLeave={() => setHoveredCard(null)}>
+                <div className="rounded-xl overflow-hidden" style={cardStyle("actions")}>
+                  <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Lightbulb className="h-3.5 w-3.5 text-slate-400" />Quick Actions</h3>
+                    <div className="flex items-center gap-2">
+                      <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
+                        View all <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <InfoTooltip text="AI-generated recommendations based on your visibility data. Prioritised by impact — fix critical issues first." />
+                    </div>
+                  </div>
+                  <div className="p-3 space-y-1.5">
                     {recs.map((rec, i) => {
-                      const p = PRIORITY_STYLE[rec.priority] || PRIORITY_STYLE.quick
-                      const Icon = rec.icon
+                      const cardBg: Record<string, React.CSSProperties> = {
+                        Critical: { background: "rgba(254,242,242,0.5)", border: "1px solid rgba(254,202,202,0.5)" },
+                        High: { background: "rgba(255,247,237,0.5)", border: "1px solid rgba(254,215,170,0.5)" },
+                        Win: { background: "rgba(239,246,255,0.5)", border: "1px solid rgba(191,219,254,0.5)" },
+                      }
+                      const badgeStyle: Record<string, React.CSSProperties> = {
+                        Critical: { background: "#fee2e2", color: "#b91c1c" },
+                        High: { background: "#ffedd5", color: "#c2410c" },
+                        Win: { background: BRAND_LIGHT, color: BRAND },
+                      }
                       return (
-                        <a key={i} href={rec.href} style={{ display: "block", background: "white", padding: "12px 16px", textDecoration: "none", borderLeft: `3px solid ${p.stripe}` }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              <Icon size={12} color={p.color} />
-                              <p style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", margin: 0 }}>{rec.title}</p>
+                        <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={cardBg[rec.priority]}>
+                          <div className="flex gap-3">
+                            <span className="px-1 py-0.5 rounded text-xs font-bold h-fit uppercase whitespace-nowrap" style={badgeStyle[rec.priority]}>{rec.priority}</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{rec.title}</p>
+                              <p className="text-sm text-slate-500">{rec.detail}</p>
                             </div>
-                            <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: p.bg, color: p.color, border: `1px solid ${p.border}` }}>{p.label}</span>
                           </div>
-                          <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 6px", lineHeight: 1.4 }}>{rec.detail}</p>
-                          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 600, color: p.color }}>
-                            {rec.action} <ChevronRight size={11} />
-                          </div>
-                        </a>
+                          <button className="text-sm font-bold whitespace-nowrap ml-4 hover:opacity-80 transition-opacity" style={{ color: BRAND }}>{rec.action} &rarr;</button>
+                        </div>
                       )
                     })}
                   </div>
                 </div>
               </div>
 
-              {/* Brand rankings table */}
-              <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
-                <div style={{ padding: "12px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Brand Rankings</p>
-                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Your brand vs competitors across all AI responses</p>
+              {/* Row 5: Response Feed */}
+              <div onMouseEnter={() => setHoveredCard("feed")} onMouseLeave={() => setHoveredCard(null)}>
+                <div className="rounded-xl overflow-hidden" style={cardStyle("feed")}>
+                  <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-slate-400" />Response Feed</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-400">{responses.length} latest</span>
+                      <InfoTooltip text="Latest AI responses to your tracked prompts. Click any row to read the full response and see if your brand was mentioned." />
+                    </div>
+                  </div>
+                  <div className="p-3 space-y-1.5">
+                    {loading ? <CardSkeleton rows={3} /> : responses.length === 0 ? (
+                      <p className="text-xs text-slate-400 p-1">No responses yet "" run tracking to populate this feed</p>
+                    ) : responses.map((r: any) => {
+                      const isExpanded = expandedResponse === r.id
+                      const preview = r.response_text?.split('\n').find((l: string) => l.trim().length > 20) || ""
+                      return (
+                        <div key={r.id} className="rounded-lg overflow-hidden border border-slate-100/60 transition-all" style={{ background: "rgba(255,255,255,0.35)" }}>
+                          <div className="flex items-center justify-between p-2.5 cursor-pointer hover:bg-white/50 transition-colors"
+                            onClick={() => setExpandedResponse(isExpanded ? null : r.id)}>
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-slate-700 truncate">{(r.prompts as any)?.text || "n/a"}</p>
+                                {!isExpanded && preview && (
+                                  <p className="text-sm text-slate-400 truncate mt-0.5">{preview.slice(0, 120)}...</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2.5 flex-shrink-0 ml-3">
+                              <ModelBadge model={r.requested_model} />
+                              <span className="text-xs text-slate-400">{new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <ChevronDown className={`h-3.5 w-3.5 text-slate-300 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="px-4 pb-3 pt-2 border-t border-slate-100/50" style={{ background: "rgba(255,255,255,0.55)" }}>
+                              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{r.response_text || "No response text"}</p>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
-                {rankings.length === 0 ? (
-                  <div style={{ padding: "32px 20px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>No data yet — run tracking to see rankings</div>
-                ) : (
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                      <tr style={{ background: "#f8fafc" }}>
-                        {["Rank", "Brand", "Visibility", "Avg Position", "Sentiment", "Mentioned by"].map(h => (
-                          <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sorted.map((r, i) => (
-                        <tr key={r.name} style={{ borderTop: "1px solid #f1f5f9", background: r.isOurBrand ? "#eff6ff" : "white" }}
-                          onMouseEnter={e => { if (!r.isOurBrand) e.currentTarget.style.background = "#f8fafc" }}
-                          onMouseLeave={e => { e.currentTarget.style.background = r.isOurBrand ? "#eff6ff" : "white" }}>
-                          <td style={{ padding: "11px 16px" }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : "#cbd5e1" }}>#{i + 1}</span>
-                          </td>
-                          <td style={{ padding: "11px 16px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 26, height: 26, borderRadius: 7, background: r.isOurBrand ? "#2563eb" : ["#7c3aed","#0891b2","#16a34a","#ea580c","#ec4899"][i % 5], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "white", flexShrink: 0 }}>
-                                {r.name.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <p style={{ fontSize: 13, fontWeight: r.isOurBrand ? 700 : 500, color: "#0f172a", margin: 0 }}>{r.name}</p>
-                                <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>{r.mentionCount} of {r.totalResponses} responses</p>
-                              </div>
-                              {r.isOurBrand && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", background: "#dbeafe", color: "#2563eb", borderRadius: 3 }}>YOU</span>}
-                            </div>
-                          </td>
-                          <td style={{ padding: "11px 16px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 80, height: 5, borderRadius: 3, background: "#f1f5f9", overflow: "hidden" }}>
-                                <div style={{ height: "100%", borderRadius: 3, background: r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626", width: `${r.visibility}%` }} />
-                              </div>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: r.visibility >= 60 ? "#16a34a" : r.visibility >= 30 ? "#f59e0b" : "#dc2626" }}>{r.visibility}%</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: "11px 16px", fontSize: 13, color: "#374151" }}>{r.avgPosition ? `#${r.avgPosition.toFixed(1)}` : "—"}</td>
-                          <td style={{ padding: "11px 16px" }}>
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: r.sentiment === "positive" ? "#f0fdf4" : r.sentiment === "negative" ? "#fef2f2" : "#f1f5f9", color: r.sentiment === "positive" ? "#16a34a" : r.sentiment === "negative" ? "#dc2626" : "#64748b" }}>
-                              {r.sentiment ? r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1) : "Neutral"}
-                            </span>
-                          </td>
-                          <td style={{ padding: "11px 16px" }}>
-                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                              {(r.models || []).map((m: string) => <ModelBadge key={m} model={m} />)}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
               </div>
             </>
           )}
@@ -342,3 +690,7 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
+
+
