@@ -558,19 +558,19 @@ export default function GeoAuditV2() {
                 </div>
                 <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm opacity-60 pointer-events-none select-none">
                   <div className="px-5 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Example</span>
-                    <span className="text-xs text-slate-400">Your results will appear here after running an audit</span>
+                    <span className="text-sm font-bold text-slate-400">Example</span>
+                    <span className="text-sm text-slate-400">Your results will appear here after running an audit</span>
                   </div>
                   <div className="p-5 border-b border-slate-100 flex items-start gap-8 bg-white">
                     <div className="flex-shrink-0">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">GEO Score</p>
+                      <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">GEO Score</p>
                       <div className="flex items-baseline gap-3">
                         <span className="text-5xl font-extrabold text-slate-200 leading-none">—</span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200">Your score</span>
+                        <span className="text-sm font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200">Your score</span>
                       </div>
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Dimensions</p>
+                      <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Dimensions</p>
                       <div className="flex flex-col gap-2">
                         {[
                           { label: "Competitive", val: 47 },
@@ -580,7 +580,7 @@ export default function GeoAuditV2() {
                           { label: "Crawlability", val: 53 },
                         ].map(d => (
                           <div key={d.label} className="flex items-center gap-3">
-                            <span className="text-xs text-slate-400 w-20 flex-shrink-0">{d.label}</span>
+                            <span className="text-sm text-slate-400 w-20 flex-shrink-0">{d.label}</span>
                             <div className="w-48 h-2 rounded-full bg-slate-100 overflow-hidden">
                               <div className="h-full rounded-full bg-slate-200" style={{ width: `${d.val}%` }} />
                             </div>
@@ -590,7 +590,7 @@ export default function GeoAuditV2() {
                     </div>
                   </div>
                   <div className="p-5 bg-white border-b border-slate-100">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Findings and fixes</p>
+                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Findings and fixes</p>
                     <div className="flex flex-col gap-2">
                       {[
                         { sev: "Critical", label: "No FAQPage schema detected", bg: "#fef2f2", border: "#fecaca", stripe: "#dc2626", color: "#dc2626", badgeBg: "#fee2e2" },
@@ -600,10 +600,10 @@ export default function GeoAuditV2() {
                         <div key={f.sev} className="flex items-center justify-between rounded-lg px-3 py-2"
                           style={{ background: f.bg, border: `1px solid ${f.border}`, borderLeft: `3px solid ${f.stripe}` }}>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: f.badgeBg, color: f.color }}>{f.sev}</span>
-                            <span className="text-xs font-medium text-slate-700">{f.label}</span>
+                            <span className="text-sm font-bold px-1.5 py-0.5 rounded" style={{ background: f.badgeBg, color: f.color }}>{f.sev}</span>
+                            <span className="text-sm font-medium text-slate-700">{f.label}</span>
                           </div>
-                          <span className="text-xs font-semibold ml-4 flex-shrink-0" style={{ color: f.color }}>Get fix</span>
+                          <span className="text-sm font-semibold ml-4 flex-shrink-0" style={{ color: f.color }}>Get fix</span>
                         </div>
                       ))}
                     </div>
@@ -613,7 +613,7 @@ export default function GeoAuditV2() {
                       <rect x="3" y="11" width="18" height="11" rx="2"/>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
-                    <span className="text-xs text-slate-400">Run an audit to see your real results</span>
+                    <span className="text-sm text-slate-400">Run an audit to see your real results</span>
                   </div>
                 </div>
               </div>
