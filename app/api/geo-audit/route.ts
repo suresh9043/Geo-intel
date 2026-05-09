@@ -125,14 +125,7 @@ Only report ACTUAL problems. Max 2 findings. Each finding must be specific to TH
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
-- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
-- Finding titles must use sentence case — only capitalise the first word and proper nouns (e.g. "No schema markup detected" not "No Schema Markup Detected")
-- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
-- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
-- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
-- NEVER invent specific numbers or percentages not explicitly present in the content provided
-- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
-- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
+
 Return ONLY valid JSON: {"dimension":"geo-crawl","score":0,"grade":"","findings":[{"id":"crawl_001","title":"Problem","severity":"Critical|High|Medium","detail":"Detail","recommendation":"Action"}],"summary":"One sentence"}`,
 
   'geo-content': (data) => `You are a GEO content expert scoring how well this site's content is structured for AI citation.
