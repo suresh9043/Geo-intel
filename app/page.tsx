@@ -202,11 +202,8 @@ export default function LandingPage() {
           {/* Mascot peeking from bottom-right of dashboard */}
           {/* Mascot + dashboard side by side */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16, width: "100%" }}>
-            <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              <RadarMascot size={90} />
-            </div>
           {/* Dark dashboard mockup */}
-          <div style={{ background: "#0f1117", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", flex: 1 }}>
+          <div style={{ background: "#0f1117", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", flex: 1, minWidth: 0 }}>
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div>
@@ -252,6 +249,9 @@ export default function LandingPage() {
               <p style={{ fontSize: 10, color: "#5e5c78", margin: 0 }}>Copy-paste fix ready to implement</p>
             </div>
           </div>
+            <div style={{ flexShrink: 0, marginBottom: 16 }}>
+              <RadarMascot size={100} />
+            </div>
           </div>
         </div>
       </section>
