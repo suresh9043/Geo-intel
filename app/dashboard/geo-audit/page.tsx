@@ -245,6 +245,9 @@ export default function GeoAuditV2() {
   const [cached, setCached] = useState(false)
   const [cachedAt, setCachedAt] = useState<string | null>(null)
   const [auditHistory, setAuditHistory] = useState<any[]>([])
+  const [cached, setCached] = useState(false)
+  const [cachedAt, setCachedAt] = useState<string | null>(null)
+  const [auditHistory, setAuditHistory] = useState<any[]>([])
 
   // Content Analysis state
   const [caUrl, setCaUrl] = useState("")
@@ -292,15 +295,31 @@ export default function GeoAuditV2() {
     })
   }, [user])
 
-  const runAudit = async () => {
+  const runAudit = async (forceRefresh = false) => {
     if (!url.trim()) return
-    setLoading(true); setError(""); setReport(null)
+    setLoading(true); setError(""); setReport(null); setCached(false); setCachedAt(null)
+
+    if (!forceRefresh && user) {
+      const hit = await getCachedAudit(user.id, url.trim())
+      if (hit) {
+        setReport(hit.report)
+        setCached(true)
+        setCachedAt(hit.audited_at)
+        setLoading(false)
+        return
+      }
+    }
+
     try {
       const res = await fetch("/api/geo-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: url.trim(), vertical }) })
       const data = await res.json()
       if (data.report) {
         setReport(data.report)
-        if (user) await saveAnalysisResult(user.id, url.trim(), data.report)
+        setCached(false)
+        if (user) {
+          await saveAuditResult(user.id, url.trim(), data.report)
+          getAuditHistory(user.id, 5).then(setAuditHistory)
+        }
       } else setError(data.error || "Audit failed")
     } catch { setError("Failed to connect to audit service") }
     setLoading(false)
