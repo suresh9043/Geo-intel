@@ -393,7 +393,7 @@ export default function LandingPage() {
                 <span style={{ fontSize: 13, color: "#374151" }}>{f}</span>
               </div>
             ))}
-            <button onClick={() => setModal("signup")} style={{ display: "block", width: "100%", textAlign: "center", marginTop: 18, padding: "9px", borderRadius: 8, background: "#3B5BDB", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}>Lock in $15 →</button>
+            <button onClick={() => setModal("signup")} style={{ display: "block", width: "100%", textAlign: "center", marginTop: 18, padding: "9px", borderRadius: 8, background: "#3B5BDB", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}>Lock in $20/mo →</button>
           </div>
         </div>
         <p style={{ textAlign: "center", marginTop: 12, fontSize: 12, color: "#9ca3af" }}>No credit card required to start</p>
