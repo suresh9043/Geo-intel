@@ -8,7 +8,7 @@ const MODEL_SLUGS: Record<string, string> = {
   'Claude Opus 4.6': 'anthropic/claude-opus-4.6-fast',
   'Claude Haiku 4.5': 'anthropic/claude-haiku-4.5',
   'Sonar': 'perplexity/sonar',
-  'Gemini 3 Flash': 'google/gemini-2.0-flash-001',
+  'Gemini 3 Flash': 'google/gemini-3.1-flash-lite',
 }
 
 function getServiceClient() {
