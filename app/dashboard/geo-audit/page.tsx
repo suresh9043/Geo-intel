@@ -364,7 +364,7 @@ export default function GeoAuditV2() {
                   value={url}
                   onChange={e => setUrl(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && runAudit()}
-                  placeholder="e.g. noveum.ai or appian.com/platform"
+                  placeholder="e.g. appian.com"
                   className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white transition-all placeholder:text-slate-400"
                   style={{ boxShadow: url ? `0 0 0 2px ${BRAND}30` : undefined, borderColor: url ? BRAND : undefined }}
                 />
