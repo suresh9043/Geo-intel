@@ -117,6 +117,14 @@ AI bot access: ${JSON.stringify(data.ai_bot_status)}
 llms.txt: ${data.has_llms_txt} | Sitemap: ${data.has_sitemap}
 SCORING: 85-100 clean robots, AI bots allowed, sitemap, llms.txt | 65-84 most bots allowed | 45-64 some blocked | 25-44 multiple blocked | 0-24 all blocked
 Only report ACTUAL problems. Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 Return ONLY valid JSON: {"dimension":"geo-crawl","score":0,"grade":"","findings":[{"id":"crawl_001","title":"Problem","severity":"Critical|High|Medium","detail":"Detail","recommendation":"Action"}],"summary":"One sentence"}`,
 
   'geo-content': (data) => `You are a GEO content expert scoring how well this site's content is structured for AI citation.
@@ -130,6 +138,10 @@ Only report REAL, SPECIFIC problems found on THIS site. Max 2 findings. Each fin
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead Each finding must reference something specific you found — not a generic best practice. If the site is doing well on this dimension, return an empty findings array and a high score.
 Return ONLY valid JSON: {"dimension":"geo-content","score":0,"grade":"","findings":[{"id":"content_001","title":"Problem","severity":"Critical|High|Medium","detail":"Detail","recommendation":"Action"}],"summary":"One sentence"}`,
 
@@ -140,6 +152,10 @@ Schema types found: ${JSON.stringify(data.schema_types)}
 FAQPage: ${data.has_faq_schema} | SoftwareApp: ${data.has_software_schema} | Organization: ${data.has_org_schema} | sameAs: ${data.has_same_as}
 SCORING: 85-100 FAQPage+SoftwareApp+Org+sameAs | 65-84 Org+sameAs | 45-64 basic | 25-44 minimal | 0-24 none
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 Return ONLY valid JSON: {"dimension":"geo-schema","score":0,"grade":"","findings":[{"id":"schema_001","title":"Missing X","severity":"Critical|High|Medium","detail":"Impact","recommendation":"Action"}],"summary":"One sentence"}`,
 
   'geo-authority': (data) => `You are a GEO authority expert scoring how credible AI engines perceive this brand.
@@ -148,6 +164,10 @@ ${data.fetch_note}
 Content: ${data.text_content.slice(0, 800) || 'Use training knowledge'}
 SCORING: 85-100 analyst recognition, G2, Wikipedia, certs | 65-84 known brand, some recognition | 45-64 growing, review presence | 25-44 limited signals | 0-24 unknown
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 Return ONLY valid JSON: {"dimension":"geo-authority","score":0,"grade":"","findings":[{"id":"authority_001","title":"Missing X","severity":"High|Medium","detail":"Gap","recommendation":"Action"}],"summary":"One sentence"}`,
 
   'geo-competitive': (data) => `You are a GEO competitive positioning expert.
@@ -157,6 +177,10 @@ Content: ${data.text_content.slice(0, 1200)}
 Headings: ${data.headings}
 SCORING: 85-100 comparison pages, vertical pages, problem-led | 65-84 good category positioning | 45-64 basic | 25-44 generic | 0-24 extremely vague
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
+- NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER invent specific numbers or percentages not explicitly present in the content provided
+- NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
+- If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 Return ONLY valid JSON: {"dimension":"geo-competitive","score":0,"grade":"","findings":[{"id":"competitive_001","title":"Missing X","severity":"Critical|High|Medium","detail":"Gap","recommendation":"Page to create"}],"summary":"One sentence"}`,
 }
 
