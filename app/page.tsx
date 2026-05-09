@@ -20,26 +20,41 @@ const FEATURES = [
   { icon: TrendingUp, title: "Competitor comparison", body: "See exactly what competitors are doing that you're not — and close the gap." },
 ]
 
-function RadarMascot() {
+function RadarMascot({ size = 72 }: { size?: number }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-      <svg width="72" height="72" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
+      <svg width={size} height={size} viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite", overflow: "visible" }}>
+        {/* Hair back */}
+        <ellipse cx="24" cy="18" rx="10" ry="7" fill="#1a1a2e"/>
+        <ellipse cx="32" cy="18" rx="10" ry="7" fill="#1a1a2e"/>
+        {/* Hair side curls */}
+        <path d="M14 22 Q10 17 14 13 Q18 9 16 17" fill="#1a1a2e"/>
+        <path d="M42 22 Q46 17 42 13 Q38 9 40 17" fill="#1a1a2e"/>
+        {/* Pigtails */}
+        <path d="M14 20 Q6 24 9 31 Q12 37 15 31" fill="#1a1a2e"/>
+        <path d="M42 20 Q50 24 47 31 Q44 37 41 31" fill="#1a1a2e"/>
+        {/* Robot body */}
         <rect x="12" y="22" width="32" height="28" rx="8" fill="#f0f4ff" stroke="#3B5BDB" strokeWidth="1.5"/>
-        <circle cx="21" cy="33" r="4" fill="white"/>
-        <circle cx="35" cy="33" r="4" fill="white"/>
-        <circle cx="21" cy="33" r="2" fill="#3B5BDB"/>
-        <circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
-        <path d="M22 41 Q28 46 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="28" y1="22" x2="28" y2="12" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-        <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke="#3B5BDB" strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
+        {/* Cheek blush */}
+        <ellipse cx="18" cy="35" rx="3.5" ry="2" fill="#FFB3C6" opacity="0.6"/>
+        <ellipse cx="38" cy="35" rx="3.5" ry="2" fill="#FFB3C6" opacity="0.6"/>
+        {/* Eyes */}
+        <circle cx="22" cy="31" r="4" fill="white"/>
+        <circle cx="34" cy="31" r="4" fill="white"/>
+        <circle cx="22" cy="31" r="2.2" fill="#3B5BDB"/>
+        <circle cx="34" cy="31" r="2.2" fill="#3B5BDB"/>
+        {/* Eye shine */}
+        <circle cx="23" cy="30" r="0.9" fill="white"/>
+        <circle cx="35" cy="30" r="0.9" fill="white"/>
+        {/* Smile */}
+        <path d="M21 39 Q28 44 35 39" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
+        {/* Antenna */}
+        <line x1="28" y1="22" x2="28" y2="14" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="28" cy="12" r="2.5" fill="#3B5BDB"/>
+        {/* Arms */}
         <rect x="4" y="28" width="8" height="4" rx="2" fill="#f0f4ff" stroke="#3B5BDB" strokeWidth="1"/>
         <rect x="44" y="28" width="8" height="4" rx="2" fill="#f0f4ff" stroke="#3B5BDB" strokeWidth="1"/>
-        <rect x="18" y="37" width="20" height="8" rx="3" fill="rgba(59,91,219,0.1)" stroke="#3B5BDB" strokeWidth="0.5"/>
-        <text x="28" y="43.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#3B5BDB" fontFamily="monospace">GEO</text>
       </svg>
-      <div style={{ background: "#f0f4ff", border: "1px solid #c5d0f5", borderRadius: "12px 12px 12px 0", padding: "8px 14px", fontSize: 12, color: "#3B5BDB", fontWeight: 500, whiteSpace: "nowrap" }}>
-        Hi! I'll scan your AI visibility 📡
-      </div>
       <style>{`
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
@@ -182,20 +197,16 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
-          <svg width="180" height="180" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
-            <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
-            <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
-            <circle cx="21" cy="33" r="2" fill="#3B5BDB"/><circle cx="35" cy="33" r="2" fill="#3B5BDB"/>
-            <path d="M22 41 Q28 46 34 41" fill="none" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-            <line x1="28" y1="22" x2="28" y2="12" stroke="#3B5BDB" strokeWidth="1.5" strokeLinecap="round"/>
-            <ellipse cx="28" cy="10" rx="7" ry="4" fill="none" stroke="#3B5BDB" strokeWidth="1.5" style={{ transformOrigin: "28px 10px", animation: "spin 3s linear infinite" }}/>
-            <rect x="4" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-            <rect x="44" y="28" width="8" height="4" rx="2" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1"/>
-          </svg>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, position: "relative" }}>
           <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
+          {/* Mascot peeking from bottom-right of dashboard */}
+          {/* Mascot + dashboard side by side */}
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 16, width: "100%" }}>
+            <div style={{ flexShrink: 0, marginBottom: 8 }}>
+              <RadarMascot size={90} />
+            </div>
           {/* Dark dashboard mockup */}
-          <div style={{ background: "#0f1117", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", width: "100%" }}>
+          <div style={{ background: "#0f1117", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", flex: 1 }}>
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div>
@@ -240,6 +251,7 @@ export default function LandingPage() {
               <p style={{ fontSize: 11, fontWeight: 600, color: "#f0eff8", margin: "4px 0 2px" }}>Add FAQPage schema</p>
               <p style={{ fontSize: 10, color: "#5e5c78", margin: 0 }}>Copy-paste fix ready to implement</p>
             </div>
+          </div>
           </div>
         </div>
       </section>
