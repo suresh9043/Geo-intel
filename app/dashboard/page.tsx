@@ -294,7 +294,7 @@ export default function DashboardV2() {
       description: data.description || "",
       geography: data.icp_description || "Worldwide",
       vertical: data.industry || "SaaS",
-      competitors: (data.competitors || []).map((name: string) => ({ name, url: "" })),
+      competitors: (data.competitors || []).map((c: any) => ({ name: c.name || c, url: c.url || "" })),
       prompts: (data.prompts || []).map((p: any) => p.text),
       selectedModels: (data.trackedModels || []).map((m: any) => m.model_slug),
     })

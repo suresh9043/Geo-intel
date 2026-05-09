@@ -28,7 +28,7 @@ export async function getCompanyWithDetails(companyId: string) {
 
   return {
     ...company,
-    competitors: competitorsRes.data?.map(c => c.name) || [],
+    competitors: competitorsRes.data?.map(c => ({ name: c.name, url: c.url || "" })) || [],
     prompts: promptsRes.data || [],
     trackedModels: modelsRes.data || [],
   }
