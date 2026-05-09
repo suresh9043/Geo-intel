@@ -576,7 +576,8 @@ export default function GeoAuditV2() {
             </div>
           )}
 
-          </>}
+          </>
+          )}
 
           {/* Content Analysis Tab */}
           {activeTab === "Content Analysis" && (
