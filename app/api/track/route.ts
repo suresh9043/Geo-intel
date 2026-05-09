@@ -8,7 +8,7 @@ const MODEL_SLUGS: Record<string, string> = {
   'Claude Opus 4.6': 'anthropic/claude-opus-4.6-fast',
   'Claude Haiku 4.5': 'anthropic/claude-haiku-4.5',
   'Sonar': 'perplexity/sonar',
-  'Gemini 3 Flash': 'google/gemini-flash-latest',
+  'Gemini 3 Flash': 'google/gemini-2.0-flash-001',
 }
 
 function getServiceClient() {
@@ -17,6 +17,9 @@ function getServiceClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
+
+// Models that support OpenRouter's web search plugin
+const WEB_PLUGIN_MODELS = ['perplexity/sonar', 'openai/gpt-5.3-chat', 'openai/gpt-5.5', 'anthropic/claude-sonnet-4.6', 'anthropic/claude-opus-4.6-fast', 'anthropic/claude-haiku-4.5']
 
 async function queryOpenRouter(prompt: string, modelSlug: string) {
   const apiKey = process.env.OPENROUTER_API_KEY
@@ -38,7 +41,7 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
       body: JSON.stringify({
         model: modelSlug,
         messages: [{ role: 'user', content: prompt }],
-        plugins: [{ id: 'web', max_results: 5 }],
+        ...(WEB_PLUGIN_MODELS.includes(modelSlug) ? { plugins: [{ id: 'web', max_results: 5 }] } : {}),
       }),
       signal: controller.signal,
     })
