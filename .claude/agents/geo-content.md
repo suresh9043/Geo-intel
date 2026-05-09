@@ -25,14 +25,14 @@ The most important GEO signal: does the company clearly define what it is?
 AI engines need to understand: "[Company] is a [category] platform that [does what] for [who]."
 
 Check the homepage H1, opening paragraph, and meta description:
-- Is the company's category clearly stated? (e.g. "intelligent automation platform" not just "the future of work")
+- Is the company's category clearly stated? (e.g. "low-code automation platform" or "AI-powered CRM" not just "the future of work")
 - Is the primary use case clear?
 - Is the target customer stated?
 - Is there a single clear sentence that an AI engine could use to describe this company?
 
 **Red flags:**
 - Vague taglines ("Reimagining what's possible")
-- Category avoidance ("We're more than just RPA")
+- Category avoidance ("We're more than just [category]") — AI engines need clear category signals
 - Buzzword stacking without clear definition ("AI-powered digital transformation solution")
 
 ### 2. Heading hierarchy assessment
@@ -56,7 +56,7 @@ FAQPage schema makes content 3.2× more likely to appear in AI Overviews. Check:
 Fetch these pages if not in `page_data` already:
 - `/faq` or `/faqs`
 - `/platform` or `/product`
-- `/solutions/[first-listed-industry]` (e.g. `/solutions/banking`)
+- `/solutions/[first-listed-industry]` (e.g. `/solutions/[industry-they-serve]`)
 - `/blog` (check recency of posts)
 
 ### 5. Statistics and data points
@@ -81,10 +81,10 @@ AI engines weight recent content more highly. Check:
 - When were recent blog posts published? (Fetch `/blog` index)
 - Is there any content dated within the last 6 months?
 
-### 7. Use case depth — enterprise automation specific
+### 7. Use case depth — industry specific
 
-For enterprise automation and AI platform companies, AI engines often cite companies for specific industry use cases. Check:
-- Does the site have dedicated pages for each industry? (banking, insurance, healthcare, manufacturing)
+For B2B software companies, AI engines often cite companies for specific industry use cases. Check:
+- Does the site have dedicated pages for the industries they serve? (infer from homepage and about page)
 - Are use case pages specific (named use cases, named processes) or generic ("transform your industry")?
 - Are there customer stories or case studies accessible without gating?
 
@@ -137,10 +137,10 @@ Return a structured JSON object:
   "data_points_count": 0,
   "content_freshness": "recent|stale|no_signals",
   "industry_pages": {
-    "banking": "specific|generic|absent",
-    "insurance": "specific|generic|absent",
+    "[industry_1]": "specific|generic|absent",
+    "[industry_2]": "specific|generic|absent",
     "healthcare": "specific|generic|absent",
-    "manufacturing": "specific|generic|absent"
+    "[industry_3]": "specific|generic|absent"
   },
   "summary": ""
 }
@@ -151,7 +151,7 @@ Apply the scoring system from `skills/geo-audit/scoring.md`.
 ## Gotchas
 
 - Don't penalise a site for gated case studies — enterprise companies legitimately gate detailed ROI content. Note it as an opportunity to surface more content publicly.
-- Generic industry pages ("We serve banking clients") score low. Specific pages ("Automate KYC in banking — our clients reduce onboarding from 15 days to 2") score high.
+- Generic industry pages ("We serve [industry] clients") score low. Specific pages with named use cases and measurable outcomes score high.
 - Vague but nice-sounding taglines are a very common enterprise software problem. Flag firmly but diplomatically.
 - Some companies put their best content in PDFs — AI engines cannot cite PDF content as effectively as HTML. Note this if you find important content only available as downloads.
 - Blog content from 2022 is a negative signal even if it's high quality — recency matters significantly for AI engine ranking.

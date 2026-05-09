@@ -26,7 +26,7 @@ Also check for Microdata (`itemscope`, `itemtype`, `itemprop` attributes in HTML
 
 ### 2. Assess each critical schema type
 
-For enterprise automation and AI platform companies, these schema types matter most:
+For B2B software companies, these schema types matter most:
 
 #### SoftwareApplication (highest priority)
 - **Should be on:** homepage, product/platform pages
@@ -56,7 +56,7 @@ Check if present, which fields are populated, and quality of the `description` f
 
 #### HowTo
 - **Should be on:** implementation guides, use case tutorial pages, getting-started content
-- **For enterprise automation:** "How to automate [process]" pages are high-value GEO targets
+- **For B2B software:** "How to [solve problem with product]" pages are high-value GEO targets
 - Check for presence on any guide/tutorial pages
 
 #### Article / BlogPosting
