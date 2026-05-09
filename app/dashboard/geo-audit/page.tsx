@@ -779,7 +779,7 @@ export default function GeoAuditV2() {
                   {/* Hero text */}
                   <div className="text-center py-4">
                     <h2 className="text-xl font-bold text-slate-900 mb-2">Why isn't this page being cited by AI?</h2>
-                    <p className="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">Paste any blog post, case study, whitepaper or FAQ page URL. Get a citation score, exact gaps, and copy-paste fixes in under 30 seconds.</p>
+                    <p className="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">Enter any blog post, case study, whitepaper or FAQ page URL. Get a citation score, exact gaps, and fixes in under 30 seconds.</p>
                   </div>
 
                   {/* What you get cards */}
