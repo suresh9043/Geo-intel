@@ -19,7 +19,7 @@ You receive:
 
 ## Key principle
 
-AI engines cite sources that have relevant, authoritative content about the query topic. If a company doesn't have a page specifically addressing "automation platforms for banking compliance" — they won't be cited when someone asks that question.
+AI engines cite sources that have relevant, authoritative content about the query topic. If a company doesn't have a page specifically addressing their target industry use cases — they won't be cited when someone asks that question.
 
 Your job is to find the query coverage gaps.
 
@@ -42,7 +42,7 @@ For each of the 10 selected queries, determine if the target site has content th
 
 a) **Dedicated page:** Does a page exist specifically targeting this query or topic?
    - Fetch the site's sitemap or navigate likely URL patterns to check
-   - e.g. for "automation for banking" → check `/solutions/banking`, `/industries/banking`, `/use-cases/banking`
+   - e.g. for "[product] for [industry]" → check `/solutions/[industry]`, `/industries/[industry]`, `/use-cases/[industry]`
 
 b) **Content depth:** If the page exists, is it substantive?
    - 500+ words: Good
@@ -75,7 +75,7 @@ For each main competitor, check if the target company has:
 For enterprise automation platforms, buyers often ask industry-specific questions. Check coverage for the company's stated primary industries:
 
 For each industry the company claims to serve, assess:
-- Is there a dedicated industry page? (`/solutions/banking`, `/industries/insurance`)
+- Is there a dedicated industry page? (e.g. `/solutions/[industry]`, `/industries/[industry]`)
 - Does it mention specific regulatory frameworks? (e.g. Basel III, HIPAA, Solvency II)
 - Does it include at least one named customer in that industry?
 - Does it address specific process automation use cases for that industry?
@@ -141,10 +141,9 @@ Return a structured JSON object:
     "missing_competitors": [""]
   },
   "industry_coverage": {
-    "banking": "deep|specific|generic|absent",
-    "insurance": "deep|specific|generic|absent",
-    "healthcare": "deep|specific|generic|absent",
-    "manufacturing": "deep|specific|generic|absent"
+    "[industry_1_they_serve]": "deep|specific|generic|absent",
+    "[industry_2_they_serve]": "deep|specific|generic|absent",
+    "[industry_3_they_serve]": "deep|specific|generic|absent"
   },
   "findings": [
     {
@@ -176,7 +175,7 @@ Apply the scoring system from `skills/geo-audit/scoring.md`.
 
 - You cannot actually test what AI engines say about a company in real-time — you are assessing content coverage as a proxy. Be clear about this: your findings are based on content analysis, not live AI query testing.
 - Some companies hide their best content behind gated resources (case study PDFs, whitepapers). Note these as opportunities to create ungated HTML equivalents.
-- "Generic" industry pages are very common in enterprise software — a page that says "We serve the banking industry" with a stock photo of a bank is not GEO-relevant. Specific named use cases are required.
+- "Generic" industry pages are very common in B2B software — a page that says "We serve [industry]" with a stock photo is not GEO-relevant. Specific named use cases with measurable outcomes are required.
 - Comparison pages are a controversial content strategy for some marketing teams ("we don't want to name competitors"). Note the GEO value but acknowledge the business decision.
 - Don't penalise a company for not having content in industries they don't serve. Only assess coverage for industries they claim to target.
 - Content that exists only in a slide deck or whitepaper PDF is essentially invisible to AI engines — HTML equivalents are needed.
