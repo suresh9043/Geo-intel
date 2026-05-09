@@ -252,10 +252,11 @@ function synthesise(url: string, results: Record<string, any>, hasLlmsTxt: boole
   const crawlResult = results['geo-crawl']
   if (crawlResult && hasLlmsTxt === false) {
     if (!crawlResult.findings) crawlResult.findings = []
-    const alreadyHasLlms = crawlResult.findings.some((f: any) =>
-      f.title?.toLowerCase().includes('llms')
+    // Remove any AI-generated llms findings (they're often wrong) and replace with ours
+    crawlResult.findings = crawlResult.findings.filter((f: any) =>
+      !f.title?.toLowerCase().includes('llms')
     )
-    if (!alreadyHasLlms) {
+    {
       crawlResult.findings.push({
         id: 'crawl_llms',
         title: 'llms.txt file not found',
