@@ -383,19 +383,29 @@ export async function getPromptModelBreakdown(companyId: string, promptId: strin
 
   if (!responses?.length) return []
 
-  // Keep latest response per model
-  const byModel = new Map<string, any>()
+  // Group all responses by model
+  const byModel = new Map<string, any[]>()
   for (const r of responses) {
-    if (!byModel.has(r.requested_model)) byModel.set(r.requested_model, r)
+    if (!byModel.has(r.requested_model)) byModel.set(r.requested_model, [])
+    byModel.get(r.requested_model)!.push(r)
   }
 
-  return Array.from(byModel.values()).map(r => {
-    const pos = r.positions_json?.[companyName]
+  return Array.from(byModel.entries()).map(([model, rows]) => {
+    const total = rows.length
+    const mentionedRows = rows.filter(r => {
+      const pos = r.positions_json?.[companyName]
+      return pos !== null && pos !== undefined
+    })
+    const mentionCount = mentionedRows.length
+
+    // Position from latest response
+    const latest = rows[0]
+    const pos = latest.positions_json?.[companyName]
     const position = (typeof pos === 'number' && pos > 0) ? pos : null
     const isHM = pos === -1
-    const isMentioned = pos !== null && pos !== undefined
-    const preview = r.response_text?.split('\n').find((l: string) => l.trim().length > 20)?.slice(0, 120) || ''
-    return { model: r.requested_model, position, isHM, isMentioned, preview, responseText: r.response_text, id: r.id }
+    const preview = latest.response_text?.split('\n').find((l: string) => l.trim().length > 20)?.slice(0, 120) || ''
+
+    return { model, total, mentionCount, position, isHM, preview, responseText: latest.response_text, id: latest.id }
   })
 }
 

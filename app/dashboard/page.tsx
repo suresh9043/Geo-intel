@@ -512,7 +512,7 @@ export default function DashboardV2() {
                                             <table className="w-full text-left">
                                               <thead>
                                                 <tr className="border-b border-slate-100">
-                                                  {["Model", "Status", "Position", "Response Preview"].map(h => (
+                                                  {["Model", "Status", "Mentions", "Position", "Response Preview"].map(h => (
                                                     <th key={h} className="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">{h}</th>
                                                   ))}
                                                 </tr>
@@ -536,6 +536,9 @@ export default function DashboardV2() {
                                                       </td>
                                                       <td className="px-3 py-2">
                                                         <span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span>
+                                                      </td>
+                                                      <td className="px-3 py-2 text-sm text-slate-500">
+                                                        <span className="font-semibold text-slate-700">{m.mentionCount}</span>/{m.total}
                                                       </td>
                                                       <td className="px-3 py-2 text-sm font-semibold text-slate-600">{posLabel}</td>
                                                       <td className="px-3 py-2 text-xs text-slate-400 max-w-sm truncate">{m.preview || "—"}</td>
