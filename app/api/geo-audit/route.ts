@@ -118,10 +118,16 @@ llms.txt: ${data.has_llms_txt} | Sitemap: ${data.has_sitemap}
 SCORING: 85-100 clean robots, AI bots allowed, sitemap, llms.txt | 65-84 most bots allowed | 45-64 some blocked | 25-44 multiple blocked | 0-24 all blocked
 Only report ACTUAL problems. Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
@@ -136,10 +142,16 @@ Content: ${data.text_content.slice(0, 2000) || 'Not available'}
 SCORING: 85-100 clear entity, FAQ, specific value props | 65-84 good structure | 45-64 basic but generic | 25-44 vague | 0-24 minimal
 Only report REAL, SPECIFIC problems found on THIS site. Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead Each finding must reference something specific you found — not a generic best practice. If the site is doing well on this dimension, return an empty findings array and a high score.
@@ -153,6 +165,9 @@ FAQPage: ${data.has_faq_schema} | SoftwareApp: ${data.has_software_schema} | Org
 SCORING: 85-100 FAQPage+SoftwareApp+Org+sameAs | 65-84 Org+sameAs | 45-64 basic | 25-44 minimal | 0-24 none
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
@@ -165,6 +180,9 @@ Content: ${data.text_content.slice(0, 800) || 'Use training knowledge'}
 SCORING: 85-100 analyst recognition, G2, Wikipedia, certs | 65-84 known brand, some recognition | 45-64 growing, review presence | 25-44 limited signals | 0-24 unknown
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
@@ -178,6 +196,9 @@ Headings: ${data.headings}
 SCORING: 85-100 comparison pages, vertical pages, problem-led | 65-84 good category positioning | 45-64 basic | 25-44 generic | 0-24 extremely vague
 Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
+- NEVER conclude that visual elements are absent just because they are not in the crawled HTML — customer logos, testimonials, carousels, ratings, and trust badges are frequently loaded via JavaScript and will not appear in raw HTML
+- If something is not found in crawled content, phrase it as "not detected in crawled HTML — may be JavaScript-rendered" NOT "does not exist" or "is absent"
+- Only flag something as definitively missing if it is a text-based element that would always appear in raw HTML (e.g. meta tags, schema markup, heading text)
 - NEVER invent specific numbers or percentages not explicitly present in the content provided
 - NEVER reference specific company names, customer names, or case studies unless they appear word-for-word in the content provided
 - If you are not 100% certain a specific observation is accurate, state it as a general pattern instead
