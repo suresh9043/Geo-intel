@@ -21,8 +21,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
-- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- MASTER RULE: For ANY value you cannot read directly from the page content provided — use a placeholder. Never guess, infer, or invent any value
+- This applies to: URLs, phone numbers, version numbers, ratings, counts, dates, prices, and statistics
+- Specific placeholders: social URLs → ADD_YOUR_LINKEDIN_URL / ADD_YOUR_TWITTER_URL / ADD_YOUR_YOUTUBE_URL / ADD_YOUR_FACEBOOK_URL | logo → ADD_YOUR_LOGO_URL | image → ADD_YOUR_PRODUCT_IMAGE_URL | phone → +1-ADD-YOUR-PHONE | release notes → ADD_YOUR_RELEASE_NOTES_URL | download/install → ADD_YOUR_DOWNLOAD_URL | version → ADD_YOUR_CURRENT_VERSION | ratings → ADD_YOUR_RATING / ADD_YOUR_REVIEW_COUNT | any other unverifiable URL → ADD_YOUR_[DESCRIPTION]_URL
 - For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
@@ -36,8 +37,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
-- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- MASTER RULE: For ANY value you cannot read directly from the page content provided — use a placeholder. Never guess, infer, or invent any value
+- This applies to: URLs, phone numbers, version numbers, ratings, counts, dates, prices, and statistics
+- Specific placeholders: social URLs → ADD_YOUR_LINKEDIN_URL / ADD_YOUR_TWITTER_URL / ADD_YOUR_YOUTUBE_URL / ADD_YOUR_FACEBOOK_URL | logo → ADD_YOUR_LOGO_URL | image → ADD_YOUR_PRODUCT_IMAGE_URL | phone → +1-ADD-YOUR-PHONE | release notes → ADD_YOUR_RELEASE_NOTES_URL | download/install → ADD_YOUR_DOWNLOAD_URL | version → ADD_YOUR_CURRENT_VERSION | ratings → ADD_YOUR_RATING / ADD_YOUR_REVIEW_COUNT | any other unverifiable URL → ADD_YOUR_[DESCRIPTION]_URL
 - For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
@@ -51,8 +53,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
-- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- MASTER RULE: For ANY value you cannot read directly from the page content provided — use a placeholder. Never guess, infer, or invent any value
+- This applies to: URLs, phone numbers, version numbers, ratings, counts, dates, prices, and statistics
+- Specific placeholders: social URLs → ADD_YOUR_LINKEDIN_URL / ADD_YOUR_TWITTER_URL / ADD_YOUR_YOUTUBE_URL / ADD_YOUR_FACEBOOK_URL | logo → ADD_YOUR_LOGO_URL | image → ADD_YOUR_PRODUCT_IMAGE_URL | phone → +1-ADD-YOUR-PHONE | release notes → ADD_YOUR_RELEASE_NOTES_URL | download/install → ADD_YOUR_DOWNLOAD_URL | version → ADD_YOUR_CURRENT_VERSION | ratings → ADD_YOUR_RATING / ADD_YOUR_REVIEW_COUNT | any other unverifiable URL → ADD_YOUR_[DESCRIPTION]_URL
 - For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
@@ -124,8 +127,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
-- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- MASTER RULE: For ANY value you cannot read directly from the page content provided — use a placeholder. Never guess, infer, or invent any value
+- This applies to: URLs, phone numbers, version numbers, ratings, counts, dates, prices, and statistics
+- Specific placeholders: social URLs → ADD_YOUR_LINKEDIN_URL / ADD_YOUR_TWITTER_URL / ADD_YOUR_YOUTUBE_URL / ADD_YOUR_FACEBOOK_URL | logo → ADD_YOUR_LOGO_URL | image → ADD_YOUR_PRODUCT_IMAGE_URL | phone → +1-ADD-YOUR-PHONE | release notes → ADD_YOUR_RELEASE_NOTES_URL | download/install → ADD_YOUR_DOWNLOAD_URL | version → ADD_YOUR_CURRENT_VERSION | ratings → ADD_YOUR_RATING / ADD_YOUR_REVIEW_COUNT | any other unverifiable URL → ADD_YOUR_[DESCRIPTION]_URL
 - For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
