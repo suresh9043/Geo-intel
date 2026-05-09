@@ -58,10 +58,13 @@ export async function POST(req: NextRequest) {
     // Detect JS-rendered pages — content looks like nav menus not article body
     const looksLikeNav = (text: string) => {
       const navKeywords = ["skip to main", "cookie policy", "privacy policy", "terms of service", "all rights reserved", "© 20"]
+      const articleKeywords = ["introduction", "in this article", "in summary", "conclusion", "however", "therefore", "for example", "according to", "research shows", "in conclusion", "as a result", "furthermore"]
       const lowerText = text.toLowerCase()
       const navCount = navKeywords.filter(k => lowerText.includes(k)).length
+      const articleCount = articleKeywords.filter(k => lowerText.includes(k)).length
       const wordCount = text.split(/\s+/).length
-      return wordCount < 300 || navCount >= 2
+      // Flag as nav if: short content, OR has nav keywords but no article structure
+      return wordCount < 300 || navCount >= 2 || (wordCount < 800 && articleCount === 0)
     }
 
     if (looksLikeNav(pageContent)) {
