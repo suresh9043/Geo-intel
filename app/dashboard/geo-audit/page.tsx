@@ -543,7 +543,7 @@ export default function GeoAuditV2() {
               </div>
 
               {/* Terminal mockup */}
-              <div className="rounded-xl overflow-hidden" style={{ background: "#0d1117", border: "1px solid #30363d" }}>
+              <div className="rounded-xl overflow-hidden mx-auto" style={{ background: "#0d1117", border: "1px solid #30363d", maxWidth: 640 }}>
                 {/* Terminal header */}
                 <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}>
                   <div className="flex gap-1.5">
@@ -554,7 +554,7 @@ export default function GeoAuditV2() {
                   <span className="text-xs font-mono ml-2" style={{ color: "#8b949e" }}>terminal — geo-audit-log</span>
                 </div>
                 {/* Terminal body */}
-                <div className="p-4 font-mono text-xs space-y-2" style={{ minHeight: 200 }}>
+                <div className="p-4 font-mono text-xs space-y-2" style={{ minHeight: 280 }}>
                   {[
                     { time: "10:42:12", type: "INFO", color: "#3fb950", msg: "Starting GEO Audit sequence..." },
                     { time: "10:42:13", type: "INFO", color: "#3fb950", msg: "Fetching page content and robots.txt..." },
@@ -585,7 +585,7 @@ export default function GeoAuditV2() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-center text-slate-400">↑ Example preview — enter a domain above and click Analyse to see your real results</p>
+              <p className="text-xs text-center text-slate-400">This is how your audit will run — enter a domain above to see your real results</p>
             </div>
           )}
 
