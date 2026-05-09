@@ -1,6 +1,6 @@
 ---
 name: geo-authority
-description: Analyses a company's authority signals that influence whether AI engines cite them as a trusted source. Checks G2 and Gartner presence, analyst recognition, Wikipedia entity status, press coverage, compliance certifications, LinkedIn presence, and third-party validation. Calibrated for enterprise automation and AI platform companies. Use when the geo-audit orchestrator delegates authority analysis. Runs as a subagent with isolated context.
+description: Analyses a company's authority signals that influence whether AI engines cite them as a trusted source. Checks G2 and Gartner presence, analyst recognition, Wikipedia entity status, press coverage, compliance certifications, LinkedIn presence, and third-party validation. Calibrated for B2B software companies. Use when the geo-audit orchestrator delegates authority analysis. Runs as a subagent with isolated context.
 allowed-tools: WebFetch, Bash
 ---
 
@@ -46,7 +46,7 @@ From `page_data` and any additional pages fetched, assess:
 - Is the Gartner recognition recent (last 2 years)?
 - Is the Gartner recognition displayed prominently or buried?
 
-Gartner Magic Quadrant Leader status is one of the strongest trust signals for enterprise automation buyers — and AI engines have absorbed this in their training.
+Gartner Magic Quadrant Leader status is one of the strongest trust signals for enterprise B2B buyers — and AI engines have absorbed this in their training.
 
 ### 4. Forrester presence check
 
@@ -64,7 +64,7 @@ Assess:
 - Is it a stub (very short) or substantive?
 - Does it accurately describe the company's category?
 
-Wikipedia presence is a strong entity disambiguation signal — AI engines use it to confirm a company is a real, established entity. Many mid-market enterprise automation vendors lack Wikipedia articles entirely.
+Wikipedia presence is a strong entity disambiguation signal — AI engines use it to confirm a company is a real, established entity. Many mid-market B2B software vendors lack Wikipedia articles entirely.
 
 ### 6. LinkedIn presence check
 
@@ -83,14 +83,14 @@ From `page_data`, assess:
 
 If a press page or news section exists, fetch it and check recency and publication quality.
 
-**Publication tier for enterprise automation:**
+**Publication tier for B2B software:**
 - Tier 1: Forbes, WSJ, Financial Times, TechCrunch, Wired
 - Tier 2: VentureBeat, InfoWorld, CIO, ZDNet, Computerworld
 - Tier 3: Industry-specific publications (Banking Technology, Insurance Journal)
 
-### 8. Compliance certification signals — enterprise automation specific
+### 8. Compliance certification signals
 
-For enterprise automation platforms targeting regulated industries, compliance certifications are powerful GEO signals. When buyers ask AI "which automation platform is SOC 2 certified", the answer must come from this structured content.
+For B2B software platforms targeting regulated industries, compliance certifications are powerful GEO signals. When buyers ask AI "which platform is SOC 2 certified", the answer must come from this structured content.
 
 Check which certifications are mentioned and how prominently:
 - SOC 2 Type II
@@ -107,7 +107,7 @@ Are these mentioned on easily crawlable pages, or buried in PDFs?
 ### 9. Community and organic mentions
 
 Check for:
-- Reddit community mentions (the company's name appearing in `/r/rpa`, `/r/automation`, `/r/businessintelligence`)
+- Reddit community mentions (the company's name appearing in relevant subreddits for their category)
 - Stack Overflow or technical community presence
 - Analyst community blogs (not just Gartner/Forrester)
 
@@ -122,7 +122,7 @@ AI engines often mention companies in the context of their integrations and part
 - How many named technology partners are listed? (SAP, Salesforce, Microsoft, etc.)
 - Does the company appear in partner directories of major platforms?
 
-A company listed as a certified SAP partner is more likely to be cited when someone asks "automation platforms that work with SAP."
+A company listed as a certified partner of major platforms is more likely to be cited for integration-related queries.
 
 ## Your output
 
@@ -176,7 +176,7 @@ Apply the scoring system from `skills/geo-audit/scoring.md`.
 
 ## Gotchas
 
-- Many enterprise automation companies have Gartner recognition but don't display it prominently or structure it in schema. That's a missed GEO opportunity even if the underlying recognition exists.
+- Many B2B software companies have Gartner recognition but don't display it prominently or structure it in schema. That's a missed GEO opportunity even if the underlying recognition exists.
 - Wikipedia absence is surprisingly common among mid-market enterprise software vendors. Note it clearly — creating a Wikipedia article (if the company meets notability criteria) is high-effort but high-impact.
 - Compliance certifications buried in a PDF trust report are invisible to AI engines. The information needs to be in crawlable HTML.
 - Don't fabricate analyst positions. If it's unclear whether a company is in a Gartner Magic Quadrant, say "not confirmed" rather than guessing.
