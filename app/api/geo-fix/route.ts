@@ -21,7 +21,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, or any external URLs
+- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
+- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
 
@@ -34,7 +36,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, or any external URLs
+- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
+- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
 
@@ -47,7 +51,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, or any external URLs
+- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
+- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
 
@@ -60,7 +66,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, or any external URLs
+- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
+- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
 
@@ -73,7 +81,9 @@ RULES:
 - No timeframes (no "weeks", "days", "hours")
 - Code field must be actual copy-paste content (real JSON-LD, real HTML, real text) not a description
 - Instructions must be specific actions, not projects
-- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, or any external URLs
+- NEVER invent or guess social media URLs, YouTube channels, LinkedIn pages, logo URLs, image URLs, or any external URLs
+- For logo, use "ADD_YOUR_LOGO_URL" placeholder — the user knows where their logo is hosted
+- For telephone, use "+1-ADD-YOUR-PHONE" placeholder
 - For sameAs arrays, always use placeholder strings like "ADD_YOUR_LINKEDIN_URL", "ADD_YOUR_TWITTER_URL", "ADD_YOUR_YOUTUBE_URL" — never fabricate real-looking URLs
 - The user must replace placeholders with their own verified URLs
 
