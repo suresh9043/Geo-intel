@@ -284,15 +284,46 @@ export default function GeoAuditV2() {
     })
   }, [user])
 
-  const runAudit = async () => {
+  const [fromCache, setFromCache] = useState(false)
+
+  const runAudit = async (forceRefresh = false) => {
     if (!url.trim()) return
-    setLoading(true); setError(""); setReport(null)
+    setLoading(true); setError(""); setReport(null); setFromCache(false)
+
+    if (!forceRefresh && user) {
+      try {
+        const { supabase } = await import("@/lib/supabase")
+        const { data: hit } = await supabase
+          .from("audit_cache")
+          .select("report, audited_at")
+          .eq("user_id", user.id)
+          .eq("url", url.trim().toLowerCase())
+          .single()
+        if (hit?.report) {
+          setReport(hit.report)
+          setFromCache(true)
+          setLoading(false)
+          return
+        }
+      } catch {}
+    }
+
     try {
       const res = await fetch("/api/geo-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: url.trim(), vertical }) })
       const data = await res.json()
       if (data.report) {
         setReport(data.report)
-        if (user) await saveAnalysisResult(user.id, url.trim(), data.report)
+        if (user) {
+          try {
+            const { supabase } = await import("@/lib/supabase")
+            await supabase.from("audit_cache").upsert({
+              user_id: user.id,
+              url: url.trim().toLowerCase(),
+              report: data.report,
+              audited_at: new Date().toISOString(),
+            }, { onConflict: "user_id,url" })
+          } catch {}
+        }
       } else setError(data.error || "Audit failed")
     } catch { setError("Failed to connect to audit service") }
     setLoading(false)
