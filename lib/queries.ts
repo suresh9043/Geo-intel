@@ -420,6 +420,70 @@ export async function getPromptModelBreakdown(companyId: string, promptId: strin
   })
 }
 
+export async function getCitationStats(companyId: string) {
+  const { data: company } = await supabase
+    .from('companies')
+    .select('name, url')
+    .eq('id', companyId)
+    .single()
+
+  let companyDomain = ''
+  try {
+    const raw = company?.url || ''
+    companyDomain = new URL(raw.startsWith('http') ? raw : `https://${raw}`).hostname.replace('www.', '')
+  } catch {}
+
+  const { data: responses } = await supabase
+    .from('raw_responses')
+    .select('raw_response, response_text, requested_model')
+    .eq('company_id', companyId)
+    .eq('status', 'success')
+    .not('response_text', 'is', null)
+    .limit(500)
+
+  if (!responses?.length) return { domains: [], companyDomain, totalCitations: 0, ownCitations: 0 }
+
+  const domainMap = new Map<string, { count: number; models: Set<string> }>()
+
+  for (const r of responses) {
+    const urls: string[] = []
+    // Perplexity: citations array in raw_response
+    if (Array.isArray(r.raw_response?.citations)) {
+      urls.push(...r.raw_response.citations)
+    } else {
+      // Other models: extract URLs from response text
+      const matches = r.response_text?.match(/https?:\/\/[^\s\)\]>,"']+/g) || []
+      urls.push(...matches)
+    }
+
+    for (const url of urls) {
+      try {
+        const domain = new URL(url).hostname.replace('www.', '')
+        if (!domain || domain.length < 4) continue
+        if (!domainMap.has(domain)) domainMap.set(domain, { count: 0, models: new Set() })
+        const entry = domainMap.get(domain)!
+        entry.count++
+        entry.models.add(r.requested_model)
+      } catch {}
+    }
+  }
+
+  const domains = Array.from(domainMap.entries())
+    .map(([domain, data]) => ({
+      domain,
+      count: data.count,
+      models: Array.from(data.models),
+      isOwn: companyDomain ? (domain.includes(companyDomain) || companyDomain.includes(domain)) : false,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20)
+
+  const totalCitations = Array.from(domainMap.values()).reduce((s, d) => s + d.count, 0)
+  const ownCitations = domains.find(d => d.isOwn)?.count || 0
+
+  return { domains, companyDomain, totalCitations, ownCitations }
+}
+
 export async function saveAnalysisResult(userId: string, url: string, analysis: any) {
   const { supabase } = await import("./supabase")
   await supabase.from("analysis_cache").upsert({
