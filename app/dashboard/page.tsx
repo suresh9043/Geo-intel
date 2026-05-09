@@ -239,7 +239,7 @@ export default function DashboardV2() {
         <div className="p-5 border-b border-[#c4c5d7]/30">
           <div className="flex items-center gap-2.5 mb-5">
             <div className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-white text-sm" style={{ backgroundColor: BRAND }}>G</div>
-            <span className="text-lg font-bold tracking-tight">Geo Intel</span>
+            <span className="text-lg font-bold tracking-tight">CiteIQ</span>
           </div>
           <div className="pt-4 border-t border-[#c4c5d7]/40 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
@@ -289,7 +289,7 @@ export default function DashboardV2() {
             <ul className="space-y-0.5">
               {[
                 { label: "AI Visibility", icon: <Eye className="w-4 h-4" />, href: "/dashboard" },
-                { label: "Geo Audit", icon: <ClipboardList className="w-4 h-4" />, href: "/dashboard/geo-audit" },
+                { label: "GEO Audit", icon: <ClipboardList className="w-4 h-4" />, href: "/dashboard/geo-audit" },
               ].map(item => (
                 <li key={item.label}>
                   <a href={item.href} className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all text-[#434654] hover:text-[#0b1c30] hover:bg-[#002b92]/5">

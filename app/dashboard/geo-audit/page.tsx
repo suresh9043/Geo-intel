@@ -350,7 +350,7 @@ export default function GeoAuditV2() {
         <div className="p-5 border-b border-[#c4c5d7]/30">
           <div className="flex items-center gap-2.5 mb-5">
             <div className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-white text-sm" style={{ backgroundColor: BRAND }}>G</div>
-            <span className="text-lg font-bold tracking-tight">Geo Intel</span>
+            <span className="text-lg font-bold tracking-tight">CiteIQ</span>
           </div>
           <div className="pt-4 border-t border-[#c4c5d7]/40 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
@@ -403,7 +403,7 @@ export default function GeoAuditV2() {
               </li>
               <li>
                 <a href="/dashboard/geo-audit" className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-bold transition-colors" style={{ backgroundColor: "rgba(0,43,146,0.1)", color: BRAND }}>
-                  <ClipboardList className="w-4 h-4" /> Geo Audit
+                  <ClipboardList className="w-4 h-4" /> GEO Audit
                 </a>
               </li>
             </ul>
