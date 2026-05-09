@@ -90,6 +90,8 @@ VERTICAL: ${vertical}
 PAGE CONTENT:
 ${sanitized}
 
+IMPORTANT CONTENT QUALITY CHECK: Before analysing, assess whether the page content above looks like actual article body content (paragraphs, arguments, data points) or mostly navigation menus, product listings, and promotional text. If it looks like navigation/promotional content with no article body: set geo_score to 0, set summary to "This page appears to load its main content via JavaScript - the crawler could only access navigation and promotional elements. For accurate analysis, copy the full article text from your browser and paste it in the text box below.", and set critical_gaps to a single entry with gap "Content not accessible via crawler" and fix "Use the paste option below to analyse this page accurately". If it looks like real article content: analyse normally.
+
 CRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanation before or after. Start your response with { and end with }.
 {
   "page_title": "<detected page title>",
