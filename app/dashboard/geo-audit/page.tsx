@@ -522,11 +522,10 @@ export default function GeoAuditV2() {
           {!report && !loading && (
             <div className="flex flex-col gap-4">
               {/* 3 KPI cards - example */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: "GEO score", value: "—", sub: "Run audit to score", color: BRAND, borderColor: BRAND },
                   { label: "Issues found", value: "—", sub: "Findings will appear here", color: "#dc2626", borderColor: "#dc2626" },
-                  { label: "Crawlability", value: "—", sub: "Bot access status", color: "#059669", borderColor: "#059669" },
                 ].map((k, i) => (
                   <div key={i} className="rounded-xl bg-white border border-slate-100 p-4 opacity-30" style={{ borderTop: `3px solid ${k.borderColor}` }}>
                     <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">{k.label}</p>
@@ -606,7 +605,7 @@ export default function GeoAuditV2() {
           {report && !loading && (
             <div className="flex flex-col gap-4">
               {/* 3 KPI cards */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-white border border-slate-200 p-4" style={{ borderTop: `3px solid ${BRAND}` }}>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">GEO score</p>
                   <p className="text-4xl font-bold leading-none" style={{ color: ss?.color || BRAND }}>{report.composite_score}</p>
@@ -616,11 +615,6 @@ export default function GeoAuditV2() {
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Issues found</p>
                   <p className="text-4xl font-bold text-slate-900 leading-none">{allFindings.length}</p>
                   <p className="text-sm font-semibold text-red-500 mt-2">{report.critical_findings?.length || 0} critical · {report.high_findings?.length || 0} high</p>
-                </div>
-                <div className="rounded-xl bg-white border border-slate-200 p-4" style={{ borderTop: "3px solid #059669" }}>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Crawlability</p>
-                  <p className="text-4xl font-bold text-slate-900 leading-none">{report.dimension_scores?.["geo-crawl"]?.score ?? "—"}</p>
-                  <p className="text-sm font-semibold text-emerald-600 mt-2">{(report.dimension_scores?.["geo-crawl"]?.score ?? 0) >= 80 ? "AI bots allowed" : "Check bot access"}</p>
                 </div>
               </div>
 
