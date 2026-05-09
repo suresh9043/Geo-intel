@@ -371,10 +371,10 @@ export default function LandingPage() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 14, padding: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Free</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Starter</div>
             <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#111827", marginBottom: 4 }}>$0</div>
             <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 18 }}>forever</div>
-            {["3 audits per month", "Basic visibility report", "Fix generator (3 uses)", "1 competitor tracked"].map(f => (
+            {["1 audit per month", "Basic visibility report", "View findings only", "1 competitor tracked"].map(f => (
               <div key={f} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 7 }}>
                 <Check size={12} color="#10b981" />
                 <span style={{ fontSize: 13, color: "#6b7280" }}>{f}</span>
@@ -385,8 +385,8 @@ export default function LandingPage() {
           <div style={{ background: "#eef1fd", border: "1px solid #c5d0f5", borderRadius: 14, padding: 24, position: "relative" }}>
             <div style={{ position: "absolute", top: -10, right: 14, padding: "2px 10px", borderRadius: 20, background: "#3B5BDB", color: "white", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Beta pricing</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#3B5BDB", marginBottom: 8 }}>Pro</div>
-            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#111827", marginBottom: 4 }}>$15</div>
-            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 18 }}>per month · price goes up at launch</div>
+            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#111827", marginBottom: 4 }}>$20</div>
+            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 18 }}>per month · beta price, goes up at launch</div>
             {["Unlimited audits", "All 4 AI engines", "Full fix generator", "5 competitors tracked", "AI prompt research", "Daily re-scans"].map(f => (
               <div key={f} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 7 }}>
                 <Check size={12} color="#3B5BDB" />
