@@ -236,7 +236,16 @@ function synthesise(url: string, results: Record<string, any>, hasLlmsTxt: boole
   }
   let composite = 0
   const dimensionScores: Record<string, any> = {}
-  const allFindings: any[] = []
+  // Inject llms.txt finding directly into allFindings before loop
+  const llmsFinding = (!hasLlmsTxt) ? [{
+    id: 'crawl_llms',
+    title: 'llms.txt file not found',
+    severity: 'Medium',
+    detail: `${url} does not have an llms.txt file at the domain root. This new standard tells AI engines what content they can use and which pages are most important.`,
+    recommendation: `Create an llms.txt file at the domain root describing your company, key pages, and content AI engines can use. Use the Get Fix button to generate the file content.`,
+    dimension: 'geo-crawl'
+  }] : []
+  const allFindings: any[] = [...llmsFinding]
   const seen = new Set()
 
   // Hardcode llms.txt finding if missing — AI agents keep dropping it
