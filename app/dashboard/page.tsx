@@ -258,6 +258,7 @@ export default function DashboardV2() {
       setStats(s); setRankings(r); setResponses(resp); setVisibilityRuns(runs); setPromptStats(ps)
       setPromptResponsesCache({})
       setModelBreakdownCache({})
+      setCitationStats(null)
       setTimeout(() => setBarsVisible(true), 100)
     } catch {}
     setLoading(false)
