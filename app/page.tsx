@@ -152,37 +152,39 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero split layout */}
-      <section style={{ padding: "72px 5% 64px", maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-        <div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "#eef1fd", border: "1px solid #c5d0f5", marginBottom: 28 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B5BDB", display: "inline-block" }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#3B5BDB", letterSpacing: "0.06em", textTransform: "uppercase" }}>AI search visibility platform</span>
-          </div>
-          <h1 style={{ fontSize: "clamp(40px,4vw,62px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 20, color: "#111827" }}>
-            See where you stand.<br />
-            Understand why.<br />
-            <span style={{ color: "#3B5BDB" }}>Fix it today.</span>
-          </h1>
-          <p style={{ fontSize: 18, color: "#6b7280", marginBottom: 36, lineHeight: 1.7, maxWidth: 480 }}>
-            Your buyers are asking ChatGPT, Perplexity and Gemini which tool to use. Are you showing up? GeoIntel tells you exactly where you stand, why competitors rank above you, and gives you copy-paste fixes to change that.
-          </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 32 }}>
-            <button onClick={() => setModal("signup")} style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 32px", borderRadius: 10, background: "#3B5BDB", color: "white", fontWeight: 700, fontSize: 16, border: "none", cursor: "pointer" }}>
-              Start free audit <ArrowRight size={16} />
-            </button>
-            <button onClick={() => setModal("login")} style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 24px", borderRadius: 10, background: "white", color: "#374151", fontWeight: 500, fontSize: 16, border: "1px solid #e5e7eb", cursor: "pointer" }}>
-              Sign in
-            </button>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, color: "#9ca3af" }}>Tracking across</span>
-            {["ChatGPT", "Perplexity", "Gemini", "Claude"].map(l => (
-              <span key={l} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 500, background: "white", border: "1px solid #e5e7eb", color: "#374151" }}>{l}</span>
-            ))}
-          </div>
+      {/* Hero centered layout */}
+      <section style={{ padding: "80px 5% 72px", maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
+        {/* Feature pills */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 32 }}>
+          {["Prompt Research", "AI Search Analytics", "AI Search Optimization"].map(f => (
+            <div key={f} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7280" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9ca3af", display: "inline-block" }} />
+              {f}
+            </div>
+          ))}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}>
+        <h1 style={{ fontSize: "clamp(44px,5vw,72px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 24, color: "#111827" }}>
+          See where <span style={{ color: "#3B5BDB" }}>your brand</span> shows up<br />on AI Search
+        </h1>
+        <p style={{ fontSize: 18, color: "#6b7280", marginBottom: 40, lineHeight: 1.7, maxWidth: 560, margin: "0 auto 40px" }}>
+          Your buyers are asking ChatGPT, Perplexity and Gemini which tool to use. GeoIntel tells you exactly where you stand, why competitors rank above you, and gives you copy-paste fixes to change that.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 24 }}>
+          <button onClick={() => setModal("signup")} style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 32px", borderRadius: 10, background: "#3B5BDB", color: "white", fontWeight: 700, fontSize: 16, border: "none", cursor: "pointer" }}>
+            Start free audit <ArrowRight size={16} />
+          </button>
+          <button onClick={() => setModal("login")} style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 24px", borderRadius: 10, background: "white", color: "#374151", fontWeight: 500, fontSize: 16, border: "1px solid #e5e7eb", cursor: "pointer" }}>
+            Sign in
+          </button>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 56 }}>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Tracking across</span>
+          {["ChatGPT", "Perplexity", "Gemini", "Claude"].map(l => (
+            <span key={l} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 500, background: "white", border: "1px solid #e5e7eb", color: "#374151" }}>{l}</span>
+          ))}
+        </div>
+        {/* Dashboard mockup below headline */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28, maxWidth: 780, margin: "0 auto" }}>
           <svg width="180" height="180" viewBox="0 0 56 56" style={{ animation: "float 3s ease-in-out infinite" }}>
             <rect x="12" y="22" width="32" height="28" rx="8" fill="#eef1fd" stroke="#3B5BDB" strokeWidth="1.5"/>
             <circle cx="21" cy="33" r="4" fill="white"/><circle cx="35" cy="33" r="4" fill="white"/>
