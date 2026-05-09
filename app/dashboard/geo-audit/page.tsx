@@ -338,10 +338,12 @@ export default function GeoAuditV2() {
     const critical = report.critical_findings || []
     const high = report.high_findings || []
     const medium = (report.all_findings || []).filter((f: any) => f.severity === "Medium")
-    // If a Critical or High finding mentions schema, hide Medium schema duplicates
-    const hasSchemaIssue = [...critical, ...high].some((f: any) => f.dimension === 'geo-schema')
+    // If a Critical schema finding exists, hide Medium findings that mention schema
+    const hasSchemaIssue = critical.some((f: any) =>
+      f.title?.toLowerCase().includes('schema')
+    )
     const filteredMedium = medium.filter((f: any) => {
-      if (hasSchemaIssue && f.dimension === 'geo-schema') return false
+      if (hasSchemaIssue && f.title?.toLowerCase().includes('schema')) return false
       return true
     })
     return [...critical, ...high, ...filteredMedium]
