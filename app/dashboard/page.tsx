@@ -341,6 +341,7 @@ export default function DashboardV2() {
               { label: "Visibility", icon: <Eye className="h-3.5 w-3.5" /> },
               { label: "Prompts", icon: <MessageSquare className="h-3.5 w-3.5" /> },
               { label: "Citations", icon: <ClipboardList className="h-3.5 w-3.5" /> },
+              { label: "Recommendations", icon: <Lightbulb className="h-3.5 w-3.5" /> },
             ].map(({ label, icon }) => (
               <button key={label} onClick={() => setActiveTab(label)} className="flex items-center gap-1.5 px-1 text-sm py-2 transition-colors"
                 style={activeTab === label ? { fontWeight: 700, color: BRAND, borderBottom: `2px solid ${BRAND}` } : { fontWeight: 500, color: "#64748b" }}>
@@ -358,6 +359,67 @@ export default function DashboardV2() {
             </div>
           ) : (
             <>
+              {/* Prompts tab */}
+              {activeTab === "Prompts" && (
+                <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+                  <MessageSquare className="h-8 w-8 text-slate-300" />
+                  <p className="text-sm font-semibold text-slate-600">Prompts analytics coming soon</p>
+                  <p className="text-xs text-slate-400">Per-prompt mention rates, best performing queries and model breakdowns.</p>
+                </div>
+              )}
+
+              {/* Citations tab */}
+              {activeTab === "Citations" && (
+                <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+                  <ClipboardList className="h-8 w-8 text-slate-300" />
+                  <p className="text-sm font-semibold text-slate-600">Citations coming soon</p>
+                  <p className="text-xs text-slate-400">Track which sources AI engines cite when mentioning your brand.</p>
+                </div>
+              )}
+
+              {/* Recommendations tab */}
+              {activeTab === "Recommendations" && (
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-xl overflow-hidden" style={glassCard}>
+                    <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Lightbulb className="h-3.5 w-3.5 text-slate-400" />Recommendations</h3>
+                      <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
+                        Full audit <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      {recs.map((rec, i) => {
+                        const cardBg: Record<string, React.CSSProperties> = {
+                          Critical: { background: "rgba(254,242,242,0.5)", border: "1px solid rgba(254,202,202,0.5)" },
+                          High: { background: "rgba(255,247,237,0.5)", border: "1px solid rgba(254,215,170,0.5)" },
+                          Win: { background: "rgba(239,246,255,0.5)", border: "1px solid rgba(191,219,254,0.5)" },
+                        }
+                        const badgeStyle: Record<string, React.CSSProperties> = {
+                          Critical: { background: "#fee2e2", color: "#b91c1c" },
+                          High: { background: "#ffedd5", color: "#c2410c" },
+                          Win: { background: BRAND_LIGHT, color: BRAND },
+                        }
+                        return (
+                          <div key={i} className="flex items-center justify-between p-4 rounded-xl" style={cardBg[rec.priority]}>
+                            <div className="flex gap-3">
+                              <span className="px-1.5 py-0.5 rounded text-xs font-bold h-fit uppercase whitespace-nowrap" style={badgeStyle[rec.priority]}>{rec.priority}</span>
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">{rec.title}</p>
+                                <p className="text-sm text-slate-500 mt-0.5">{rec.detail}</p>
+                              </div>
+                            </div>
+                            <button className="text-sm font-bold whitespace-nowrap ml-4 hover:opacity-80 transition-opacity" style={{ color: BRAND }}>{rec.action} &rarr;</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Visibility tab */}
+              {activeTab === "Visibility" && <>
+
               {/* Row 1: Mention Rate + Visibility Rank */}
               <div className="grid grid-cols-12 gap-3">
 
@@ -602,48 +664,7 @@ export default function DashboardV2() {
                 </>
               )}
 
-              {/* Row 4: Quick Actions */}
-              <div onMouseEnter={() => setHoveredCard("actions")} onMouseLeave={() => setHoveredCard(null)}>
-                <div className="rounded-xl overflow-hidden" style={cardStyle("actions")}>
-                  <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Lightbulb className="h-3.5 w-3.5 text-slate-400" />Quick Actions</h3>
-                    <div className="flex items-center gap-2">
-                      <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
-                        View all <ExternalLink className="h-3 w-3" />
-                      </a>
-                      <InfoTooltip text="AI-generated recommendations based on your visibility data. Prioritised by impact — fix critical issues first." />
-                    </div>
-                  </div>
-                  <div className="p-3 space-y-1.5">
-                    {recs.map((rec, i) => {
-                      const cardBg: Record<string, React.CSSProperties> = {
-                        Critical: { background: "rgba(254,242,242,0.5)", border: "1px solid rgba(254,202,202,0.5)" },
-                        High: { background: "rgba(255,247,237,0.5)", border: "1px solid rgba(254,215,170,0.5)" },
-                        Win: { background: "rgba(239,246,255,0.5)", border: "1px solid rgba(191,219,254,0.5)" },
-                      }
-                      const badgeStyle: Record<string, React.CSSProperties> = {
-                        Critical: { background: "#fee2e2", color: "#b91c1c" },
-                        High: { background: "#ffedd5", color: "#c2410c" },
-                        Win: { background: BRAND_LIGHT, color: BRAND },
-                      }
-                      return (
-                        <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={cardBg[rec.priority]}>
-                          <div className="flex gap-3">
-                            <span className="px-1 py-0.5 rounded text-xs font-bold h-fit uppercase whitespace-nowrap" style={badgeStyle[rec.priority]}>{rec.priority}</span>
-                            <div>
-                              <p className="text-sm font-bold text-slate-900">{rec.title}</p>
-                              <p className="text-sm text-slate-500">{rec.detail}</p>
-                            </div>
-                          </div>
-                          <button className="text-sm font-bold whitespace-nowrap ml-4 hover:opacity-80 transition-opacity" style={{ color: BRAND }}>{rec.action} &rarr;</button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 5: Response Feed */}
+              {/* Row 4: Response Feed */}
               <div onMouseEnter={() => setHoveredCard("feed")} onMouseLeave={() => setHoveredCard(null)}>
                 <div className="rounded-xl overflow-hidden" style={cardStyle("feed")}>
                   <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
@@ -689,6 +710,7 @@ export default function DashboardV2() {
                   </div>
                 </div>
               </div>
+              </>}
             </>
           )}
         </div>
