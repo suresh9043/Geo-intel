@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Play, RefreshCw, ExternalLink, ChevronDown, ArrowUp, ArrowDown, Eye, ClipboardList, Clock, Zap, LogOut, Radio, Trophy, Hash, Target, LayoutList, Lightbulb, MessageSquare } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun, getPromptStats, getPromptResponses } from "@/lib/queries"
+import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun, getPromptStats, getPromptResponses, getPromptModelBreakdown } from "@/lib/queries"
 import { VisibilityWidget } from "@/components/visibility-chart"
 import { SetupWizard } from "@/components/setup-wizard"
 
@@ -139,6 +139,8 @@ export default function DashboardV2() {
   const [promptStats, setPromptStats] = useState<any[]>([])
   const [expandedPromptId, setExpandedPromptId] = useState<string | null>(null)
   const [promptResponsesCache, setPromptResponsesCache] = useState<Record<string, any[]>>({})
+  const [modelViewPromptId, setModelViewPromptId] = useState<string | null>(null)
+  const [modelBreakdownCache, setModelBreakdownCache] = useState<Record<string, any[]>>({})
 
   useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
 
@@ -168,6 +170,7 @@ export default function DashboardV2() {
       ])
       setStats(s); setRankings(r); setResponses(resp); setVisibilityRuns(runs); setPromptStats(ps)
       setPromptResponsesCache({})
+      setModelBreakdownCache({})
       setTimeout(() => setBarsVisible(true), 100)
     } catch {}
     setLoading(false)
@@ -430,14 +433,14 @@ export default function DashboardV2() {
                         <table className="w-full text-left">
                           <thead>
                             <tr className="border-b border-slate-100" style={{ background: "rgba(248,250,252,0.4)" }}>
-                              {["Health", "Prompt", "Mention Rate", "Mentions", "Models", "Responses"].map(h => (
+                              {["", "Health", "Prompt", "Mention Rate", "Mentions", "Models", "Responses"].map(h => (
                                 <th key={h} className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100/50">
                             {promptStats.map((p: any) => {
-                              const isExpanded = expandedPromptId === p.id
+                              const isModelOpen = modelViewPromptId === p.id
                               const healthColor: Record<string, React.CSSProperties> = {
                                 Strong: { background: "#ecfdf5", color: "#059669" },
                                 Average: { background: "#fffbeb", color: "#d97706" },
@@ -447,17 +450,25 @@ export default function DashboardV2() {
                               const rateColor = p.mentionRate >= 60 ? "#059669" : p.mentionRate >= 30 ? "#d97706" : p.mentionRate >= 10 ? "#ea580c" : "#dc2626"
                               return (
                                 <React.Fragment key={p.id}>
-                                  <tr
-                                    className="transition-colors hover:bg-white/40 cursor-pointer"
-                                    onClick={async () => {
-                                      if (isExpanded) { setExpandedPromptId(null); return }
-                                      setExpandedPromptId(p.id)
-                                      if (!promptResponsesCache[p.id]) {
-                                        const rows = await getPromptResponses(p.id, 5)
-                                        setPromptResponsesCache(prev => ({ ...prev, [p.id]: rows }))
-                                      }
-                                    }}
-                                  >
+                                  <tr className="transition-colors hover:bg-white/40">
+                                    <td className="px-3 py-3">
+                                      <button
+                                        onClick={async () => {
+                                          if (isModelOpen) { setModelViewPromptId(null); return }
+                                          setModelViewPromptId(p.id)
+                                          if (!modelBreakdownCache[p.id]) {
+                                            const rows = await getPromptModelBreakdown(selectedCompanyId!, p.id)
+                                            setModelBreakdownCache(prev => ({ ...prev, [p.id]: rows }))
+                                          }
+                                        }}
+                                        className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all border"
+                                        style={isModelOpen
+                                          ? { background: BRAND, color: "white", borderColor: BRAND }
+                                          : { background: "white", color: "#64748b", borderColor: "#e2e8f0" }}
+                                      >
+                                        {isModelOpen ? "−" : "+"}
+                                      </button>
+                                    </td>
                                     <td className="px-4 py-3">
                                       <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={healthColor[p.health]}>{p.health}</span>
                                     </td>
@@ -488,24 +499,47 @@ export default function DashboardV2() {
                                       <span className="text-slate-400">/{p.totalResponses}</span>
                                     </td>
                                   </tr>
-                                  {isExpanded && (
+                                  {isModelOpen && (
                                     <tr>
-                                      <td colSpan={6} className="px-4 pb-4 pt-0" style={{ background: "rgba(248,250,252,0.5)" }}>
-                                        <div className="pt-3 space-y-2">
-                                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sample AI Responses</p>
-                                          {!promptResponsesCache[p.id] ? (
+                                      <td colSpan={7} className="px-4 pb-4 pt-0" style={{ background: "rgba(248,250,252,0.6)" }}>
+                                        <div className="pt-3">
+                                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Model Breakdown</p>
+                                          {!modelBreakdownCache[p.id] ? (
                                             <CardSkeleton rows={2} />
-                                          ) : promptResponsesCache[p.id].length === 0 ? (
+                                          ) : modelBreakdownCache[p.id].length === 0 ? (
                                             <p className="text-xs text-slate-400">No responses yet for this prompt.</p>
-                                          ) : promptResponsesCache[p.id].map((r: any) => (
-                                            <div key={r.id} className="rounded-lg border border-slate-100/60 overflow-hidden" style={{ background: "rgba(255,255,255,0.55)" }}>
-                                              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-100/50" style={{ background: "rgba(255,255,255,0.4)" }}>
-                                                <ModelBadge model={r.requested_model} />
-                                                <span className="text-xs text-slate-400">{new Date(r.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                                              </div>
-                                              <p className="text-sm text-slate-600 leading-relaxed p-3 whitespace-pre-wrap line-clamp-6">{r.response_text}</p>
-                                            </div>
-                                          ))}
+                                          ) : (
+                                            <table className="w-full text-left">
+                                              <thead>
+                                                <tr className="border-b border-slate-100">
+                                                  {["Model", "Status", "Position", "Response Preview"].map(h => (
+                                                    <th key={h} className="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                                                  ))}
+                                                </tr>
+                                              </thead>
+                                              <tbody className="divide-y divide-slate-100/50">
+                                                {modelBreakdownCache[p.id].map((m: any) => {
+                                                  const statusStyle: React.CSSProperties = m.position
+                                                    ? { background: "#ecfdf5", color: "#059669" }
+                                                    : m.isHM
+                                                    ? { background: "#f1f5f9", color: "#94a3b8" }
+                                                    : { background: "#fef2f2", color: "#dc2626" }
+                                                  const statusLabel = m.position ? "Ranked" : m.isHM ? "HM" : "Not mentioned"
+                                                  const posLabel = m.position ? `#${m.position}` : m.isHM ? "HM" : "—"
+                                                  return (
+                                                    <tr key={m.model} className="hover:bg-white/40 transition-colors">
+                                                      <td className="px-3 py-2"><ModelBadge model={m.model} /></td>
+                                                      <td className="px-3 py-2">
+                                                        <span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span>
+                                                      </td>
+                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-600">{posLabel}</td>
+                                                      <td className="px-3 py-2 text-xs text-slate-400 max-w-sm truncate">{m.preview || "—"}</td>
+                                                    </tr>
+                                                  )
+                                                })}
+                                              </tbody>
+                                            </table>
+                                          )}
                                         </div>
                                       </td>
                                     </tr>

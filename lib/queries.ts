@@ -368,6 +368,37 @@ export async function getPromptResponses(promptId: string, limit = 5) {
   return data || []
 }
 
+export async function getPromptModelBreakdown(companyId: string, promptId: string) {
+  const { data: company } = await supabase.from('companies').select('name').eq('id', companyId).single()
+  const companyName = company?.name || ''
+
+  const { data: responses } = await supabase
+    .from('raw_responses')
+    .select('id, response_text, requested_model, positions_json, created_at')
+    .eq('company_id', companyId)
+    .eq('prompt_id', promptId)
+    .eq('status', 'success')
+    .not('response_text', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (!responses?.length) return []
+
+  // Keep latest response per model
+  const byModel = new Map<string, any>()
+  for (const r of responses) {
+    if (!byModel.has(r.requested_model)) byModel.set(r.requested_model, r)
+  }
+
+  return Array.from(byModel.values()).map(r => {
+    const pos = r.positions_json?.[companyName]
+    const position = (typeof pos === 'number' && pos > 0) ? pos : null
+    const isHM = pos === -1
+    const isMentioned = pos !== null && pos !== undefined
+    const preview = r.response_text?.split('\n').find((l: string) => l.trim().length > 20)?.slice(0, 120) || ''
+    return { model: r.requested_model, position, isHM, isMentioned, preview, responseText: r.response_text, id: r.id }
+  })
+}
+
 export async function saveAnalysisResult(userId: string, url: string, analysis: any) {
   const { supabase } = await import("./supabase")
   await supabase.from("analysis_cache").upsert({
