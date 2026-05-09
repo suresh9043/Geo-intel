@@ -309,7 +309,7 @@ export async function POST(req: NextRequest) {
       runAgent('geo-competitive', pageData),
     ])
 
-    const report = synthesise(cleanUrl, { 'geo-crawl': crawl, 'geo-content': content, 'geo-schema': schema, 'geo-authority': authority, 'geo-competitive': competitive })
+    const report = synthesise(cleanUrl, { 'geo-crawl': crawl, 'geo-content': content, 'geo-schema': schema, 'geo-authority': authority, 'geo-competitive': competitive }, pageData.has_llms_txt)
     return NextResponse.json({ success: true, report })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
