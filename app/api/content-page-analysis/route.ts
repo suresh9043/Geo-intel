@@ -55,6 +55,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Detect JS-rendered pages — content looks like nav menus not article body
+    const looksLikeNav = (text: string) => {
+      const navKeywords = ["skip to main", "cookie policy", "privacy policy", "terms of service", "all rights reserved", "© 20"]
+      const lowerText = text.toLowerCase()
+      const navCount = navKeywords.filter(k => lowerText.includes(k)).length
+      const wordCount = text.split(/\s+/).length
+      return wordCount < 300 || navCount >= 2
+    }
+
+    if (looksLikeNav(pageContent)) {
+      return Response.json({
+        blocked: true,
+        message: "This page appears to load content via JavaScript — our crawler only received navigation menus. Copy the article text from your browser and paste it below for accurate analysis."
+      }, { status: 200 })
+    }
+
     // Sanitize content to prevent JSON issues
     const sanitized = pageContent
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
