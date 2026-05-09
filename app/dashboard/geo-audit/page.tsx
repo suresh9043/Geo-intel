@@ -542,65 +542,46 @@ export default function GeoAuditV2() {
                 ))}
               </div>
 
-              {/* Two column example preview */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Findings column */}
-                <div className="rounded-xl bg-white border border-slate-100 overflow-hidden opacity-25 pointer-events-none select-none">
-                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-400">Findings & fixes</span>
-                    <span className="text-xs bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Example</span>
+              {/* Terminal mockup */}
+              <div className="rounded-xl overflow-hidden" style={{ background: "#0d1117", border: "1px solid #30363d" }}>
+                {/* Terminal header */}
+                <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}>
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full" style={{ background: "#ff5f57" }}></div>
+                    <div className="w-3 h-3 rounded-full" style={{ background: "#febc2e" }}></div>
+                    <div className="w-3 h-3 rounded-full" style={{ background: "#28c840" }}></div>
                   </div>
+                  <span className="text-xs font-mono ml-2" style={{ color: "#8b949e" }}>terminal — geo-audit-log</span>
+                </div>
+                {/* Terminal body */}
+                <div className="p-4 font-mono text-xs space-y-2" style={{ minHeight: 200 }}>
                   {[
-                    { sev: "Critical", label: "No schema markup detected", dim: "Schema", color: "#dc2626", bg: "#fef2f2" },
-                    { sev: "High", label: "No competitive comparison pages", dim: "Competitive", color: "#ea580c", bg: "#fff7ed" },
-                    { sev: "High", label: "Meta description not detected", dim: "Content", color: "#ea580c", bg: "#fff7ed" },
-                    { sev: "Medium", label: "Limited analyst recognition signals", dim: "Authority", color: "#3B5BDB", bg: "#eef1fd" },
-                  ].map((f, i) => (
-                    <div key={i} className="px-4 py-3 border-b border-slate-50 flex items-center gap-3">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded flex-shrink-0" style={{ background: f.bg, color: f.color }}>{f.sev}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-500 truncate">{f.label}</p>
-                        <p className="text-xs text-slate-300">{f.dim}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-slate-300 flex-shrink-0">Get fix</span>
+                    { time: "10:42:12", type: "INFO", color: "#3fb950", msg: "Starting GEO Audit sequence..." },
+                    { time: "10:42:13", type: "INFO", color: "#3fb950", msg: "Fetching page content and robots.txt..." },
+                    { time: "10:42:14", type: "INFO", color: "#3fb950", msg: "Running 5 dimension agents in parallel..." },
+                    { time: "10:42:15", type: "WARN", color: "#d29922", msg: "Schema — no JSON-LD detected in crawled HTML" },
+                    { time: "10:42:16", type: "INFO", color: "#3fb950", msg: "Competitive — checking comparison page coverage..." },
+                    { time: "10:42:17", type: "ERR", color: "#f85149", msg: "Schema — FAQPage, SoftwareApp, Organization all missing" },
+                    { time: "10:42:18", type: "INFO", color: "#3fb950", msg: "Crawlability — GPTBot implicitly allowed via wildcard" },
+                    { time: "10:42:19", type: "INFO", color: "#3fb950", msg: "Generating fixes and recommendations... done." },
+                  ].map((line, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <span style={{ color: "#8b949e" }}>{line.time}</span>
+                      <span className="font-bold px-1 rounded text-xs" style={{ color: line.color, background: line.color + "20" }}>[{line.type}]</span>
+                      <span style={{ color: "#e6edf3" }}>{line.msg}</span>
                     </div>
                   ))}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span style={{ color: "#3fb950" }}>_</span>
+                    <span className="text-xs" style={{ color: "#8b949e" }}>Waiting to start...</span>
+                  </div>
                 </div>
-
-                {/* Dimension scores column */}
-                <div className="rounded-xl bg-white border border-slate-100 overflow-hidden opacity-25 pointer-events-none select-none">
-                  <div className="px-4 py-3 border-b border-slate-100">
-                    <span className="text-sm font-semibold text-slate-400">Dimension scores</span>
-                  </div>
-                  <div className="p-4 flex flex-col gap-4">
-                    {[
-                      { label: "Competitive", val: 72, color: "#3B5BDB" },
-                      { label: "Content", val: 72, color: "#3B5BDB" },
-                      { label: "Authority", val: 78, color: "#059669" },
-                      { label: "Schema", val: 15, color: "#dc2626" },
-                      { label: "Crawlability", val: 92, color: "#059669" },
-                    ].map(d => (
-                      <div key={d.label}>
-                        <div className="flex justify-between mb-1.5">
-                          <span className="text-sm text-slate-400">{d.label}</span>
-                          <span className="text-sm font-semibold text-slate-300">—</span>
-                        </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-slate-200" style={{ width: `${d.val}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mx-4 mb-4 p-3 rounded-lg flex items-start gap-2" style={{ background: "#eef1fd" }}>
-                    <svg width="20" height="20" viewBox="0 0 56 56" className="flex-shrink-0 mt-0.5">
-                      <rect x="12" y="16" width="32" height="28" rx="8" fill="#eef1fd" stroke={BRAND} strokeWidth="2"/>
-                      <circle cx="22" cy="27" r="3" fill="white"/><circle cx="34" cy="27" r="3" fill="white"/>
-                      <circle cx="22" cy="27" r="1.5" fill={BRAND}/><circle cx="34" cy="27" r="1.5" fill={BRAND}/>
-                      <path d="M22 35 Q28 39 34 35" fill="none" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    <p className="text-xs leading-relaxed" style={{ color: "#185FA5" }}>
-                      <strong>Radar says:</strong> Run an audit to get your real scores and specific fixes.
-                    </p>
+                {/* Terminal footer */}
+                <div className="px-4 py-2 flex items-center justify-between" style={{ background: "#161b22", borderTop: "1px solid #30363d" }}>
+                  <span className="text-xs font-mono" style={{ color: "#8b949e" }}>Enter a domain above to run a real audit</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-mono" style={{ color: "#8b949e" }}>5 agents ready</span>
+                    <div className="w-2 h-2 rounded-full" style={{ background: "#3fb950" }}></div>
                   </div>
                 </div>
               </div>
