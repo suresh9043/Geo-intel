@@ -485,7 +485,20 @@ export default function GeoAuditV2() {
                 {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analysing...</> : <>Analyse <ArrowRight className="h-4 w-4" /></>}
               </button>
             </div>
-            <p className="mt-2 text-xs text-slate-400 px-1">Works best on specific content pages, not section homepages like /blog or /resources</p>
+            <div className="mt-4 flex items-center gap-2 flex-wrap px-1">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex-shrink-0">Scans across:</p>
+              {[
+                { label: "Competitive", icon: "📊", color: BRAND, bg: "#eef1fd" },
+                { label: "Content", icon: "📝", color: "#7c3aed", bg: "#faf5ff" },
+                { label: "Authority", icon: "⭐", color: "#0891b2", bg: "#ecfeff" },
+                { label: "Schema", icon: "🔧", color: "#ea580c", bg: "#fff7ed" },
+                { label: "Crawlability", icon: "🤖", color: "#059669", bg: "#ecfdf5" },
+              ].map(d => (
+                <div key={d.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-semibold" style={{ background: d.bg, borderColor: d.color + "40", color: d.color }}>
+                  <span>{d.icon}</span><span>{d.label}</span>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* Error */}
