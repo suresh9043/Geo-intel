@@ -528,7 +528,12 @@ export default function DashboardV2() {
                                                   const posLabel = m.position ? `#${m.position}` : m.isHM ? "HM" : "—"
                                                   return (
                                                     <tr key={m.model} className="hover:bg-white/40 transition-colors">
-                                                      <td className="px-3 py-2"><ModelBadge model={m.model} /></td>
+                                                      <td className="px-3 py-2">
+                                                        <div className="flex items-center gap-1.5">
+                                                          <ModelBadge model={m.model} />
+                                                          <span className="text-xs font-medium text-slate-600">{m.model}</span>
+                                                        </div>
+                                                      </td>
                                                       <td className="px-3 py-2">
                                                         <span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span>
                                                       </td>
