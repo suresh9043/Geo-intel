@@ -43,12 +43,25 @@ const MODEL_GROUPS = [
 ]
 
 
+interface InitialData {
+  companyId?: string
+  companyName: string
+  websiteUrl: string
+  description: string
+  geography: string
+  vertical: string
+  competitors: { name: string; url: string }[]
+  prompts: string[]
+  selectedModels: string[]
+}
+
 interface SetupWizardProps {
   onComplete: () => void
   onSaveExit: () => void
+  initialData?: InitialData
 }
 
-export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
+export function SetupWizard({ onComplete, onSaveExit, initialData }: SetupWizardProps) {
   const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -58,23 +71,25 @@ export function SetupWizard({ onComplete, onSaveExit }: SetupWizardProps) {
   const [error, setError] = useState("")
 
   // Step 1 — Company
-  const [companyName, setCompanyName] = useState("")
-  const [websiteUrl, setWebsiteUrl] = useState("")
-  const [description, setDescription] = useState("")
-  const [geography, setGeography] = useState("Worldwide")
-  const [vertical, setVertical] = useState("SaaS")
+  const [companyName, setCompanyName] = useState(initialData?.companyName || "")
+  const [websiteUrl, setWebsiteUrl] = useState(initialData?.websiteUrl || "")
+  const [description, setDescription] = useState(initialData?.description || "")
+  const [geography, setGeography] = useState(initialData?.geography || "Worldwide")
+  const [vertical, setVertical] = useState(initialData?.vertical || "SaaS")
 
   // Step 2 — Competitors
-  const [competitors, setCompetitors] = useState([{ name: "", url: "" }])
+  const [competitors, setCompetitors] = useState(
+    initialData?.competitors?.length ? initialData.competitors : [{ name: "", url: "" }]
+  )
   const [competitorCount, setCompetitorCount] = useState(5)
 
   // Step 3 — Prompts
-  const [prompts, setPrompts] = useState<string[]>([])
+  const [prompts, setPrompts] = useState<string[]>(initialData?.prompts || [])
   const [customPrompt, setCustomPrompt] = useState("")
   const [promptCount, setPromptCount] = useState(5)
 
   // Step 4 — Models
-  const [selectedModels, setSelectedModels] = useState<string[]>([])
+  const [selectedModels, setSelectedModels] = useState<string[]>(initialData?.selectedModels || [])
 
   function toggleModel(slug: string) {
     setSelectedModels(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug])

@@ -207,6 +207,7 @@ export default function DashboardV2() {
   const router = useRouter()
   const { user, loading: authLoading, signOut } = useAuth()
   const [showSetup, setShowSetup] = useState(false)
+  const [editingData, setEditingData] = useState<any>(null)
   const [showCompetitors, setShowCompetitors] = useState(false)
   const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "ytd">("30d")
   const [activeTab, setActiveTab] = useState("Visibility")
@@ -283,6 +284,23 @@ export default function DashboardV2() {
     setTimeout(fetchData, 3000)
   }
 
+  const handleEditCompany = async (companyId: string) => {
+    const { getCompanyWithDetails } = await import("@/lib/queries")
+    const data = await getCompanyWithDetails(companyId)
+    setEditingData({
+      companyId,
+      companyName: data.name || "",
+      websiteUrl: data.url || "",
+      description: data.description || "",
+      geography: data.icp_description || "Worldwide",
+      vertical: data.industry || "SaaS",
+      competitors: (data.competitors || []).map((name: string) => ({ name, url: "" })),
+      prompts: (data.prompts || []).map((p: any) => p.text),
+      selectedModels: (data.trackedModels || []).map((m: any) => m.model_slug),
+    })
+    setShowSetup(true)
+  }
+
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
     if (!confirm(`Delete "${companyName}"? This cannot be undone.`)) return
     const { deleteCompany } = await import("@/lib/queries")
@@ -331,8 +349,9 @@ export default function DashboardV2() {
     <div className="flex h-screen overflow-hidden antialiased text-slate-900" style={{ background: "#f8fafc" }}>
       {showSetup && (
         <SetupWizard
-          onComplete={() => { setShowSetup(false); if (user) getCompanies(user.id).then(data => { setCompanies(data); if (data.length > 0) setSelectedCompanyId(data[0].id) }) }}
-          onSaveExit={() => setShowSetup(false)}
+          onComplete={() => { setShowSetup(false); setEditingData(null); if (user) getCompanies(user.id).then(data => { setCompanies(data); if (data.length > 0) setSelectedCompanyId(data[0].id) }) }}
+          onSaveExit={() => { setShowSetup(false); setEditingData(null) }}
+          initialData={editingData}
         />
       )}
 
@@ -384,7 +403,7 @@ export default function DashboardV2() {
                         <span className="truncate">{c.name}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 pr-1">
-                        <button onClick={() => setShowSetup(true)}
+                        <button onClick={() => handleEditCompany(c.id)}
                           className="p-1 rounded hover:bg-black/10 transition-colors"
                           style={{ color: isActive ? "rgba(255,255,255,0.7)" : "#94a3b8" }}
                           title="Edit">
