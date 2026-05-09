@@ -95,7 +95,7 @@ First, assess whether the page content looks like actual article body (paragraph
 
 IF IT LOOKS LIKE NAVIGATION/PROMOTIONAL CONTENT (JS-rendered page):
 - Only report findings that can be verified from raw HTML regardless of JS: schema markup presence, meta description, page title quality
-- Do NOT report findings about article body, author byline, publication date, statistics, or value propositions — these cannot be verified from nav-only content
+- STRICTLY DO NOT report any of these — they require rendered content to verify: author byline, publication date, article body, statistics, data points, value propositions, core arguments. Reporting these from nav-only HTML is ALWAYS inaccurate and misleading.
 - Set summary to: "Analysis based on crawled HTML only — main article content appears to be JavaScript-rendered. Schema and meta findings below are accurate. For full content analysis including citations, rewrites and statistics gaps, paste the article text below."
 - Set geo_score based only on technical signals (schema, meta, title)
 - Leave rewrite_suggestions empty
