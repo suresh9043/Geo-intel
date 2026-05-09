@@ -513,7 +513,7 @@ export default function DashboardV2() {
                                               <thead>
                                                 <tr className="border-b border-slate-100">
                                                   {["Model", "Status", "Mentions", "Citations", "Response Preview"].map(h => (
-                                                    <th key={h} className="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                                                    <th key={h} className={`px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest ${["Mentions", "Citations"].includes(h) ? "text-center" : ""}`}>{h}</th>
                                                   ))}
                                                 </tr>
                                               </thead>
@@ -537,8 +537,8 @@ export default function DashboardV2() {
                                                       <td className="px-3 py-2">
                                                         <span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span>
                                                       </td>
-                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700">{m.mentionCount}</td>
-                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700">{m.citationCount}</td>
+                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.mentionCount}</td>
+                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.citationCount}</td>
                                                       <td className="px-3 py-2 text-xs text-slate-400 max-w-sm truncate">{m.preview || "—"}</td>
                                                     </tr>
                                                   )
