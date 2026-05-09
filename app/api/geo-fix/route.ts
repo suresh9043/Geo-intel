@@ -51,6 +51,24 @@ Return ONLY valid JSON: {"fix_type":"content","title":"...","summary":"...","opt
 
   technical: (domain, finding, vertical) => `You are a GEO technical expert. Generate complete technical fix.
 Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
+
+LLMS.TXT SPECIAL RULE: If the finding is about missing llms.txt, generate a complete ready-to-use llms.txt file in the code field. The format should be:
+# [Company Name]
+> [One sentence description of what the company does]
+
+## Docs
+- [ADD_YOUR_DOCS_URL]: Documentation
+- [ADD_YOUR_API_DOCS_URL]: API Reference
+
+## Blog
+- [ADD_YOUR_BLOG_URL]: Blog and articles
+
+## About
+- [ADD_YOUR_ABOUT_URL]: About us
+- [ADD_YOUR_PRICING_URL]: Pricing
+
+The instructions should tell the user to save this as llms.txt at their domain root (e.g. domain.com/llms.txt) and replace all placeholders with real URLs.
+
 RULES:
 - Maximum 3 instructions
 - No timeframes (no "weeks", "days", "hours")
