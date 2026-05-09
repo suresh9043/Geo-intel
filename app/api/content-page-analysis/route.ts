@@ -92,7 +92,7 @@ CRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanati
   "page_title": "<detected page title>",
   "content_type": "<Blog Post|Comparison Page|Case Study|Solution Page|FAQ|Whitepaper|Homepage|Other>",
   "geo_score": <0-100>,
-  "summary": "<2-3 sentence honest assessment>",
+  "summary": "<2-3 sentence constructive assessment — focus on what can be improved, not what is wrong. Use neutral professional language. Never say the page 'fails' or 'lacks' — say 'would benefit from' or 'opportunity to improve'>", 
   "what_works": ["<thing that works for AI citation>"],
   "critical_gaps": [
     {
