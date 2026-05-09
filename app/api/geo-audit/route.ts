@@ -121,6 +121,9 @@ IMPORTANT DISTINCTION:
 - "implicitly allowed" = User-agent: * with empty or no Disallow, GPTBot not mentioned → score 65-84, flag as informational not Critical/High
 - "blocked" = User-agent: GPTBot with Disallow: / present → score 0-44, flag as Critical or High
 - Never flag implicit allowance as a Critical or High finding — it is not a blocking issue, just a best practice to be explicit
+- CRITICAL: Blocking CCBot, PetalBot, Scrapy, img2dataset is CORRECT and should NOT be flagged as a problem — these are scrapers not LLM crawlers
+- Only flag as blocked if GPTBot, PerplexityBot, ClaudeBot or Google-Extended are explicitly blocked with Disallow: /
+- If those 4 bots are NOT mentioned in robots.txt but User-agent: * has empty Disallow, score must be 65-84 NOT below 50
 Only report ACTUAL problems. Max 2 findings. Each finding must be specific to THIS site — not generic advice. If no real issues found, return empty findings array.
 - NEVER make observations about content frequency (e.g. "appears twice") — you may miscount
 - Finding titles must use sentence case — only capitalise the first word and proper nouns (e.g. "No schema markup detected" not "No Schema Markup Detected")
