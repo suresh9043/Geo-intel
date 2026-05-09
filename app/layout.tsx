@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Visibility Tracker - Dashboard',
+  title: 'CiteIQ - AI Search Visibility',
   description: 'Track and monitor your AI visibility, rankings, and recommendations',
   generator: 'v0.app',
   icons: {

@@ -72,7 +72,7 @@ export default function AuthPage() {
           {/* Mini dashboard preview */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 mb-8">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">AI Visibility Dashboard</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">CiteIQ</span>
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-xs text-emerald-400">Live</span>

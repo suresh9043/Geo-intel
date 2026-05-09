@@ -288,7 +288,7 @@ export default function DashboardV2() {
             <h3 className="px-2 text-sm font-bold text-[#434654] uppercase tracking-widest mb-2">Tools</h3>
             <ul className="space-y-0.5">
               {[
-                { label: "AI Visibility", icon: <Eye className="w-4 h-4" />, href: "/dashboard" },
+                { label: "Visibility", icon: <Eye className="w-4 h-4" />, href: "/dashboard" },
                 { label: "GEO Audit", icon: <ClipboardList className="w-4 h-4" />, href: "/dashboard/geo-audit" },
               ].map(item => (
                 <li key={item.label}>
