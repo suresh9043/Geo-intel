@@ -497,7 +497,7 @@ export default function GeoAuditV2() {
                   { label: "Issues found", value: "—", sub: "Findings will appear here", color: "#dc2626", borderColor: "#dc2626" },
                   { label: "Crawlability", value: "—", sub: "Bot access status", color: "#059669", borderColor: "#059669" },
                 ].map((k, i) => (
-                  <div key={i} className="rounded-xl bg-white border border-slate-200 p-4 opacity-40" style={{ borderTop: `3px solid ${k.borderColor}` }}>
+                  <div key={i} className="rounded-xl bg-white border border-slate-100 p-4 opacity-30" style={{ borderTop: `3px solid ${k.borderColor}` }}>
                     <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">{k.label}</p>
                     <p className="text-4xl font-bold text-slate-300 leading-none">{k.value}</p>
                     <p className="text-xs text-slate-400 mt-2">{k.sub}</p>
@@ -508,7 +508,7 @@ export default function GeoAuditV2() {
               {/* Two column example preview */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Findings column */}
-                <div className="rounded-xl bg-white border border-slate-200 overflow-hidden opacity-50 pointer-events-none select-none">
+                <div className="rounded-xl bg-white border border-slate-100 overflow-hidden opacity-25 pointer-events-none select-none">
                   <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-400">Findings & fixes</span>
                     <span className="text-xs bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Example</span>
@@ -531,7 +531,7 @@ export default function GeoAuditV2() {
                 </div>
 
                 {/* Dimension scores column */}
-                <div className="rounded-xl bg-white border border-slate-200 overflow-hidden opacity-50 pointer-events-none select-none">
+                <div className="rounded-xl bg-white border border-slate-100 overflow-hidden opacity-25 pointer-events-none select-none">
                   <div className="px-4 py-3 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-400">Dimension scores</span>
                   </div>
