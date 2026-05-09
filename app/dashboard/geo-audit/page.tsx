@@ -127,6 +127,73 @@ function FindingRow({ finding, domain, vertical }: { finding: any; domain: strin
             <div className="rounded-xl p-4 flex flex-col gap-3" style={{ backgroundColor: BRAND_LIGHT, border: "1px solid rgba(0,62,199,0.2)" }}>
               <p className="text-xs font-bold uppercase tracking-wider" style={{ color: BRAND }}>Generated Fix</p>
               <p className="text-sm text-slate-700 leading-relaxed">{fix.summary}</p>
+
+              {/* Comparison page brief */}
+              {fix.fix_type === "comparison" && (
+                <div className="flex flex-col gap-3 mt-1">
+                  {/* Target page + query */}
+                  {(fix.target_page || fix.target_query) && (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 flex flex-col gap-1.5">
+                      {fix.target_page && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-500 w-24 flex-shrink-0">URL slug</span>
+                          <code className="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{fix.target_page}</code>
+                        </div>
+                      )}
+                      {fix.target_query && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-500 w-24 flex-shrink-0">AI query</span>
+                          <span className="text-xs text-slate-600 italic">"{fix.target_query}"</span>
+                        </div>
+                      )}
+                      {fix.seo_title && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-500 w-24 flex-shrink-0">SEO title</span>
+                          <span className="text-xs text-slate-600">{fix.seo_title}</span>
+                        </div>
+                      )}
+                      {fix.meta_description && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-bold text-slate-500 w-24 flex-shrink-0 mt-0.5">Meta desc</span>
+                          <span className="text-xs text-slate-600 leading-relaxed">{fix.meta_description}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Key differentiators */}
+                  {fix.key_differentiators?.length > 0 && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                      <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Key differentiators to highlight</p>
+                      <div className="flex flex-col gap-1.5">
+                        {fix.key_differentiators.map((d: string, i: number) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-blue-400 flex-shrink-0 font-bold text-xs mt-0.5">→</span>
+                            <p className="text-xs text-blue-800 leading-relaxed">{d}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Page structure */}
+                  {fix.page_structure?.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Page structure</p>
+                      {fix.page_structure.map((s: any, i: number) => (
+                        <div key={i} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-xs font-black text-slate-300 w-5 flex-shrink-0">{i + 1}</span>
+                            <p className="text-xs font-bold text-slate-800">{s.section}</p>
+                          </div>
+                          <p className="text-xs text-slate-500 leading-relaxed pl-7">{s.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {fix.code && (
                 <div className="rounded-lg bg-slate-900 overflow-hidden">
                   <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700">
