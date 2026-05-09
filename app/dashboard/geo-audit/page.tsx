@@ -828,24 +828,24 @@ export default function GeoAuditV2() {
                     {caAnalysis.critical_gaps?.length > 0 && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between px-1">
-                          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Critical Gaps & Fixes</h2>
-                          <span className="text-xs font-bold text-slate-400">{caAnalysis.critical_gaps.length} gaps found</span>
+                          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Critical Gaps & Fixes</h2>
+                          <span className="text-sm font-bold text-slate-400">{caAnalysis.critical_gaps.length} gaps found</span>
                         </div>
                         {caAnalysis.critical_gaps.map((gap: any, i: number) => (
                           <div key={i} className="rounded-xl overflow-hidden border-l-4" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#ef4444", borderLeftWidth: "4px" }}>
                             <div className="px-4 py-2.5 border-b border-slate-200/30 flex items-center gap-2" style={{ background: "rgba(255,255,255,0.5)" }}>
-                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">Gap</span>
+                              <span className="px-2 py-0.5 rounded text-sm font-bold bg-red-100 text-red-700">Gap</span>
                               <p className="text-sm font-bold text-slate-900">{gap.gap}</p>
                             </div>
                             <div className="px-4 py-3 space-y-2">
                               <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Fix</p>
+                                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Fix</p>
                                 <p className="text-sm text-slate-700">{gap.fix}</p>
                               </div>
                               {gap.example && (
-                                <p className="text-xs text-slate-500 italic bg-white/70 rounded-lg px-3 py-2">"{gap.example}"</p>
+                                <p className="text-sm text-slate-500 italic bg-white/70 rounded-lg px-3 py-2">"{gap.example}"</p>
                               )}
-                              {gap.impact && <p className="text-xs text-slate-400">Impact: {gap.impact}</p>}
+                              {gap.impact && <p className="text-sm text-slate-400">Impact: {gap.impact}</p>}
                             </div>
                           </div>
                         ))}
@@ -855,16 +855,16 @@ export default function GeoAuditV2() {
                     {/* Rewrite Suggestions */}
                     {caAnalysis.rewrite_suggestions?.length > 0 && (
                       <div className="space-y-2">
-                        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider px-1">Rewrite Suggestions</h2>
+                        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider px-1">Rewrite Suggestions</h2>
                         {caAnalysis.rewrite_suggestions.map((r: any, i: number) => (
                           <div key={i} className="rounded-xl overflow-hidden border-l-4" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#f59e0b", borderLeftWidth: "4px" }}>
                             <div className="px-4 py-2.5 border-b border-slate-200/30" style={{ background: "rgba(255,255,255,0.5)" }}>
                               <p className="text-sm font-bold text-slate-900">{r.element}</p>
                             </div>
                             <div className="px-4 py-3 space-y-2">
-                              {r.current && <p className="text-xs text-slate-500 italic bg-white/60 rounded-lg px-3 py-2 border border-slate-200/50">Before: "{r.current}"</p>}
-                              <p className="text-xs text-slate-800 font-semibold bg-amber-50/60 rounded-lg px-3 py-2 border border-amber-200/50">After: "{r.suggested}"</p>
-                              {r.why && <p className="text-xs text-slate-400">Why: {r.why}</p>}
+                              {r.current && <p className="text-sm text-slate-500 italic bg-white/60 rounded-lg px-3 py-2 border border-slate-200/50">Before: "{r.current}"</p>}
+                              <p className="text-sm text-slate-800 font-semibold bg-amber-50/60 rounded-lg px-3 py-2 border border-amber-200/50">After: "{r.suggested}"</p>
+                              {r.why && <p className="text-sm text-slate-400">Why: {r.why}</p>}
                             </div>
                           </div>
                         ))}
@@ -875,7 +875,7 @@ export default function GeoAuditV2() {
                     {caAnalysis.quick_wins?.length > 0 && (
                       <div className="rounded-xl overflow-hidden" style={{ background: "rgba(229,238,255,0.4)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderLeftColor: "#0891b2", borderLeftWidth: "4px" }}>
                         <div className="px-4 py-2.5 border-b border-slate-200/30" style={{ background: "rgba(255,255,255,0.5)" }}>
-                          <h3 className="text-xs font-bold text-cyan-700 uppercase tracking-widest">Quick Wins</h3>
+                          <h3 className="text-sm font-bold text-cyan-700 uppercase tracking-widest">Quick Wins</h3>
                         </div>
                         <div className="p-4 space-y-3">
                           {caAnalysis.quick_wins.map((w: any, i: number) => (
@@ -883,7 +883,7 @@ export default function GeoAuditV2() {
                               <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: BRAND }}>{i + 1}</span>
                               <div>
                                 <p className="text-sm font-semibold text-slate-800">{w.action}</p>
-                                <p className="text-xs text-slate-400 mt-0.5">{w.impact} · {w.effort}</p>
+                                <p className="text-sm text-slate-400 mt-0.5">{w.impact} · {w.effort}</p>
                               </div>
                             </div>
                           ))}
