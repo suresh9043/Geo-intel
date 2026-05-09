@@ -433,7 +433,7 @@ export default function GeoAuditV2() {
           </div>
           <div className="flex items-center gap-4 px-5">
             <div className="flex bg-slate-100/80 p-1 rounded-2xl border border-slate-200/40 shadow-sm">
-              {["Technical Audit", "Content Analysis"].map(tab => (
+              {["Technical Audit", "Page Analyser"].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -669,7 +669,7 @@ export default function GeoAuditV2() {
           </>}
 
           {/* Content Analysis Tab */}
-          {activeTab === "Content Analysis" && (
+          {activeTab === "Page Analyser" && (
             <div className="space-y-4">
 
               {/* URL Input */}
@@ -760,51 +760,43 @@ export default function GeoAuditV2() {
                         </svg>
                         <style>{"@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"}</style>
                         <span className="text-xs font-bold" style={{ color: BRAND }}>Radar</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="bg-white/80 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm border border-white/60 mb-4">
-                          <p className="text-sm font-bold text-slate-900 mb-1">Hi! I am Radar, your GEO analyst.</p>
-                          <p className="text-sm text-slate-500 leading-relaxed">
-                            Paste any content page URL and I will tell you exactly why AI engines are not citing it — and how to fix it. Works on blog posts, case studies, whitepapers, FAQs and comparison pages.
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-8 px-1">
-                          {[
-                            { value: "0-100", label: "GEO Score", color: BRAND },
-                            { value: "Specific", label: "Gaps found", color: "#7c3aed" },
-                            { value: "Same day", label: "Fixes ready", color: "#059669" },
-                          ].map((stat, i) => (
-                            <div key={stat.label} className="flex items-center gap-3">
-                              {i > 0 && <div className="w-px h-6 bg-indigo-200" />}
-                              <div>
-                                <p className="text-base font-extrabold" style={{ color: stat.color }}>{stat.value}</p>
-                                <p className="text-xs text-slate-400">{stat.label}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </section>
+                    {/* Hero text */}
+                  <div className="text-center py-4">
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">Why isn't this page being cited by AI?</h2>
+                    <p className="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">Paste any blog post, case study, whitepaper or FAQ page URL. Get a citation score, exact gaps, and copy-paste fixes in under 30 seconds.</p>
+                  </div>
 
-                  {/* Feature cards — 4 columns */}
+                  {/* What you get cards */}
                   <div className="grid grid-cols-4 gap-3">
-                    {[
-                      { title: "Content type", icon: "📄", num: "01", color: BRAND, bg: "#eff6ff", border: "#bfdbfe", detail: "Blog, case study, whitepaper, FAQ — each scored differently" },
-                      { title: "GEO gaps", icon: "🔎", num: "02", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa", detail: "Missing schema, weak entity definition, no AI-citable stats" },
-                      { title: "Rewrite briefs", icon: "✍️", num: "03", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe", detail: "Exact sentences to add or change — specific to the page" },
-                      { title: "Schema code", icon: "⚡", num: "04", color: "#059669", bg: "#ecfdf5", border: "#a7f3d0", detail: "Copy-paste JSON-LD ready to implement same day" },
-                    ].map(card => (
-                      <div key={card.title} className="rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-all"
-                        style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl">{card.icon}</span>
-                          <span className="text-xs font-bold opacity-30" style={{ color: card.color }}>{card.num}</span>
-                        </div>
-                        <h3 className="text-sm font-bold text-slate-800">{card.title}</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed">{card.detail}</p>
-                      </div>
-                    ))}
+                    <div className="rounded-xl p-4 flex flex-col gap-2 border" style={{ background: "#eef1fd", borderColor: "#3B5BDB30" }}>
+                      <span className="text-2xl">🎯</span>
+                      <h3 className="text-sm font-bold" style={{ color: "#3B5BDB" }}>Citation score</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">0-100 score showing how likely AI engines are to cite this specific page</p>
+                    </div>
+                    <div className="rounded-xl p-4 flex flex-col gap-2 border" style={{ background: "#fff7ed", borderColor: "#ea580c30" }}>
+                      <span className="text-2xl">🔍</span>
+                      <h3 className="text-sm font-bold" style={{ color: "#ea580c" }}>Citation gaps</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">Exact reasons why AI engines skip this page — weak entity definition, missing stats, no schema</p>
+                    </div>
+                    <div className="rounded-xl p-4 flex flex-col gap-2 border" style={{ background: "#faf5ff", borderColor: "#7c3aed30" }}>
+                      <span className="text-2xl">✍️</span>
+                      <h3 className="text-sm font-bold" style={{ color: "#7c3aed" }}>Rewrite briefs</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">Before/after rewrites for specific sentences — copy, edit, publish</p>
+                    </div>
+                    <div className="rounded-xl p-4 flex flex-col gap-2 border" style={{ background: "#ecfdf5", borderColor: "#05996930" }}>
+                      <span className="text-2xl">⚡</span>
+                      <h3 className="text-sm font-bold" style={{ color: "#059669" }}>Quick wins</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">3 actions you can do today to improve citation chances — ranked by impact</p>
+                    </div>
+                  </div>
+
+                  {/* Differentiator note */}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 flex items-start gap-3">
+                    <span className="text-lg flex-shrink-0">💡</span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 mb-1">Different from Technical Audit</p>
+                      <p className="text-sm text-slate-500 leading-relaxed">Technical Audit checks if your <strong>website</strong> is accessible to AI crawlers. Page Analyser checks if your <strong>content</strong> is good enough for AI to actually quote. Both are needed for full AI visibility.</p>
+                    </div>
                   </div>
                 </>
               )}
