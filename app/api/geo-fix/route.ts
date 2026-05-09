@@ -15,7 +15,7 @@ function detectFixType(finding: any) {
 
 const FIX_PROMPTS: Record<string, (domain: string, finding: any, vertical: string) => string> = {
   schema: (domain, finding, vertical) => `You are a GEO schema expert. Generate complete JSON-LD schema fix.
-Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail} | Vertical: ${vertical}
+Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
 RULES:
 - Maximum 3 instructions
 - No timeframes (no "weeks", "days", "hours")
@@ -31,7 +31,7 @@ RULES:
 Return ONLY valid JSON: {"fix_type":"schema","title":"...","summary":"...","where_to_add":"...","code":"...","instructions":["..."],"impact":"..."}`,
 
   content: (domain, finding, vertical) => `You are a GEO content strategist. Generate specific, ready-to-use content fixes.
-Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail} | Vertical: ${vertical}
+Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
 RULES:
 - Maximum 3 instructions
 - No timeframes (no "weeks", "days", "hours")
@@ -47,7 +47,7 @@ RULES:
 Return ONLY valid JSON: {"fix_type":"content","title":"...","summary":"...","options":[{"label":"Option A","content":"..."},{"label":"Option B","content":"..."}],"where_to_use":"...","instructions":["..."],"impact":"..."}`,
 
   technical: (domain, finding, vertical) => `You are a GEO technical expert. Generate complete technical fix.
-Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail} | Vertical: ${vertical}
+Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
 RULES:
 - Maximum 3 instructions
 - No timeframes (no "weeks", "days", "hours")
@@ -64,7 +64,7 @@ Return ONLY valid JSON: {"fix_type":"technical","title":"...","summary":"...","c
 
   comparison: (domain, finding, vertical) => `You are a GEO competitive content strategist. Generate a detailed, actionable comparison page brief that a content writer can execute immediately.
 
-Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail} | Vertical: ${vertical}
+Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
 
 RULES:
 - Identify 2-3 real named competitors based on the domain and vertical
@@ -121,7 +121,7 @@ Return ONLY valid JSON:
 }`,
 
   sentiment: (domain, finding, vertical) => `You are a GEO brand sentiment strategist. Generate content to improve AI perception.
-Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail} | Vertical: ${vertical}
+Domain: ${domain} | Finding: ${finding.title} | Detail: ${finding.detail}
 RULES:
 - Maximum 3 instructions
 - No timeframes (no "weeks", "days", "hours")
