@@ -242,9 +242,6 @@ export default function GeoAuditV2() {
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<any>(null)
   const [error, setError] = useState("")
-  const [cached, setCached] = useState(false)
-  const [cachedAt, setCachedAt] = useState<string | null>(null)
-  const [auditHistory, setAuditHistory] = useState<any[]>([])
 
   // Content Analysis state
   const [caUrl, setCaUrl] = useState("")
@@ -277,11 +274,6 @@ export default function GeoAuditV2() {
 
   useEffect(() => {
     if (!user) return
-    getAuditHistory(user.id, 5).then(setAuditHistory)
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
     getCompanies(user.id).then(data => {
       setCompanies(data)
       if (data.length > 0) {
@@ -292,31 +284,15 @@ export default function GeoAuditV2() {
     })
   }, [user])
 
-  const runAudit = async (forceRefresh = false) => {
+  const runAudit = async () => {
     if (!url.trim()) return
-    setLoading(true); setError(""); setReport(null); setCached(false); setCachedAt(null)
-
-    if (!forceRefresh && user) {
-      const hit = await getCachedAudit(user.id, url.trim())
-      if (hit) {
-        setReport(hit.report)
-        setCached(true)
-        setCachedAt(hit.audited_at)
-        setLoading(false)
-        return
-      }
-    }
-
+    setLoading(true); setError(""); setReport(null)
     try {
       const res = await fetch("/api/geo-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: url.trim(), vertical }) })
       const data = await res.json()
       if (data.report) {
         setReport(data.report)
-        setCached(false)
-        if (user) {
-          await saveAuditResult(user.id, url.trim(), data.report)
-          getAuditHistory(user.id, 5).then(setAuditHistory)
-        }
+        if (user) await saveAnalysisResult(user.id, url.trim(), data.report)
       } else setError(data.error || "Audit failed")
     } catch { setError("Failed to connect to audit service") }
     setLoading(false)
@@ -598,20 +574,6 @@ export default function GeoAuditV2() {
           {/* ── Real results ── */}
           {report && !loading && (
             <div className="flex flex-col gap-4">
-              {/* Cached badge */}
-              {cached && (
-                <div className="flex items-center justify-between px-1">
-                  <p className="text-xs text-slate-400">Showing cached result from {cachedAt ? new Date(cachedAt).toLocaleDateString() : "earlier"}</p>
-                  <button
-                    onClick={() => runAudit(true)}
-                    className="text-xs font-semibold px-3 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                    Re-run fresh audit
-                  </button>
-                </div>
-              )}
-
               {/* 3 KPI cards */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-xl bg-white border border-slate-200 p-4" style={{ borderTop: `3px solid ${BRAND}` }}>
