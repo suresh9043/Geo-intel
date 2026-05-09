@@ -333,7 +333,19 @@ export default function GeoAuditV2() {
   if (authLoading || !user) return null
 
   const domain = report?.url?.replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0] || ""
-  const allFindings = report ? [...(report.critical_findings || []), ...(report.high_findings || []), ...(report.all_findings || []).filter((f: any) => f.severity === "Medium")] : []
+  const allFindings = (() => {
+    if (!report) return []
+    const critical = report.critical_findings || []
+    const high = report.high_findings || []
+    const medium = (report.all_findings || []).filter((f: any) => f.severity === "Medium")
+    // If a Critical or High finding mentions schema, hide Medium schema duplicates
+    const hasSchemaIssue = [...critical, ...high].some((f: any) => f.dimension === 'geo-schema')
+    const filteredMedium = medium.filter((f: any) => {
+      if (hasSchemaIssue && f.dimension === 'geo-schema') return false
+      return true
+    })
+    return [...critical, ...high, ...filteredMedium]
+  })()
   const ss = report ? getScoreStatus(report.composite_score) : null
 
   return (
