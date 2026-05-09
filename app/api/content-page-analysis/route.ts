@@ -90,7 +90,19 @@ VERTICAL: ${vertical}
 PAGE CONTENT:
 ${sanitized}
 
-IMPORTANT CONTENT QUALITY CHECK: Before analysing, assess whether the page content above looks like actual article body content (paragraphs, arguments, data points) or mostly navigation menus, product listings, and promotional text. If it looks like navigation/promotional content with no article body: set geo_score to 0, set summary to "This page appears to load its main content via JavaScript - the crawler could only access navigation and promotional elements. For accurate analysis, copy the full article text from your browser and paste it in the text box below.", and set critical_gaps to a single entry with gap "Content not accessible via crawler" and fix "Use the paste option below to analyse this page accurately". If it looks like real article content: analyse normally.
+IMPORTANT CONTENT QUALITY CHECK:
+First, assess whether the page content looks like actual article body (paragraphs, arguments, data points) or mostly navigation menus, product listings, and promotional text.
+
+IF IT LOOKS LIKE NAVIGATION/PROMOTIONAL CONTENT (JS-rendered page):
+- Only report findings that can be verified from raw HTML regardless of JS: schema markup presence, meta description, page title quality
+- Do NOT report findings about article body, author byline, publication date, statistics, or value propositions — these cannot be verified from nav-only content
+- Set summary to: "Analysis based on crawled HTML only — main article content appears to be JavaScript-rendered. Schema and meta findings below are accurate. For full content analysis including citations, rewrites and statistics gaps, paste the article text below."
+- Set geo_score based only on technical signals (schema, meta, title)
+- Leave rewrite_suggestions empty
+- Leave quick_wins focused only on schema and meta fixes
+
+IF IT LOOKS LIKE REAL ARTICLE CONTENT:
+- Analyse all dimensions normally
 
 CRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanation before or after. Start your response with { and end with }.
 {
