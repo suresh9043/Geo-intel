@@ -242,6 +242,9 @@ export default function GeoAuditV2() {
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<any>(null)
   const [error, setError] = useState("")
+  const [cached, setCached] = useState(false)
+  const [cachedAt, setCachedAt] = useState<string | null>(null)
+  const [auditHistory, setAuditHistory] = useState<any[]>([])
 
   // Content Analysis state
   const [caUrl, setCaUrl] = useState("")
@@ -271,6 +274,11 @@ export default function GeoAuditV2() {
   }
 
   useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
+
+  useEffect(() => {
+    if (!user) return
+    getAuditHistory(user.id, 5).then(setAuditHistory)
+  }, [user])
 
   useEffect(() => {
     if (!user) return
