@@ -452,15 +452,15 @@ export default function GeoAuditV2() {
                     </div>
                     <div className="flex-1 pl-6 border-l border-slate-100">
                       {[
-                        { label: "Competitive", val: 78, color: BRAND },
-                        { label: "Content", val: 62, color: "#7c3aed" },
-                        { label: "Authority", val: 55, color: "#0891b2" },
-                        { label: "Schema", val: 40, color: "#ea580c" },
-                        { label: "Crawlability", val: 88, color: "#059669" },
+                        { label: "Competitive", val: 47, color: "#cbd5e1" },
+                        { label: "Content", val: 37, color: "#cbd5e1" },
+                        { label: "Authority", val: 33, color: "#cbd5e1" },
+                        { label: "Schema", val: 24, color: "#cbd5e1" },
+                        { label: "Crawlability", val: 53, color: "#cbd5e1" },
                       ].map(d => (
                         <div key={d.label} className="flex items-center gap-2 mb-1.5">
                           <span className="text-[10px] text-slate-400 w-20 flex-shrink-0">{d.label}</span>
-                          <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${d.val}%`, background: d.color }} />
                           </div>
                           <span className="text-[10px] font-semibold text-slate-700 w-6 text-right">{d.val}</span>
