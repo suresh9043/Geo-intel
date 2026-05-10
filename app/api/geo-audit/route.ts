@@ -237,6 +237,7 @@ function synthesise(url: string, results: Record<string, any>, hasLlmsTxt: boole
   let composite = 0
   const dimensionScores: Record<string, any> = {}
   // Inject llms.txt finding directly into allFindings before loop
+  console.log('[DEBUG] hasLlmsTxt value:', hasLlmsTxt, typeof hasLlmsTxt)
   const llmsFinding = (!hasLlmsTxt) ? [{
     id: 'crawl_llms',
     title: 'llms.txt file not found',
