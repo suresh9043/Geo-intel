@@ -99,7 +99,7 @@ async function scrapePageData(url: string) {
     has_same_as: /sameAs/.test(html),
     robots_txt: robotsPage.ok ? robotsPage.text.slice(0, 1000) : 'Not found',
     ai_bot_status: checkAiBots(robotsPage.ok ? robotsPage.text : ''),
-    has_llms_txt: llmsPage.ok && llmsPage.status === 200,
+    has_llms_txt: llmsPage.ok && llmsPage.status === 200 && (llmsPage.text || "").trim().startsWith("#"),
     has_sitemap: sitemapPage.ok && sitemapPage.status === 200,
     vertical: 'saas',
   }
