@@ -126,30 +126,12 @@ const CONTENT_TYPE_COLORS: Record<string, string> = {
   'Web Article': '#94a3b8',
 }
 
-function RecommendationsTab({ companyId, insights, loading, onLoad }: { companyId: string; insights: any[]; loading: boolean; onLoad: () => void }) {
-  const [aiRecs, setAiRecs] = useState<any[]>([])
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiError, setAiError] = useState('')
-
-  useEffect(() => { onLoad(); setAiRecs([]); setAiError('') }, [companyId])
-
-  const generateAiRecs = async () => {
-    setAiLoading(true)
-    setAiError('')
-    try {
-      const res = await fetch('/api/generate-recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyId }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to generate')
-      setAiRecs(data.recommendations || [])
-    } catch (err: any) {
-      setAiError(err.message)
-    }
-    setAiLoading(false)
-  }
+function RecommendationsTab({ companyId, insights, loading, aiRecs, aiLoading, aiError, onLoad, onGenerateAi }: {
+  companyId: string; insights: any[]; loading: boolean
+  aiRecs: any[]; aiLoading: boolean; aiError: string
+  onLoad: () => void; onGenerateAi: () => void
+}) {
+  useEffect(() => { onLoad() }, [companyId])
 
   if (loading) return <div className="rounded-xl overflow-hidden" style={glassCard}><CardSkeleton rows={4} /></div>
 
@@ -170,7 +152,7 @@ function RecommendationsTab({ companyId, insights, loading, onLoad }: { companyI
           <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
             <Lightbulb className="h-3.5 w-3.5 text-slate-400" />AI Content Recommendations
           </h3>
-          <button onClick={generateAiRecs} disabled={aiLoading}
+          <button onClick={onGenerateAi} disabled={aiLoading}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-all"
             style={{ backgroundColor: BRAND }}>
             {aiLoading ? <><RefreshCw className="h-3 w-3 animate-spin" />Generating...</> : <><Zap className="h-3 w-3" />Generate with AI</>}
@@ -390,6 +372,9 @@ export default function DashboardV2() {
   const [citationsLoading, setCitationsLoading] = useState(false)
   const [competitorInsights, setCompetitorInsights] = useState<any[]>([])
   const [insightsLoading, setInsightsLoading] = useState(false)
+  const [aiRecs, setAiRecs] = useState<any[]>([])
+  const [aiRecsLoading, setAiRecsLoading] = useState(false)
+  const [aiRecsError, setAiRecsError] = useState('')
 
   useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
 
@@ -422,6 +407,9 @@ export default function DashboardV2() {
       setModelBreakdownCache({})
       setCitationStats(null)
       setCompetitorInsights([])
+      setAiRecsError('')
+      const cached = localStorage.getItem(`aiRecs_${selectedCompanyId}`)
+      setAiRecs(cached ? JSON.parse(cached) : [])
       setTimeout(() => setBarsVisible(true), 100)
     } catch {}
     setLoading(false)
@@ -903,12 +891,33 @@ export default function DashboardV2() {
                   companyId={selectedCompanyId!}
                   insights={competitorInsights}
                   loading={insightsLoading}
+                  aiRecs={aiRecs}
+                  aiLoading={aiRecsLoading}
+                  aiError={aiRecsError}
                   onLoad={async () => {
                     if (competitorInsights.length || insightsLoading) return
                     setInsightsLoading(true)
                     const data = await getModelCompetitorInsights(selectedCompanyId!)
                     setCompetitorInsights(data)
                     setInsightsLoading(false)
+                  }}
+                  onGenerateAi={async () => {
+                    setAiRecsLoading(true)
+                    setAiRecsError('')
+                    try {
+                      const res = await fetch('/api/generate-recommendations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ companyId: selectedCompanyId }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data.error || 'Failed to generate')
+                      setAiRecs(data.recommendations || [])
+                      localStorage.setItem(`aiRecs_${selectedCompanyId}`, JSON.stringify(data.recommendations || []))
+                    } catch (err: any) {
+                      setAiRecsError(err.message)
+                    }
+                    setAiRecsLoading(false)
                   }}
                 />
               )}
