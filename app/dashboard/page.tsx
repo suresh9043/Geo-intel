@@ -228,7 +228,7 @@ export default function DashboardV2() {
   const [expandedPromptId, setExpandedPromptId] = useState<string | null>(null)
   const [promptResponsesCache, setPromptResponsesCache] = useState<Record<string, any[]>>({})
   const [modelViewPromptId, setModelViewPromptId] = useState<string | null>(null)
-  const [modelBreakdownCache, setModelBreakdownCache] = useState<Record<string, any[]>>({})
+  const [modelBreakdownCache, setModelBreakdownCache] = useState<Record<string, any>>({})
   const [citationStats, setCitationStats] = useState<any>(null)
   const [citationsLoading, setCitationsLoading] = useState(false)
 
@@ -609,8 +609,8 @@ export default function DashboardV2() {
                                           if (isModelOpen) { setModelViewPromptId(null); return }
                                           setModelViewPromptId(p.id)
                                           if (!modelBreakdownCache[p.id]) {
-                                            const rows = await getPromptModelBreakdown(selectedCompanyId!, p.id)
-                                            setModelBreakdownCache(prev => ({ ...prev, [p.id]: rows }))
+                                            const data = await getPromptModelBreakdown(selectedCompanyId!, p.id)
+                                            setModelBreakdownCache(prev => ({ ...prev, [p.id]: data }))
                                           }
                                         }}
                                         className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all border"
@@ -658,45 +658,54 @@ export default function DashboardV2() {
                                           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Model Breakdown</p>
                                           {!modelBreakdownCache[p.id] ? (
                                             <CardSkeleton rows={2} />
-                                          ) : modelBreakdownCache[p.id].length === 0 ? (
+                                          ) : !modelBreakdownCache[p.id]?.modelRows?.length ? (
                                             <p className="text-xs text-slate-400">No responses yet for this prompt.</p>
                                           ) : (
-                                            <table className="w-full text-left">
-                                              <thead>
-                                                <tr className="border-b border-slate-100">
-                                                  {["Model", "Status", "Mentions", "Citations", "Response Preview"].map(h => (
-                                                    <th key={h} className={`px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest ${["Mentions", "Citations"].includes(h) ? "text-center" : ""}`}>{h}</th>
-                                                  ))}
-                                                </tr>
-                                              </thead>
-                                              <tbody className="divide-y divide-slate-100/50">
-                                                {modelBreakdownCache[p.id].map((m: any) => {
-                                                  const statusStyle: React.CSSProperties = m.position
-                                                    ? { background: "#ecfdf5", color: "#059669" }
-                                                    : m.isHM
-                                                    ? { background: "#f1f5f9", color: "#94a3b8" }
-                                                    : { background: "#fef2f2", color: "#dc2626" }
-                                                  const statusLabel = m.position ? "Ranked" : m.isHM ? "HM" : "Not mentioned"
-                                                  const posLabel = m.position ? `#${m.position}` : m.isHM ? "HM" : "—"
-                                                  return (
-                                                    <tr key={m.model} className="hover:bg-white/40 transition-colors">
-                                                      <td className="px-3 py-2">
-                                                        <div className="flex items-center gap-1.5">
-                                                          <ModelBadge model={m.model} />
-                                                          <span className="text-xs font-medium text-slate-600">{m.model}</span>
-                                                        </div>
-                                                      </td>
-                                                      <td className="px-3 py-2">
-                                                        <span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span>
-                                                      </td>
-                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.mentionCount}</td>
-                                                      <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.citationCount}</td>
-                                                      <td className="px-3 py-2 text-xs text-slate-400 max-w-sm truncate">{m.preview || "—"}</td>
-                                                    </tr>
-                                                  )
-                                                })}
-                                              </tbody>
-                                            </table>
+                                            <div className="space-y-4">
+                                              <table className="w-full text-left">
+                                                <thead>
+                                                  <tr className="border-b border-slate-100">
+                                                    {["Model", "Status", "Mentions", "Citations", "Response Preview"].map(h => (
+                                                      <th key={h} className={`px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest ${["Mentions", "Citations"].includes(h) ? "text-center" : ""}`}>{h}</th>
+                                                    ))}
+                                                  </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100/50">
+                                                  {modelBreakdownCache[p.id].modelRows.map((m: any) => {
+                                                    const statusStyle: React.CSSProperties = m.position
+                                                      ? { background: "#ecfdf5", color: "#059669" }
+                                                      : m.isHM
+                                                      ? { background: "#f1f5f9", color: "#94a3b8" }
+                                                      : { background: "#fef2f2", color: "#dc2626" }
+                                                    const statusLabel = m.position ? "Ranked" : m.isHM ? "HM" : "Not mentioned"
+                                                    return (
+                                                      <tr key={m.model} className="hover:bg-white/40 transition-colors">
+                                                        <td className="px-3 py-2"><div className="flex items-center gap-1.5"><ModelBadge model={m.model} /><span className="text-xs font-medium text-slate-600">{m.model}</span></div></td>
+                                                        <td className="px-3 py-2"><span className="px-1.5 py-0.5 rounded text-xs font-semibold" style={statusStyle}>{statusLabel}</span></td>
+                                                        <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.mentionCount}</td>
+                                                        <td className="px-3 py-2 text-sm font-semibold text-slate-700 text-center">{m.citationCount}</td>
+                                                        <td className="px-3 py-2 text-xs text-slate-400 max-w-sm truncate">{m.preview || "—"}</td>
+                                                      </tr>
+                                                    )
+                                                  })}
+                                                </tbody>
+                                              </table>
+
+                                              {modelBreakdownCache[p.id].citedDomains?.length > 0 && (
+                                                <div>
+                                                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Cited Sources</p>
+                                                  <div className="space-y-1.5">
+                                                    {modelBreakdownCache[p.id].citedDomains.map((d: any) => (
+                                                      <div key={d.domain} className="flex items-center gap-3 px-2 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.5)" }}>
+                                                        <span className="text-sm font-medium text-slate-700 flex-1">{d.domain}</span>
+                                                        <div className="flex gap-1">{d.models.map((m: string) => <ModelBadge key={m} model={m} />)}</div>
+                                                        <span className="text-xs font-bold text-slate-500 w-6 text-right">{d.count}</span>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
                                           )}
                                         </div>
                                       </td>

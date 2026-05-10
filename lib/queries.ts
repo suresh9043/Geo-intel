@@ -28,7 +28,7 @@ export async function getCompanyWithDetails(companyId: string) {
 
   return {
     ...company,
-    competitors: competitorsRes.data?.map(c => ({ name: c.name, url: c.url || "" })) || [],
+    competitors: competitorsRes.data?.map((c: any) => ({ name: c.name, url: c.url || "" })) || [],
     prompts: promptsRes.data || [],
     trackedModels: modelsRes.data || [],
   }
@@ -399,25 +399,49 @@ export async function getPromptModelBreakdown(companyId: string, promptId: strin
     byModel.get(r.requested_model)!.push(r)
   }
 
-  return Array.from(byModel.entries()).map(([model, rows]) => {
+  // Build per-domain citation map across all responses for this prompt
+  const domainMap = new Map<string, { count: number; models: Set<string> }>()
+  for (const r of responses) {
+    const urls: string[] = []
+    if (Array.isArray(r.raw_response?.citations)) {
+      urls.push(...r.raw_response.citations)
+    } else {
+      const matches = r.response_text?.match(/https?:\/\/[^\s\)\]>,"']+/g) || []
+      urls.push(...matches)
+    }
+    for (const url of urls) {
+      try {
+        const domain = new URL(url).hostname.replace('www.', '')
+        if (!domain || domain.length < 4) continue
+        if (!domainMap.has(domain)) domainMap.set(domain, { count: 0, models: new Set() })
+        domainMap.get(domain)!.count++
+        domainMap.get(domain)!.models.add(r.requested_model)
+      } catch {}
+    }
+  }
+
+  const citedDomains = Array.from(domainMap.entries())
+    .map(([domain, data]) => ({ domain, count: data.count, models: Array.from(data.models) }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8)
+
+  const modelRows = Array.from(byModel.entries()).map(([model, rows]) => {
     const total = rows.length
     const mentionedRows = rows.filter(r => {
       const pos = r.positions_json?.[companyName]
       return pos !== null && pos !== undefined
     })
     const mentionCount = mentionedRows.length
-
-    // Total citations across all responses for this model
     const citationCount = rows.reduce((sum, r) => sum + extractCitationCount(r.raw_response, r.response_text || ''), 0)
-
     const latest = rows[0]
     const pos = latest.positions_json?.[companyName]
     const position = (typeof pos === 'number' && pos > 0) ? pos : null
     const isHM = pos === -1
     const preview = latest.response_text?.split('\n').find((l: string) => l.trim().length > 20)?.slice(0, 120) || ''
-
     return { model, total, mentionCount, citationCount, position, isHM, preview, responseText: latest.response_text, id: latest.id }
   })
+
+  return { modelRows, citedDomains }
 }
 
 export async function getCitationStats(companyId: string) {
