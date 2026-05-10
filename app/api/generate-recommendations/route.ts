@@ -102,9 +102,16 @@ export async function POST(req: NextRequest) {
     const promptStats = (promptsRes.data || []).map(p => {
       const pr = responses.filter(r => r.prompt_id === p.id)
       const mentions = pr.filter(r => r.response_text?.toLowerCase().includes(companyName.toLowerCase())).length
-      return { text: p.text, mentionRate: pr.length > 0 ? Math.round((mentions / pr.length) * 100) : 0 }
+      const mentionRate = pr.length > 0 ? Math.round((mentions / pr.length) * 100) : 0
+      return { text: p.text, mentionRate, mentions, total: pr.length }
     })
-    const weakPrompts = promptStats.filter(p => p.mentionRate < 30).map(p => `"${p.text}" (${p.mentionRate}% mention rate)`).join('\n')
+    const weakPrompts = promptStats.filter(p => p.mentionRate < 30 && p.total > 0)
+      .map(p => `"${p.text}" — ${p.mentions}/${p.total} mentions (${p.mentionRate}%)`)
+      .join('\n')
+    const strongPrompts = promptStats.filter(p => p.mentionRate >= 60)
+      .sort((a, b) => b.mentionRate - a.mentionRate)
+      .map(p => `"${p.text}" — ${p.mentions}/${p.total} mentions (${p.mentionRate}%)`)
+      .join('\n')
 
     const competitorDomains = competitorNames.map((n: string) => n.toLowerCase().replace(/\s+/g, '') + '.com').join(', ')
 
@@ -117,18 +124,23 @@ ${modelInsights.join('\n') || 'No data'}
 TOP CITED DOMAINS (AI sources for this category):
 ${topDomains || 'No citation data'}
 
+STRONG PROMPTS (what is already working for ${companyName}):
+${strongPrompts || 'None yet'}
+
 WEAK PROMPTS (low mention rate for ${companyName}):
 ${weakPrompts || 'None'}
 
-Based on this data, generate 4-5 specific, actionable recommendations focused ONLY on:
-1. What content to create (based on competitor citation types - blogs, reviews, listicles etc.)
-2. Which NEUTRAL THIRD-PARTY platforms to get listed/cited on (review sites, analyst reports, news outlets, community forums). NEVER suggest publishing on competitor websites or domains.
-3. Which prompts/topics to create content for (based on weak prompts)
+Based on this data, generate 4-5 specific, actionable recommendations:
+1. What content to create based on competitor citation types (blogs, reviews, listicles etc.)
+2. Which NEUTRAL THIRD-PARTY platforms to get listed/cited on. NEVER suggest competitor domains.
+3. How to build on strong prompts — replicate what is already working.
+4. Which weak prompt topics to create content for to improve visibility.
 
 IMPORTANT RULES:
 - Never suggest publishing on or targeting competitor domains (${competitorDomains} or any competitor website)
 - Only suggest neutral platforms: G2, Capterra, TechCrunch, Forbes, Reddit, Gartner, analyst publications, etc.
-- Be specific about content type and topic. Reference the actual data above.
+- Reference specific prompt text and mention numbers from the data above.
+- Be concrete and actionable.
 
 Return ONLY a JSON array with no markdown, no explanation:
 [{"title":"...","detail":"...","action":"...","priority":"Critical|High|Win"}]`
