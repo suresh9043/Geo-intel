@@ -15,19 +15,21 @@ export async function GET(req: NextRequest) {
 
   const { data: responses } = await db
     .from('raw_responses')
-    .select('id, response_text, positions_json, requested_model')
+    .select('id, response_text, positions_json, requested_model, raw_response, prompt_id, status')
     .eq('company_id', companyId)
-    .eq('status', 'success')
-    .not('response_text', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(5)
+    .limit(20)
 
-  const result = (responses || []).map(r => ({
-    id: r.id,
-    model: r.requested_model,
-    positions_json: r.positions_json,
-    first_300_chars: r.response_text?.slice(0, 300),
-  }))
+  const byModel: Record<string, { success: number; error: number; error_sample: string }> = {}
+  for (const r of (responses || [])) {
+    if (!byModel[r.requested_model]) byModel[r.requested_model] = { success: 0, error: 0, error_sample: '' }
+    if (r.status === 'success') byModel[r.requested_model].success++
+    else {
+      byModel[r.requested_model].error++
+      if (!byModel[r.requested_model].error_sample)
+        byModel[r.requested_model].error_sample = r.response_text?.slice(0, 200) || ''
+    }
+  }
 
-  return NextResponse.json(result, { headers: { 'Content-Type': 'application/json' } })
+  return NextResponse.json({ by_model: byModel }, { headers: { 'Content-Type': 'application/json' } })
 }

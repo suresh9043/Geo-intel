@@ -471,9 +471,6 @@ export default function GeoAuditV2() {
           <section className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Enter a URL to audit</p>
             <div className="flex gap-3 items-center">
-              <div className="h-32 w-32 flex-shrink-0 overflow-hidden" style={{ margin: "-12px" }}>
-                <img src="/mascot.webp" alt="mascot" className="h-full w-full object-contain scale-125" />
-              </div>
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-slate-400" />
