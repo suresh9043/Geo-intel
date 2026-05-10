@@ -5,7 +5,7 @@ const MODEL_SLUGS: Record<string, string> = {
   'GPT-5.3': 'openai/gpt-5.3-chat',
   'GPT-5.5': 'openai/gpt-5.5',
   'Claude Sonnet 4.6': 'anthropic/claude-sonnet-4.6',
-  'Claude Opus 4.6': 'anthropic/claude-opus-4.6-fast',
+  'Claude Opus 4.6': 'anthropic/claude-opus-4.6',
   'Claude Haiku 4.5': 'anthropic/claude-haiku-4.5',
   'Sonar': 'perplexity/sonar',
   'Gemini 3 Flash': 'google/gemini-3.1-flash-lite',
@@ -41,6 +41,7 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
       body: JSON.stringify({
         model: modelSlug,
         messages: [{ role: 'user', content: prompt }],
+        max_tokens: 2048,
         ...(WEB_PLUGIN_MODELS.includes(modelSlug) ? { plugins: [{ id: 'web', max_results: 5 }] } : {}),
       }),
       signal: controller.signal,
@@ -56,7 +57,7 @@ async function queryOpenRouter(prompt: string, modelSlug: string) {
     const data = await res.json()
     return {
       ok: true,
-      text: data.choices[0]?.message?.content || '',
+      text: data.choices?.[0]?.message?.content || '',
       resolvedModel: data.model,
       inputTokens: data.usage?.prompt_tokens || 0,
       outputTokens: data.usage?.completion_tokens || 0,
