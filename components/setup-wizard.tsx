@@ -168,18 +168,26 @@ export function SetupWizard({ onComplete, onSaveExit, initialData }: SetupWizard
     setLoading(true)
     setError("")
     try {
-      const companyId = await saveCompany(user.id, {
-        name: companyName,
-        url: websiteUrl,
-        description,
-        industry: vertical,
-        icpDescription: geography,
-        competitors: competitors.filter(c => c.name.trim()).map(c => c.name),
-        prompts,
-        selectedModels: MODEL_GROUPS.flatMap(g => g.models)
-          .filter(m => selectedModels.includes(m.slug))
-          .map(m => ({ provider: m.provider, model: m.slug })),
+      const saveRes = await fetch('/api/save-company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          name: companyName,
+          url: websiteUrl,
+          description,
+          industry: vertical,
+          icpDescription: geography,
+          competitors: competitors.filter(c => c.name.trim()).map(c => c.name),
+          prompts,
+          selectedModels: MODEL_GROUPS.flatMap(g => g.models)
+            .filter(m => selectedModels.includes(m.slug))
+            .map(m => ({ provider: m.provider, model: m.slug })),
+        }),
       })
+      const saveData = await saveRes.json()
+      if (!saveRes.ok) throw new Error(saveData.error || 'Failed to save company')
+      const companyId = saveData.companyId
 
       // Fire tracking job immediately
       const trackRes = await fetch('/api/track', {

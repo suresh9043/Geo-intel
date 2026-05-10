@@ -83,21 +83,24 @@ export async function saveCompany(userId: string, payload: {
   // Sync competitors
   await supabase.from('competitors').delete().eq('company_id', companyId)
   if (competitors.length > 0) {
-    await supabase.from('competitors').insert(competitors.map(name => ({ company_id: companyId, name })))
+    const { error: ce } = await supabase.from('competitors').insert(competitors.map(name => ({ company_id: companyId, name })))
+    if (ce) throw new Error(`Failed to save competitors: ${ce.message}`)
   }
 
   // Sync prompts
   await supabase.from('prompts').delete().eq('company_id', companyId)
   if (prompts.length > 0) {
-    await supabase.from('prompts').insert(prompts.map(text => ({ company_id: companyId, text, source: 'user', is_active: true })))
+    const { error: pe } = await supabase.from('prompts').insert(prompts.map(text => ({ company_id: companyId, text, source: 'user', is_active: true })))
+    if (pe) throw new Error(`Failed to save prompts: ${pe.message}`)
   }
 
   // Sync tracked models
   await supabase.from('tracked_models').delete().eq('company_id', companyId)
   if (selectedModels.length > 0) {
-    await supabase.from('tracked_models').insert(
+    const { error: me } = await supabase.from('tracked_models').insert(
       selectedModels.map(({ provider, model }) => ({ company_id: companyId, provider, model_slug: model, grounding: 'native', is_active: true }))
     )
+    if (me) throw new Error(`Failed to save models: ${me.message}`)
   }
 
   return companyId
