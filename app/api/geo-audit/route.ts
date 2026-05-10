@@ -314,6 +314,7 @@ export async function POST(req: NextRequest) {
   try {
     const pageData = await scrapePageData(cleanUrl)
     pageData.vertical = vertical || 'saas'
+    console.log('[DEBUG] has_llms_txt:', pageData.has_llms_txt, '| llms url checked:', cleanUrl)
 
     const [crawl, content, schema, authority, competitive] = await Promise.all([
       runAgent('geo-crawl', pageData),
