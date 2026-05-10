@@ -185,7 +185,9 @@ export function SetupWizard({ onComplete, onSaveExit, initialData }: SetupWizard
             .map(m => ({ provider: m.provider, model: m.slug })),
         }),
       })
-      const saveData = await saveRes.json()
+      const saveText = await saveRes.text()
+      let saveData: any
+      try { saveData = JSON.parse(saveText) } catch { throw new Error(`Save failed (HTTP ${saveRes.status}): ${saveText.slice(0, 200)}`) }
       if (!saveRes.ok) throw new Error(saveData.error || 'Failed to save company')
       const companyId = saveData.companyId
 

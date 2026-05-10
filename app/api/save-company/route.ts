@@ -8,6 +8,10 @@ function getServiceClient() {
   )
 }
 
+export async function GET() {
+  return NextResponse.json({ status: 'ok' })
+}
+
 export async function POST(req: NextRequest) {
   try {
     const db = getServiceClient()
