@@ -35,7 +35,6 @@ Return ONLY a JSON array with no extra text or markdown:
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 } as any],
       messages: [{ role: 'user', content: prompt }],
     })
 
