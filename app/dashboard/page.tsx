@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Play, RefreshCw, ExternalLink, ChevronDown, ArrowUp, ArrowDown, Eye, ClipboardList, Clock, Zap, LogOut, Radio, Trophy, Hash, Target, LayoutList, Lightbulb, MessageSquare, Pencil, Trash2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun, getPromptStats, getPromptResponses, getPromptModelBreakdown, getCitationStats } from "@/lib/queries"
+import { getCompanies, getDashboardStats, getRankings, getResponses, getVisibilityPerRun, getPromptStats, getPromptResponses, getPromptModelBreakdown, getCitationStats, getModelCompetitorInsights } from "@/lib/queries"
 import { VisibilityWidget } from "@/components/visibility-chart"
 import { SetupWizard } from "@/components/setup-wizard"
 
@@ -112,6 +112,93 @@ function ZeroState({ companyName, onRunNow }: { companyName: string; onRunNow: (
       <button onClick={onRunNow} className="flex items-center gap-2 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm" style={{ backgroundColor: BRAND }}>
         <Play className="h-3.5 w-3.5" fill="currentColor" /> Run first scan
       </button>
+    </div>
+  )
+}
+
+// --- Recommendations Tab ------------------------------------------------------
+
+const CONTENT_TYPE_COLORS: Record<string, string> = {
+  'Review': '#7c3aed', 'Analyst Report': '#0891b2', 'Blog': '#059669',
+  'News': '#d97706', 'Listicle': '#ea580c', 'Comparison': '#db2777',
+  'Documentation': '#64748b', 'Community': '#8b5cf6', 'Video': '#dc2626',
+  'LinkedIn': '#0077b5', 'GitHub': '#24292e', 'Wikipedia': '#737373',
+  'Web Article': '#94a3b8',
+}
+
+function RecommendationsTab({ companyId, insights, loading, onLoad }: { companyId: string; insights: any[]; loading: boolean; onLoad: () => void }) {
+  useEffect(() => { onLoad() }, [companyId])
+
+  if (loading) return <div className="rounded-xl overflow-hidden" style={glassCard}><CardSkeleton rows={4} /></div>
+
+  if (!insights.length) return (
+    <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+      <Lightbulb className="h-8 w-8 text-slate-300" />
+      <p className="text-sm font-semibold text-slate-600">No insights yet</p>
+      <p className="text-xs text-slate-400">Run tracking across multiple models to see competitor insights.</p>
+    </div>
+  )
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-xl overflow-hidden" style={glassCard}>
+        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center gap-1.5" style={{ background: "rgba(255,255,255,0.5)" }}>
+          <Lightbulb className="h-3.5 w-3.5 text-slate-400" />
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Competitor Insights by Model</h3>
+        </div>
+        <div className="p-4 space-y-3">
+          {insights.map((ins: any, i: number) => {
+            const gapColor = ins.gap > 40 ? "#dc2626" : ins.gap > 20 ? "#d97706" : "#059669"
+            const gapLabel = ins.gap > 40 ? "Critical" : ins.gap > 20 ? "High" : "Watch"
+            const gapBg = ins.gap > 40 ? "#fef2f2" : ins.gap > 20 ? "#fffbeb" : "#ecfdf5"
+            return (
+              <div key={i} className="rounded-xl p-4 space-y-3 border" style={{ background: "rgba(255,255,255,0.5)", borderColor: "rgba(226,232,240,0.6)" }}>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <ModelBadge model={ins.model} />
+                    <span className="text-sm font-bold text-slate-800">{ins.topCompetitor} leads on {ins.model}</span>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: gapBg, color: gapColor }}>{gapLabel}</span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0 text-xs font-semibold">
+                    <span style={{ color: gapColor }}>{ins.topCompetitorVisibility}% visibility</span>
+                    <span className="text-slate-400">vs</span>
+                    <span style={{ color: BRAND }}>{ins.ourVisibility}% yours</span>
+                  </div>
+                </div>
+
+                {/* Citation + content type breakdown */}
+                <div className="flex items-center gap-4 flex-wrap">
+                  {ins.totalCitations > 0 && (
+                    <span className="text-xs text-slate-500">
+                      <span className="font-bold text-slate-700">{ins.totalCitations}</span> citations driving visibility
+                    </span>
+                  )}
+                  {ins.contentTypes.length > 0 ? (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs text-slate-400">Content type:</span>
+                      {ins.contentTypes.map((ct: any) => (
+                        <span key={ct.type} className="px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: CONTENT_TYPE_COLORS[ct.type] || "#94a3b8" }}>
+                          {ct.type} ({ct.count})
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No citation data for this model</span>
+                  )}
+                </div>
+
+                {/* Action */}
+                {ins.contentTypes.length > 0 && (
+                  <p className="text-xs text-slate-500 border-t border-slate-100 pt-2">
+                    <span className="font-semibold text-slate-700">Action:</span> Create {ins.contentTypes[0]?.type.toLowerCase()} content to compete with {ins.topCompetitor} on {ins.model}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
@@ -231,6 +318,8 @@ export default function DashboardV2() {
   const [modelBreakdownCache, setModelBreakdownCache] = useState<Record<string, any>>({})
   const [citationStats, setCitationStats] = useState<any>(null)
   const [citationsLoading, setCitationsLoading] = useState(false)
+  const [competitorInsights, setCompetitorInsights] = useState<any[]>([])
+  const [insightsLoading, setInsightsLoading] = useState(false)
 
   useEffect(() => { if (!authLoading && !user) router.push("/auth") }, [authLoading, user, router])
 
@@ -262,6 +351,7 @@ export default function DashboardV2() {
       setPromptResponsesCache({})
       setModelBreakdownCache({})
       setCitationStats(null)
+      setCompetitorInsights([])
       setTimeout(() => setBarsVisible(true), 100)
     } catch {}
     setLoading(false)
@@ -739,42 +829,18 @@ export default function DashboardV2() {
 
               {/* Recommendations tab */}
               {activeTab === "Recommendations" && (
-                <div className="flex flex-col gap-3">
-                  <div className="rounded-xl overflow-hidden" style={glassCard}>
-                    <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
-                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5"><Lightbulb className="h-3.5 w-3.5 text-slate-400" />Recommendations</h3>
-                      <a href="/dashboard/geo-audit" className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: BRAND }}>
-                        Full audit <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                    <div className="p-4 space-y-2">
-                      {recs.map((rec, i) => {
-                        const cardBg: Record<string, React.CSSProperties> = {
-                          Critical: { background: "rgba(254,242,242,0.5)", border: "1px solid rgba(254,202,202,0.5)" },
-                          High: { background: "rgba(255,247,237,0.5)", border: "1px solid rgba(254,215,170,0.5)" },
-                          Win: { background: "rgba(239,246,255,0.5)", border: "1px solid rgba(191,219,254,0.5)" },
-                        }
-                        const badgeStyle: Record<string, React.CSSProperties> = {
-                          Critical: { background: "#fee2e2", color: "#b91c1c" },
-                          High: { background: "#ffedd5", color: "#c2410c" },
-                          Win: { background: BRAND_LIGHT, color: BRAND },
-                        }
-                        return (
-                          <div key={i} className="flex items-center justify-between p-4 rounded-xl" style={cardBg[rec.priority]}>
-                            <div className="flex gap-3">
-                              <span className="px-1.5 py-0.5 rounded text-xs font-bold h-fit uppercase whitespace-nowrap" style={badgeStyle[rec.priority]}>{rec.priority}</span>
-                              <div>
-                                <p className="text-sm font-bold text-slate-900">{rec.title}</p>
-                                <p className="text-sm text-slate-500 mt-0.5">{rec.detail}</p>
-                              </div>
-                            </div>
-                            <button className="text-sm font-bold whitespace-nowrap ml-4 hover:opacity-80 transition-opacity" style={{ color: BRAND }}>{rec.action} &rarr;</button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
+                <RecommendationsTab
+                  companyId={selectedCompanyId!}
+                  insights={competitorInsights}
+                  loading={insightsLoading}
+                  onLoad={async () => {
+                    if (competitorInsights.length || insightsLoading) return
+                    setInsightsLoading(true)
+                    const data = await getModelCompetitorInsights(selectedCompanyId!)
+                    setCompetitorInsights(data)
+                    setInsightsLoading(false)
+                  }}
+                />
               )}
 
               {/* Visibility tab */}

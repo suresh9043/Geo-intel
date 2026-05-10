@@ -508,6 +508,110 @@ export async function getCitationStats(companyId: string) {
   return { domains, companyDomain, totalCitations, ownCitations }
 }
 
+function classifyUrl(url: string): string {
+  const u = url.toLowerCase()
+  if (u.includes('g2.com') || u.includes('capterra') || u.includes('trustradius')) return 'Review'
+  if (u.includes('gartner') || u.includes('forrester') || u.includes('idc.com')) return 'Analyst Report'
+  if (u.includes('reddit.com')) return 'Community'
+  if (u.includes('youtube') || u.includes('youtu.be')) return 'Video'
+  if (u.includes('linkedin')) return 'LinkedIn'
+  if (u.includes('github')) return 'GitHub'
+  if (u.includes('wikipedia')) return 'Wikipedia'
+  if (/top[\s\-]?\d|best[\s\-]/.test(u)) return 'Listicle'
+  if (u.includes('vs') || u.includes('compar') || u.includes('alternativ')) return 'Comparison'
+  if (u.includes('docs.') || u.includes('/docs/') || u.includes('/documentation/')) return 'Documentation'
+  if (u.includes('/blog/') || u.includes('blog.') || u.includes('/blogs/')) return 'Blog'
+  if (u.includes('techcrunch') || u.includes('forbes') || u.includes('venturebeat') || u.includes('zdnet') || u.includes('wired')) return 'News'
+  return 'Web Article'
+}
+
+export async function getModelCompetitorInsights(companyId: string) {
+  const [companyRes, competitorsRes] = await Promise.all([
+    supabase.from('companies').select('name').eq('id', companyId).single(),
+    supabase.from('competitors').select('name').eq('company_id', companyId),
+  ])
+
+  const companyName = companyRes.data?.name || ''
+  const competitorNames = competitorsRes.data?.map((c: any) => c.name) || []
+  const allBrands = [
+    { name: companyName, isOurBrand: true },
+    ...competitorNames.map((n: string) => ({ name: n, isOurBrand: false })),
+  ]
+
+  const { data: responses } = await supabase
+    .from('raw_responses')
+    .select('response_text, requested_model, raw_response')
+    .eq('company_id', companyId)
+    .eq('status', 'success')
+    .not('response_text', 'is', null)
+    .limit(500)
+
+  if (!responses?.length) return []
+
+  const byModel = new Map<string, any[]>()
+  for (const r of responses) {
+    if (!byModel.has(r.requested_model)) byModel.set(r.requested_model, [])
+    byModel.get(r.requested_model)!.push(r)
+  }
+
+  const insights: any[] = []
+
+  for (const [model, modelResponses] of byModel.entries()) {
+    const total = modelResponses.length
+
+    const brandVisibility = allBrands.map(brand => {
+      const mentions = modelResponses.filter(r =>
+        r.response_text?.toLowerCase().includes(brand.name.toLowerCase())
+      ).length
+      return { ...brand, visibility: Math.round((mentions / total) * 100), mentions }
+    })
+
+    const topCompetitor = brandVisibility
+      .filter(b => !b.isOurBrand)
+      .sort((a, b) => b.visibility - a.visibility)[0]
+    const ourBrand = brandVisibility.find(b => b.isOurBrand)
+
+    if (!topCompetitor || topCompetitor.visibility === 0) continue
+
+    // Collect citations from responses where top competitor is mentioned
+    const competitorResponses = modelResponses.filter(r =>
+      r.response_text?.toLowerCase().includes(topCompetitor.name.toLowerCase())
+    )
+
+    const urls: string[] = []
+    for (const r of competitorResponses) {
+      if (Array.isArray(r.raw_response?.citations)) {
+        urls.push(...r.raw_response.citations)
+      } else {
+        const matches = r.response_text?.match(/https?:\/\/[^\s\)\]>,"']+/g) || []
+        urls.push(...matches)
+      }
+    }
+
+    const typeCounts = new Map<string, number>()
+    for (const url of urls) {
+      try { typeCounts.set(classifyUrl(url), (typeCounts.get(classifyUrl(url)) || 0) + 1) } catch {}
+    }
+
+    const contentTypes = Array.from(typeCounts.entries())
+      .map(([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 4)
+
+    insights.push({
+      model,
+      topCompetitor: topCompetitor.name,
+      topCompetitorVisibility: topCompetitor.visibility,
+      ourVisibility: ourBrand?.visibility || 0,
+      gap: topCompetitor.visibility - (ourBrand?.visibility || 0),
+      totalCitations: urls.length,
+      contentTypes,
+    })
+  }
+
+  return insights.sort((a, b) => b.gap - a.gap)
+}
+
 export async function saveAnalysisResult(userId: string, url: string, analysis: any) {
   const { supabase } = await import("./supabase")
   await supabase.from("analysis_cache").upsert({
