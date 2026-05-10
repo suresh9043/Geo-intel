@@ -601,18 +601,27 @@ export async function getModelCompetitorInsights(companyId: string) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 4)
 
+    const ourVis = ourBrand?.visibility || 0
+    const gap = topCompetitor.visibility - ourVis
+    const weAreleading = ourVis > topCompetitor.visibility
+
     insights.push({
       model,
       topCompetitor: topCompetitor.name,
       topCompetitorVisibility: topCompetitor.visibility,
-      ourVisibility: ourBrand?.visibility || 0,
-      gap: topCompetitor.visibility - (ourBrand?.visibility || 0),
+      ourVisibility: ourVis,
+      gap: Math.abs(gap),
+      weAreLeading: weAreleading,
       totalCitations: urls.length,
       contentTypes,
     })
   }
 
-  return insights.sort((a, b) => b.gap - a.gap)
+  // Sort: losing battles first (biggest gap where competitor leads), then wins
+  return insights.sort((a, b) => {
+    if (a.weAreLeading !== b.weAreLeading) return a.weAreLeading ? 1 : -1
+    return b.gap - a.gap
+  })
 }
 
 export async function saveAnalysisResult(userId: string, url: string, analysis: any) {

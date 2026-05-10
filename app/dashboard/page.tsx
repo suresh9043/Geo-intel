@@ -200,22 +200,25 @@ function RecommendationsTab({ companyId, insights, loading, aiRecs, aiLoading, a
         </div>
         <div className="p-4 space-y-3">
           {insights.map((ins: any, i: number) => {
-            const gapColor = ins.gap > 40 ? "#dc2626" : ins.gap > 20 ? "#d97706" : "#059669"
-            const gapLabel = ins.gap > 40 ? "Critical" : ins.gap > 20 ? "High" : "Watch"
-            const gapBg = ins.gap > 40 ? "#fef2f2" : ins.gap > 20 ? "#fffbeb" : "#ecfdf5"
+            const gapColor = ins.weAreLeading ? "#059669" : ins.gap > 40 ? "#dc2626" : ins.gap > 20 ? "#d97706" : "#64748b"
+            const gapLabel = ins.weAreLeading ? "You lead" : ins.gap > 40 ? "Critical" : ins.gap > 20 ? "High" : "Watch"
+            const gapBg = ins.weAreLeading ? "#ecfdf5" : ins.gap > 40 ? "#fef2f2" : ins.gap > 20 ? "#fffbeb" : "#f8fafc"
+            const heading = ins.weAreLeading
+              ? `You lead ${ins.topCompetitor} on ${ins.model}`
+              : `${ins.topCompetitor} leads on ${ins.model}`
             return (
               <div key={i} className="rounded-xl p-4 space-y-3 border" style={{ background: "rgba(255,255,255,0.5)", borderColor: "rgba(226,232,240,0.6)" }}>
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <ModelBadge model={ins.model} />
-                    <span className="text-sm font-bold text-slate-800">{ins.topCompetitor} leads on {ins.model}</span>
+                    <span className="text-sm font-bold text-slate-800">{heading}</span>
                     <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: gapBg, color: gapColor }}>{gapLabel}</span>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0 text-xs font-semibold">
-                    <span style={{ color: gapColor }}>{ins.topCompetitorVisibility}% visibility</span>
+                    <span style={{ color: ins.weAreLeading ? BRAND : gapColor }}>{ins.ourVisibility}% yours</span>
                     <span className="text-slate-400">vs</span>
-                    <span style={{ color: BRAND }}>{ins.ourVisibility}% yours</span>
+                    <span className="text-slate-500">{ins.topCompetitorVisibility}% {ins.topCompetitor}</span>
                   </div>
                 </div>
 
