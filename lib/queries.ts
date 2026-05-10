@@ -430,16 +430,16 @@ export async function getPromptModelBreakdown(companyId: string, promptId: strin
 
   const modelRows = Array.from(byModel.entries()).map(([model, rows]) => {
     const total = rows.length
-    const mentionedRows = rows.filter(r => {
-      const pos = r.positions_json?.[companyName]
-      return pos !== null && pos !== undefined
-    })
-    const mentionCount = mentionedRows.length
+    // Use text search for mention count — works even before reprocessing
+    const mentionCount = rows.filter(r =>
+      r.response_text?.toLowerCase().includes(companyName.toLowerCase())
+    ).length
     const citationCount = rows.reduce((sum, r) => sum + extractCitationCount(r.raw_response, r.response_text || ''), 0)
     const latest = rows[0]
     const pos = latest.positions_json?.[companyName]
     const position = (typeof pos === 'number' && pos > 0) ? pos : null
-    const isHM = pos === -1
+    // HM: positions_json says -1, OR no positions_json but brand appears in text
+    const isHM = pos === -1 || (pos === undefined && latest.response_text?.toLowerCase().includes(companyName.toLowerCase()))
     const preview = latest.response_text?.split('\n').find((l: string) => l.trim().length > 20)?.slice(0, 120) || ''
     return { model, total, mentionCount, citationCount, position, isHM, preview, responseText: latest.response_text, id: latest.id }
   })

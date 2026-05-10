@@ -127,7 +127,29 @@ const CONTENT_TYPE_COLORS: Record<string, string> = {
 }
 
 function RecommendationsTab({ companyId, insights, loading, onLoad }: { companyId: string; insights: any[]; loading: boolean; onLoad: () => void }) {
-  useEffect(() => { onLoad() }, [companyId])
+  const [aiRecs, setAiRecs] = useState<any[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState('')
+
+  useEffect(() => { onLoad(); setAiRecs([]); setAiError('') }, [companyId])
+
+  const generateAiRecs = async () => {
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const res = await fetch('/api/generate-recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate')
+      setAiRecs(data.recommendations || [])
+    } catch (err: any) {
+      setAiError(err.message)
+    }
+    setAiLoading(false)
+  }
 
   if (loading) return <div className="rounded-xl overflow-hidden" style={glassCard}><CardSkeleton rows={4} /></div>
 
@@ -141,6 +163,54 @@ function RecommendationsTab({ companyId, insights, loading, onLoad }: { companyI
 
   return (
     <div className="flex flex-col gap-3">
+
+      {/* AI-powered recommendations */}
+      <div className="rounded-xl overflow-hidden" style={glassCard}>
+        <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.5)" }}>
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Lightbulb className="h-3.5 w-3.5 text-slate-400" />AI Content Recommendations
+          </h3>
+          <button onClick={generateAiRecs} disabled={aiLoading}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-all"
+            style={{ backgroundColor: BRAND }}>
+            {aiLoading ? <><RefreshCw className="h-3 w-3 animate-spin" />Generating...</> : <><Zap className="h-3 w-3" />Generate with AI</>}
+          </button>
+        </div>
+        {aiError && <p className="text-xs text-red-500 px-4 py-3">{aiError}</p>}
+        {!aiRecs.length && !aiLoading && !aiError && (
+          <p className="text-xs text-slate-400 px-4 py-6 text-center">Click "Generate with AI" to get Haiku-powered content and citation recommendations based on your tracking data.</p>
+        )}
+        {aiRecs.length > 0 && (
+          <div className="p-4 space-y-2">
+            {aiRecs.map((rec: any, i: number) => {
+              const cardBg: Record<string, React.CSSProperties> = {
+                Critical: { background: "rgba(254,242,242,0.5)", border: "1px solid rgba(254,202,202,0.5)" },
+                High: { background: "rgba(255,247,237,0.5)", border: "1px solid rgba(254,215,170,0.5)" },
+                Win: { background: "rgba(239,246,255,0.5)", border: "1px solid rgba(191,219,254,0.5)" },
+              }
+              const badgeStyle: Record<string, React.CSSProperties> = {
+                Critical: { background: "#fee2e2", color: "#b91c1c" },
+                High: { background: "#ffedd5", color: "#c2410c" },
+                Win: { background: BRAND_LIGHT, color: BRAND },
+              }
+              const bg = cardBg[rec.priority] || cardBg.Win
+              const badge = badgeStyle[rec.priority] || badgeStyle.Win
+              return (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={bg}>
+                  <span className="px-1.5 py-0.5 rounded text-xs font-bold uppercase whitespace-nowrap h-fit" style={badge}>{rec.priority}</span>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{rec.title}</p>
+                    <p className="text-sm text-slate-500 mt-0.5">{rec.detail}</p>
+                    {rec.action && <p className="text-xs font-semibold mt-1" style={{ color: BRAND }}>→ {rec.action}</p>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Competitor insights by model */}
       <div className="rounded-xl overflow-hidden" style={glassCard}>
         <div className="px-4 py-2.5 border-b border-slate-200/60 flex items-center gap-1.5" style={{ background: "rgba(255,255,255,0.5)" }}>
           <Lightbulb className="h-3.5 w-3.5 text-slate-400" />
